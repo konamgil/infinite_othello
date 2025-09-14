@@ -1,0 +1,17 @@
+# Node
+node_modules/
+dist/
+.turbo/
+.pnpm-store/
+.DS_Store
+*.log
+*.tmp
+.env*
+
+# Vite
+apps/web/dist/
+
+# Build caches
+coverage/
+.cache/
+

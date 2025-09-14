@@ -1,0 +1,356 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 인피니트 탑 글로벌 스타일 */
+
+@layer base {
+  /* 기본 폰트 및 레이아웃 - 우주 밤하늘 스타일 */
+  html, body {
+    width: 100%;
+    height: 100dvh; /* 동적 뷰포트 높이 우선 */
+    height: 100vh; /* 폴백 */
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Roboto', system-ui, sans-serif;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15), transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2), transparent 50%),
+      linear-gradient(180deg, #000003 0%, #02020e 50%, #050514 100%);
+    color: #ffffff; /* 별빛 텍스트 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden; /* 전체 페이지 스크롤 방지 - 모바일 앱 스타일 */
+    overflow-x: hidden; /* 가로 스크롤 완전 차단 */
+
+    /* 모바일 확대/축소 완전 방지 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    /* 모바일 브라우저 UI 최적화 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  /* 모든 요소에서 가로 스크롤 방지 */
+  *, *::before, *::after {
+    max-width: 100%;
+  }
+
+  /* 반응형 앱 셸 - 우주 탑 올라가기 */
+  .app-shell {
+    width: 100%;
+    max-width: 430px; /* 대형 폰까지 대응 */
+    min-width: 320px;  /* 최소 폰 사이즈 */
+    min-height: 100vh;
+    margin: 0 auto;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.05), transparent 40%),
+      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.08), transparent 30%),
+      linear-gradient(180deg, rgba(0, 0, 3, 0.9) 0%, rgba(2, 2, 14, 0.95) 100%);
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 데스크톱에서만 그림자 효과 */
+  @media (min-width: 768px) {
+    .app-shell {
+      max-width: 390px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  /* 데스크톱 좌우 배경 - 신비로운 무한 탑 분위기 강화 */
+  .gutters {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(50% 60% at 50% -10%, rgba(231, 177, 66, 0.08), transparent 70%),
+      radial-gradient(80% 100% at 20% 100%, rgba(124, 106, 240, 0.12), transparent 60%),
+      radial-gradient(60% 80% at 80% 20%, rgba(99, 102, 241, 0.06), transparent 50%),
+      linear-gradient(180deg, theme('colors.tower.deep.200') 0%, theme('colors.tower.deep.300') 60%, theme('colors.tower.deep.200') 100%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* 세이프 에리어 대응 */
+  .safe-area-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  /* 스크롤바 완전히 숨기기 */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+}
+
+@layer components {
+  /* 카드 컴포넌트 - 우주 별빛 스타일 */
+  .card {
+    @apply rounded-xl p-6;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1), transparent 40%),
+      linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(10, 10, 26, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 별빛 테두리 */
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 30px rgba(99, 102, 241, 0.05); /* 성운 글로우 */
+    backdrop-filter: blur(15px);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 8px 30px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 0 40px rgba(139, 92, 246, 0.15); /* 은하 글로우 강화 */
+  }
+
+  .card-hover {
+    @apply card active:from-tower-deep-50 active:to-tower-deep-100 transition-all duration-150 cursor-pointer;
+    &:active {
+      box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(231, 177, 66, 0.15);
+    }
+  }
+
+  /* 버튼 스타일 - 별빛 유성 느낌 */
+  .btn-primary {
+    @apply px-6 py-3 font-medium
+           active:scale-95 transition-all duration-300
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+    color: #ffffff;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-radius: 12px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    box-shadow:
+      0 4px 15px rgba(245, 158, 11, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 25px rgba(245, 158, 11, 0.2); /* 유성 글로우 */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:active {
+    box-shadow:
+      0 2px 8px rgba(245, 158, 11, 0.4),
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 0 35px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-secondary {
+    @apply bg-tower-silver-500 text-tower-silver-100 px-4 py-2 rounded-lg font-semibold
+           active:bg-tower-silver-400 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-tower-danger-500 text-white px-4 py-2 rounded-lg font-semibold
+           active:bg-tower-danger-400 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* 입력 필드 - 보더 제거, 그림자와 배경으로 구분 */
+  .input-field {
+    @apply bg-tower-deep-200 rounded-lg px-3 py-2 shadow-inner
+           text-tower-silver-100 placeholder-tower-silver-400
+           focus:bg-tower-deep-100 focus:shadow-lg focus:outline-none
+           transition-all duration-200;
+  }
+
+  /* 헤더 스타일 - 미니멀 우주 */
+  .header {
+    @apply h-14 flex items-center justify-between px-4 safe-area-top;
+    background: transparent;
+    border: none;
+    backdrop-filter: none;
+  }
+
+  .header h1 {
+    font-family: 'Inter', 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: none;
+  }
+
+  /* 바텀 네비게이션 - 미니멀 우주 */
+  .bottom-nav {
+    @apply flex items-center justify-around;
+    background: rgba(0, 0, 3, 0.8);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    height: 70px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* 터치 타겟 */
+  .touch-target {
+    @apply min-w-12 min-h-12 flex items-center justify-center;
+  }
+
+  /* 탭 버튼 - 미니멀 우주 스타일 */
+  .tab-button {
+    @apply touch-target flex flex-col items-center gap-1 text-xs font-medium
+           text-white/40 active:text-white/70 transition-colors duration-200;
+  }
+
+  .tab-button.active {
+    @apply text-yellow-400;
+  }
+
+  /* 글로우 효과 제거 - 고요한 기본 원칙 */
+  .glow-effect {
+    @apply shadow-md;
+  }
+
+  .glow-effect-strong {
+    @apply shadow-lg;
+  }
+}
+
+@layer utilities {
+  /* 터치/제스처 관련 */
+  .touch-manipulation {
+    touch-action: manipulation;
+    overscroll-behavior: contain;
+  }
+
+  /* 애니메이션 유틸리티 - 고요한 기본 + 순간 피크 */
+  .animate-pulse-slow {
+    animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* 히어로 전용 호흡 애니메이션 (유일한 지속 애니메이션) */
+  .animate-breath {
+    animation: breath 2.5s ease-in-out infinite;
+  }
+
+  @keyframes breath {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.02);
+      opacity: 1;
+    }
+  }
+
+  /* 순간 피크 - 버튼 press 전용 */
+  .animate-peak-ring {
+    animation: peak-ring 180ms ease-out;
+  }
+
+  @keyframes peak-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+  }
+
+  /* 그라데이션 유틸리티 */
+  .bg-tower-gradient {
+    background: linear-gradient(180deg, theme('colors.tower.deep.100') 0%, theme('colors.tower.deep.200') 100%);
+  }
+
+  .bg-victory-gradient {
+    background: radial-gradient(circle, rgba(252, 211, 77, 0.2) 0%, transparent 70%);
+  }
+
+  .bg-defeat-gradient {
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
+  }
+
+  /* 반응형 유틸리티 (390px 고정이지만 컨텐츠용) */
+  /* 일본 미니멀 여백의 미 */
+  .content-padding {
+    @apply px-8; /* 더 넓은 좌우 여백 */
+  }
+
+  .section-spacing {
+    @apply py-8; /* 더 넓은 상하 여백 */
+  }
+
+  .japanese-spacing {
+    @apply my-12; /* 섹션간 큰 여백으로 여백의 미 구현 */
+  }
+
+  /* Glow effects */
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+  }
+
+  /* Tower visual */
+  .tower-visual {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .tower-floor {
+    transition: all 0.3s ease;
+  }
+
+  /* 별 패턴 배경 - 밤하늘 우주 */
+  .space-starfield {
+    background-image:
+      radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.4), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.7), transparent),
+      url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpolygon points='100,0 120,80 200,80 140,126 160,200 100,154 40,200 60,126 0,80 80,80'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px, 180px 180px, 300px 300px, 250px 250px, 400px 400px, 200px 200px;
+  }
+
+  .space-constellation {
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3Ccircle cx='80' cy='30' r='1.5'/%3E%3Ccircle cx='50' cy='60' r='1'/%3E%3Ccircle cx='30' cy='80' r='2'/%3E%3Ccircle cx='70' cy='70' r='1'/%3E%3Cline x1='20' y1='20' x2='80' y2='30' stroke='%23ffffff' stroke-opacity='0.05' stroke-width='0.5'/%3E%3Cline x1='50' y1='60' x2='30' y2='80' stroke='%23ffffff' stroke-opacity='0.05' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
