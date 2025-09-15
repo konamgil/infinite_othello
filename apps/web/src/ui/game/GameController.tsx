@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameBoard, BoardState } from './GameBoard';
-import { Layout } from '../common/Layout';
-import { RotateCcw, Play, Pause, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { RotateCcw, Play, Pause, Home, ArrowLeft } from 'lucide-react';
 
 interface GameControllerProps {
   title?: string;
@@ -82,10 +82,11 @@ function getValidMoves(board: number[][], player: 'black' | 'white'): Array<{ x:
 }
 
 // 수를 두고 돌 뒤집기
-function makeMove(board: number[][], x: number, y: number, player: 'black' | 'white'): number[][] {
+function makeMove(board: number[][], x: number, y: number, player: 'black' | 'white'): { newBoard: number[][], flipped: Array<{x: number, y: number}> } {
   const newBoard = board.map(row => [...row]);
   const playerValue = player === 'black' ? 1 : -1;
   const opponentValue = player === 'black' ? -1 : 1;
+  const allFlipped: Array<{x: number, y: number}> = [];
 
   newBoard[y][x] = playerValue;
 
@@ -96,7 +97,7 @@ function makeMove(board: number[][], x: number, y: number, player: 'black' | 'wh
   ];
 
   for (const [dx, dy] of directions) {
-    const toFlip = [];
+    const toFlip: Array<{x: number, y: number}> = [];
     let nx = x + dx;
     let ny = y + dy;
 
@@ -104,10 +105,11 @@ function makeMove(board: number[][], x: number, y: number, player: 'black' | 'wh
       if (newBoard[ny][nx] === 0) break;
 
       if (newBoard[ny][nx] === opponentValue) {
-        toFlip.push([nx, ny]);
+        toFlip.push({x: nx, y: ny});
       } else if (newBoard[ny][nx] === playerValue) {
-        toFlip.forEach(([fx, fy]) => {
-          newBoard[fy][fx] = playerValue;
+        toFlip.forEach((coord) => {
+          newBoard[coord.y][coord.x] = playerValue;
+          allFlipped.push(coord);
         });
         break;
       } else {
@@ -119,13 +121,14 @@ function makeMove(board: number[][], x: number, y: number, player: 'black' | 'wh
     }
   }
 
-  return newBoard;
+  return { newBoard, flipped: allFlipped };
 }
 
 export function GameController({ title = "게임", opponent = 'ai', difficulty = 'medium' }: GameControllerProps) {
   const [gameState, setGameState] = useState<BoardState>(() => createInitialBoard());
   const [gameStatus, setGameStatus] = useState<'playing' | 'paused' | 'finished'>('playing');
   const [moveHistory, setMoveHistory] = useState<Array<{ x: number; y: number; player: 'black' | 'white' }>>([]);
+  const [lastFlippedDiscs, setLastFlippedDiscs] = useState<Array<{x: number, y: number}>>([]);
 
   // 게임 상태 업데이트
   useEffect(() => {
@@ -140,10 +143,10 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
     const isValid = gameState.validMoves.some(move => move.x === x && move.y === y);
     if (!isValid) return;
 
-    // 수 두기
-    const newBoard = makeMove(gameState.board, x, y, gameState.currentPlayer);
+    const { newBoard, flipped } = makeMove(gameState.board, x, y, gameState.currentPlayer);
     const nextPlayer = gameState.currentPlayer === 'black' ? 'white' : 'black';
 
+    setLastFlippedDiscs(flipped);
     setGameState({
       board: newBoard,
       currentPlayer: nextPlayer,
@@ -158,6 +161,7 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
     setGameState(createInitialBoard());
     setGameStatus('playing');
     setMoveHistory([]);
+    setLastFlippedDiscs([]);
   };
 
   // 게임 일시정지/재개
@@ -179,101 +183,125 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
 
   const score = getScore();
 
+  const navigate = useNavigate();
+
   return (
-    <Layout
-      title={title}
-      showBackButton
-      rightAction={
+    <div className="h-full w-full overflow-hidden relative bg-black/90">
+      {/* 신비로운 배경 이팩트 */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/10 to-blue-900/20"></div>
+
+        {/* 미니멀한 별빛 효과 */}
+        <div className="absolute top-10 left-20 w-1 h-1 bg-white/60 rounded-full animate-pulse"></div>
+        <div className="absolute top-32 right-16 w-0.5 h-0.5 bg-blue-300/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-40 left-12 w-1.5 h-1.5 bg-purple-300/50 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-60 right-24 w-0.5 h-0.5 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      </div>
+
+      {/* 컴팩한 상단 헤더 */}
+      <div className="relative z-20 flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm
+                   text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300"
+        >
+          <ArrowLeft size={18} />
+          <span className="font-smooth text-sm">돌아가기</span>
+        </button>
+
+        <h1 className="font-smooth font-semibold text-white/90">{title}</h1>
+
         <button
           onClick={togglePause}
-          className="touch-target hover:bg-tower-deep-50 rounded-lg transition-colors"
+          className="p-2 rounded-xl bg-white/10 backdrop-blur-sm
+                   text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300"
           aria-label={gameStatus === 'playing' ? '일시정지' : '재개'}
         >
           {gameStatus === 'playing' ? (
-            <Pause size={20} className="text-tower-silver-300" />
+            <Pause size={18} />
           ) : (
-            <Play size={20} className="text-tower-silver-300" />
+            <Play size={18} />
           )}
         </button>
-      }
-    >
-      <div className="flex flex-col items-center content-padding section-spacing">
-        {/* 게임 정보 */}
-        <div className="w-full grid grid-cols-3 gap-4 mb-6">
+      </div>
+
+      {/* 메인 게임 영역 */}
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 p-4">
+        {/* 컴팩한 게임 정보 - 상단에 한 줄로 */}
+        <div className="w-full max-w-md flex items-center justify-between mb-4 px-6 py-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           {/* 흑돌 점수 */}
-          <div className="card text-center">
-            <div className="w-8 h-8 bg-gray-800 rounded-full mx-auto mb-2"></div>
-            <div className="text-lg font-bold text-tower-silver-200">{score.black}</div>
-            <div className="text-xs text-tower-silver-400">Black</div>
-            {gameState.currentPlayer === 'black' && (
-              <div className="w-2 h-2 bg-tower-gold-400 rounded-full mx-auto mt-1"></div>
-            )}
+          <div className="flex items-center gap-2">
+            <div className={`w-6 h-6 bg-gray-800 rounded-full transition-all duration-300 ${
+              gameState.currentPlayer === 'black' ? 'ring-2 ring-orange-400 ring-opacity-60' : ''
+            }`}></div>
+            <div className="text-white/90 font-smooth font-semibold">{score.black}</div>
           </div>
 
-          {/* 현재 턴 */}
-          <div className="card text-center">
-            <div className="text-sm text-tower-silver-400 mb-1">현재 턴</div>
-            <div className="text-lg font-bold text-tower-gold-400">
-              {gameState.currentPlayer === 'black' ? 'Black' : 'White'}
-            </div>
-            <div className="text-xs text-tower-silver-500">
-              {moveHistory.length}수
+          {/* 턴 인디케이터 */}
+          <div className="text-center">
+            <div className="text-xs text-white/60 font-smooth">{moveHistory.length}번째 수</div>
+            <div className="text-sm font-smooth font-semibold text-orange-400">
+              {gameState.currentPlayer === 'black' ? '흑돌' : '백돌'} 차례
             </div>
           </div>
 
           {/* 백돌 점수 */}
-          <div className="card text-center">
-            <div className="w-8 h-8 bg-gray-200 rounded-full mx-auto mb-2"></div>
-            <div className="text-lg font-bold text-tower-silver-200">{score.white}</div>
-            <div className="text-xs text-tower-silver-400">White</div>
-            {gameState.currentPlayer === 'white' && (
-              <div className="w-2 h-2 bg-tower-gold-400 rounded-full mx-auto mt-1"></div>
-            )}
+          <div className="flex items-center gap-2">
+            <div className="text-white/90 font-smooth font-semibold">{score.white}</div>
+            <div className={`w-6 h-6 bg-gray-200 rounded-full transition-all duration-300 ${
+              gameState.currentPlayer === 'white' ? 'ring-2 ring-orange-400 ring-opacity-60' : ''
+            }`}></div>
           </div>
         </div>
 
-        {/* 게임 보드 */}
-        <div className="mb-6">
+        {/* 게임 보드 - 화면에 거의 근접하게 */}
+        <div className="w-full max-w-lg mb-4">
           <GameBoard
             boardState={gameState}
             onCellClick={handleCellClick}
             disabled={gameStatus !== 'playing'}
+            flippedDiscs={lastFlippedDiscs}
           />
         </div>
 
-        {/* 게임 컨트롤 */}
-        <div className="w-full">
-          <div className="grid grid-cols-2 gap-4">
+        {/* 컴팩한 게임 컨트롤 */}
+        <div className="w-full max-w-md">
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={resetGame}
-              className="btn-secondary flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+                       bg-white/10 backdrop-blur-sm border border-white/20
+                       text-white/80 font-smooth hover:bg-white/20 hover:text-white
+                       active:scale-95 transition-all duration-300"
             >
               <RotateCcw size={16} />
               다시 시작
             </button>
 
-            <button className="btn-primary">
+            <button className="py-3 px-4 rounded-xl bg-red-500/20 backdrop-blur-sm border border-red-500/30
+                             text-red-300 font-smooth hover:bg-red-500/30 hover:text-red-200
+                             active:scale-95 transition-all duration-300">
               항복하기
             </button>
           </div>
         </div>
 
-        {/* 상태 메시지 */}
+        {/* 상태 메시지 - 컴팩하고 우아하게 */}
         {gameStatus === 'paused' && (
-          <div className="card mt-4 text-center bg-tower-deep-50">
-            <p className="text-tower-silver-300">게임이 일시정지되었습니다</p>
+          <div className="mt-4 p-4 rounded-2xl bg-yellow-500/20 backdrop-blur-sm border border-yellow-500/30 text-center">
+            <p className="text-yellow-300 font-smooth">게임이 일시정지되었습니다</p>
           </div>
         )}
 
         {gameState.validMoves.length === 0 && gameStatus === 'playing' && (
-          <div className="card mt-4 text-center bg-yellow-900/20">
-            <p className="text-yellow-300">
-              {gameState.currentPlayer === 'black' ? 'Black' : 'White'} 플레이어가 둘 수 있는 곳이 없습니다.
+          <div className="mt-4 p-4 rounded-2xl bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 text-center">
+            <p className="text-blue-300 font-smooth">
+              {gameState.currentPlayer === 'black' ? '흑돌' : '백돌'} 플레이어가 둡 수 없는 상황입니다.
             </p>
-            <p className="text-xs text-yellow-400 mt-1">턴이 자동으로 넘어갑니다.</p>
+            <p className="text-xs text-blue-400 mt-1 font-smooth">턴이 자동으로 넘어갑니다.</p>
           </div>
         )}
       </div>
-    </Layout>
+    </div>
   );
 }

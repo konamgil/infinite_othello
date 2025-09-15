@@ -604,6 +604,7 @@ export class CanvasFX {
     const layer = this.layers.get(name);
     if (layer) {
       layer.active = active;
+      layer.canvas.style.display = active ? 'block' : 'none';
     }
   }
 

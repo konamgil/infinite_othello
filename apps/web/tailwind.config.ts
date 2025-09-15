@@ -92,16 +92,19 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Rajdhani', 'system-ui', 'sans-serif'],
-        display: ['Orbitron', 'Rajdhani', 'system-ui', 'sans-serif'],
+        sans: ['IBM Plex Sans KR', 'Exo 2', 'system-ui', 'sans-serif'],
+        display: ['Orbitron', 'IBM Plex Sans KR', 'system-ui', 'sans-serif'],
+        title: ['Rajdhani', 'IBM Plex Sans KR', 'system-ui', 'sans-serif'],
+        korean: ['IBM Plex Sans KR', 'system-ui', 'sans-serif'],
+        smooth: ['IBM Plex Sans KR', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'xs': '12px',
-        'sm': '14px',
-        'base': '16px',
-        'lg': '18px',
-        'xl': '20px',
-        '2xl': '24px',
+        'xs': ['12px', { lineHeight: '1.5', letterSpacing: '0.025em' }],
+        'sm': ['14px', { lineHeight: '1.6', letterSpacing: '0.02em' }],
+        'base': ['16px', { lineHeight: '1.7', letterSpacing: '0.01em' }],
+        'lg': ['18px', { lineHeight: '1.6', letterSpacing: '0.005em' }],
+        'xl': ['20px', { lineHeight: '1.5', letterSpacing: '0em' }],
+        '2xl': ['24px', { lineHeight: '1.4', letterSpacing: '-0.005em' }],
       },
       spacing: {
         '18': '72px', // 바텀 네비게이션 높이

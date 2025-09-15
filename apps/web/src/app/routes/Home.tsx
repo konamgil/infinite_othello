@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout } from '../../ui/common/Layout';
 import { useGameStore } from '../../store/gameStore';
 import { ParticleSystem } from '../../ui/effects/ParticleSystem';
+import { OthelloStarCanvas } from '../../ui/game/OthelloStarCanvas';
 import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../ui/fx/FXHooks';
 import { haptic } from '../../ui/feedback/HapticFeedback';
 import {
@@ -64,17 +64,24 @@ export default function Home() {
   };
 
   return (
-    <Layout hideHeader>
-      <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
-        {/* 히어로 섹션 - 게임처럼 멋진 우주 배경 */}
+    <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
+        {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
         <div className="relative min-h-96 overflow-hidden">
-          {/* 파티클 배경 - 미묘하게 */}
+          {/* 별빛 오델로 캔버스 */}
           <div className="absolute inset-0">
-            <ParticleSystem
-              type="floating"
-              intensity={20}
-              colors={['rgba(255,255,255,0.3)', 'rgba(251,191,36,0.4)', 'rgba(96,165,250,0.3)']}
-              className="w-full h-full"
+            <OthelloStarCanvas
+             width={400}
+        height={400}
+        boardScale={1.0}
+        perspectiveSkew={2}
+        safeBottom={72}      // 하단 탭이 있으면 지정
+        fpsCap={45}          // 성능 세이브
+        // 필요시 토글:
+        enableExtrusion
+        enableCornerFlares
+        enableRayImpacts
+        enableDiscGlints
+        enableSweep
             />
           </div>
 
@@ -83,163 +90,156 @@ export default function Home() {
             {/* 게임 로고/타이틀 */}
             <div className="mb-8">
               <div className="relative inline-block">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent mb-3">
-                  오델로 나이트
+                <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent mb-3 tracking-wider">
+                  OTHELLO KNIGHT
                 </h1>
                 <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400/20 to-blue-400/20 rounded-lg blur-lg"></div>
               </div>
-              <p className="text-lg text-white/80 font-medium">무한의 우주탑을 정복하라</p>
             </div>
 
-            {/* 플레이어 스테이터스 - 게임UI 스타일 */}
-            <div className="flex justify-center items-center gap-6 mb-8">
-              {/* 현재 층수 */}
-              <div className="relative">
-                <div className="bg-black/40 backdrop-blur-md border border-yellow-400/30 rounded-2xl px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
-                      <Crown size={24} className="text-black" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-yellow-400/80 font-semibold">FLOOR</div>
-                      <div className="text-xl font-bold text-white">{player.towerProgress}</div>
-                    </div>
-                  </div>
+            {/* 신비로운 상태 표시 - 미니멀하고 우아하게 */}
+            <div className="flex justify-center items-center gap-8 mb-12">
+              {/* 현재 층수 - 별빛 스타일 */}
+              <div className="relative group">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-display text-yellow-400/90 tracking-wider">{player.towerProgress}</span>
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-2xl blur"></div>
+                <div className="absolute -inset-1 bg-yellow-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
 
-              {/* 온라인 플레이어 */}
-              <div className="bg-black/40 backdrop-blur-md border border-green-400/30 rounded-2xl px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <div>
-                    <div className="text-xs text-green-400/80 font-semibold">ONLINE</div>
-                    <div className="text-lg font-bold text-white">2,847</div>
-                  </div>
+              {/* 온라인 상태 - 별빛 스타일 */}
+              <div className="relative group">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-display text-green-400/90 tracking-wider">2,847</span>
                 </div>
+                <div className="absolute -inset-1 bg-green-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 메인 CTA 버튼 - 게임 스타일 */}
-        <div className="px-6 mb-8">
-          <div className="relative">
-            {/* 버튼 글로우 효과 */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur opacity-30"></div>
+        {/* 신비로운 입장 버튼 - 별빛에 조화 */}
+        <div className="px-8 mb-12">
+          <button
+            onClick={handleTowerChallenge}
+            className="group relative w-full py-4 px-8 rounded-full
+                     bg-white/10 backdrop-blur-md border border-white/20
+                     active:scale-95 transition-all duration-300
+                     flex items-center justify-center gap-3
+                     hover:bg-white/15 hover:border-white/30"
+          >
+            {/* 버튼 내부 별빛 효과 */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
-            <button
-              onClick={handleTowerChallenge}
-              className="relative w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black
-                       py-5 rounded-2xl font-bold text-xl
-                       active:scale-95 transition-all duration-200
-                       flex items-center justify-center gap-4
-                       shadow-2xl border-2 border-yellow-300/50
-                       hover:shadow-yellow-400/40 hover:shadow-2xl"
-            >
-              <div className="flex items-center justify-center gap-4">
-                <div className="w-8 h-8 bg-black/20 rounded-full flex items-center justify-center">
-                  <Zap size={20} className="text-white" />
-                </div>
-                <span className="tracking-wide">우주탑 정복 시작!</span>
-                <ArrowRight size={22} />
+            <div className="relative flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400/80 to-blue-400/80 flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               </div>
+              <span className="font-display text-white/90 tracking-wider text-lg">ENTER</span>
+            </div>
 
-              {/* 버튼 하이라이트 */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-transparent rounded-2xl pointer-events-none"></div>
-            </button>
-          </div>
+            {/* 호버 시 글로우 */}
+            <div className="absolute -inset-1 bg-white/10 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+          </button>
         </div>
 
-        {/* 플레이어 상태 대시보드 */}
-        <div className="content-padding mt-6">
-          <div className="grid grid-cols-2 gap-4">
-            {/* 레이팅 배지 */}
-            <div
-              id="rating-badge"
-              className="card"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-tower-gold-400 rounded-full
-                              flex items-center justify-center shadow-sm">
-                  <Crown size={18} className="text-tower-deep-500" />
+        {/* 신비로운 상태 정보 - 별빛 스타일 */}
+        <div className="px-8 mt-6">
+          <div className="grid grid-cols-2 gap-6">
+            {/* 랭크 */}
+            <div className="relative group">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 flex items-center justify-center">
+                  <Crown size={16} className="text-yellow-400/80" />
                 </div>
                 <div>
-                  <div className="text-sm text-tower-silver-400">랭크</div>
-                  <div className="font-bold text-tower-gold-400">{player.rank}</div>
-                  <div className="text-xs text-tower-silver-500">{player.rp} RP</div>
+                  <div className="text-xs text-white/60 font-display tracking-wide">{player.rank}</div>
+                  <div className="text-sm font-display text-yellow-400/90 tracking-wider">{player.rp} RP</div>
                 </div>
               </div>
+              <div className="absolute -inset-1 bg-yellow-400/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </div>
 
             {/* 승률 */}
-            <div className="card">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-500 rounded-full
-                              flex items-center justify-center shadow-sm">
-                  <TrendingUp size={18} className="text-white" />
+            <div className="relative group">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400/20 to-emerald-500/20 flex items-center justify-center">
+                  <TrendingUp size={16} className="text-green-400/80" />
                 </div>
                 <div>
-                  <div className="text-sm text-tower-silver-400">승률</div>
-                  <div className="font-bold text-green-400">
+                  <div className="text-xs text-white/60 font-display tracking-wide">WIN RATE</div>
+                  <div className="text-sm font-display text-green-400/90 tracking-wider">
                     {Math.round((player.wins / (player.wins + player.losses)) * 100) || 0}%
-                  </div>
-                  <div className="text-xs text-tower-silver-500">
-                    {player.wins}승 {player.losses}패
                   </div>
                 </div>
               </div>
+              <div className="absolute -inset-1 bg-green-400/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </div>
           </div>
         </div>
 
-        {/* 빠른 액션 버튼들 */}
-        <div className="content-padding mt-6" ref={gameLayerRef}>
-          <h3 className="text-lg font-bold text-tower-silver-200 mb-4 flex items-center gap-2">
-            <Play size={20} className="text-tower-gold-400" />
-            빠른 시작
-          </h3>
+        {/* 신비로운 액션 메뉴 */}
+        <div className="px-8 mt-8" ref={gameLayerRef}>
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+              <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+              <span className="text-sm font-display text-white/60 tracking-wider">QUICK START</span>
+            </div>
+          </div>
 
-          <div className="space-y-3">
-            {/* 랭크 대전 */}
+          <div className="space-y-4">
+            {/* 랭크 대전 - 별빛 스타일 */}
             <button
               onClick={handleQuickBattle}
-              className="w-full card active:bg-tower-deep-50 transition-colors duration-150
-                       flex items-center justify-between p-4"
+              className="group w-full flex items-center justify-between p-5 rounded-2xl
+                       bg-white/5 backdrop-blur-sm border border-white/10
+                       hover:bg-white/10 hover:border-white/20
+                       active:scale-95 transition-all duration-300"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-500 rounded-lg shadow-sm
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20
                               flex items-center justify-center">
-                  <Swords size={22} className="text-white" />
+                  <Swords size={20} className="text-red-400/80" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-tower-silver-200">랭크 대전</div>
-                  <div className="text-sm text-tower-silver-400">실력을 겨뤄보세요</div>
+                  <div className="font-display text-white/90 tracking-wide">RANKED</div>
+                  <div className="text-xs text-white/50 font-display tracking-wider">BATTLE</div>
                 </div>
               </div>
-              <div className="text-green-400 font-bold">+25 RP</div>
+              <div className="flex items-center gap-2">
+                <div className="text-green-400/80 font-display text-sm tracking-wider">+25 RP</div>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              </div>
+              <div className="absolute -inset-1 bg-red-400/5 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </button>
 
-            {/* 스텔라 학습 */}
+            {/* 스텔라 학습 - 별빛 스타일 */}
             <button
               onClick={() => navigate('/stella')}
-              className="w-full card active:bg-tower-deep-50 transition-colors duration-150
-                       flex items-center justify-between p-4"
+              className="group w-full flex items-center justify-between p-5 rounded-2xl
+                       bg-white/5 backdrop-blur-sm border border-white/10
+                       hover:bg-white/10 hover:border-white/20
+                       active:scale-95 transition-all duration-300"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-400 rounded-lg shadow-sm
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20
                               flex items-center justify-center">
-                  <Star size={22} className="text-white" />
+                  <Star size={20} className="text-purple-400/80" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-tower-silver-200">스텔라와 학습</div>
-                  <div className="text-sm text-tower-silver-400">AI 멘토의 가이드</div>
+                  <div className="font-display text-white/90 tracking-wide">STELLA</div>
+                  <div className="text-xs text-white/50 font-display tracking-wider">AI MENTOR</div>
                 </div>
               </div>
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">3</span>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-400/20 flex items-center justify-center">
+                  <span className="text-green-400 text-xs font-display">3</span>
+                </div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
               </div>
+              <div className="absolute -inset-1 bg-purple-400/5 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </button>
           </div>
         </div>
@@ -307,6 +307,5 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }
