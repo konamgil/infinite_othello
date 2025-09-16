@@ -109,6 +109,15 @@ export default {
       spacing: {
         '18': '72px', // 바텀 네비게이션 높이
         '14': '56px', // 헤더 높이
+      },
+      keyframes: {
+        slideInScale: {
+          '0%': { transform: 'translateX(-50%) scaleX(0)' },
+          '100%': { transform: 'translateX(-50%) scaleX(1)' }
+        }
+      },
+      animation: {
+        slideInScale: 'slideInScale 0.2s ease-out forwards'
       }
     },
   },

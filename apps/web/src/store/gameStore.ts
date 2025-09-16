@@ -41,9 +41,22 @@ export interface GameActions {
 
 export type GameStore = GameState & GameActions;
 
+// URL 기반 초기 탭 계산
+const getInitialTab = (): GameState['activeTab'] => {
+  if (typeof window === 'undefined') return 'home';
+
+  const path = window.location.pathname;
+  if (path === '/' || path === '/home') return 'home';
+  if (path === '/tower') return 'tower';
+  if (path === '/battle') return 'battle';
+  if (path === '/stella') return 'stella';
+  if (path === '/more') return 'more';
+  return 'home';
+};
+
 // 초기 상태
 const initialState: GameState = {
-  activeTab: 'home',
+  activeTab: getInitialTab(),
   player: {
     rating: 1500,
     rank: 'Bronze',

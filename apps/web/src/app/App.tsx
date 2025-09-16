@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "../ui/common/AppShell";
 import { BottomNav } from "../ui/bottom-nav/BottomNav";
 
@@ -21,32 +21,46 @@ function LoadingSpinner() {
   );
 }
 
-export function App() {
-  return (
-    <BrowserRouter>
-      <AppShell>
-        <div className="w-full overflow-x-hidden flex flex-col" style={{ height: '100dvh' }}>
-          {/* 메인 콘텐츠 영역 */}
-          <div className="flex-1 min-h-0">
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/tower" element={<Tower />} />
-                <Route path="/battle" element={<Battle />} />
-                <Route path="/stella" element={<Stella />} />
-                <Route path="/more" element={<More />} />
-                <Route path="/game" element={<Game />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </Suspense>
-          </div>
+// 바텀 네비게이션을 숨길 페이지들
+const hideBottomNavPaths = ['/settings', '/game'];
 
-          {/* 바텀 네비게이션 - 고정 위치 */}
+function AppContent() {
+  const location = useLocation();
+  const shouldShowBottomNav = !hideBottomNavPaths.includes(location.pathname);
+
+  return (
+    <AppShell>
+      <div className="w-full overflow-x-hidden flex flex-col" style={{ height: '100dvh' }}>
+        {/* 메인 콘텐츠 영역 */}
+        <div className="flex-1 min-h-0">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/tower" element={<Tower />} />
+              <Route path="/battle" element={<Battle />} />
+              <Route path="/stella" element={<Stella />} />
+              <Route path="/more" element={<More />} />
+              <Route path="/game" element={<Game />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </Suspense>
+        </div>
+
+        {/* 바텀 네비게이션 - 조건부 표시 */}
+        {shouldShowBottomNav && (
           <div className="flex-shrink-0">
             <BottomNav />
           </div>
-        </div>
-      </AppShell>
+        )}
+      </div>
+    </AppShell>
+  );
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
