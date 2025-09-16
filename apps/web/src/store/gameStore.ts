@@ -50,13 +50,14 @@ const getInitialTab = (): GameState['activeTab'] => {
   if (path === '/tower') return 'tower';
   if (path === '/battle') return 'battle';
   if (path === '/stella') return 'stella';
-  if (path === '/more') return 'more';
+  if (path === '/more' || path === '/replay') return 'more'; // /replay maps to more tab
   return 'home';
 };
 
 // 초기 상태
 const initialState: GameState = {
   activeTab: getInitialTab(),
+  stellaDetailViewActive: false,
   player: {
     rating: 1500,
     rank: 'Bronze',
@@ -85,6 +86,9 @@ export const useGameStore = create<GameStore>()(
 
       setActiveTab: (tab) =>
         set({ activeTab: tab }, false, 'setActiveTab'),
+
+      setStellaDetailViewActive: (isActive) =>
+        set({ stellaDetailViewActive: isActive }, false, 'setStellaDetailViewActive'),
 
       updatePlayer: (playerUpdate) =>
         set(

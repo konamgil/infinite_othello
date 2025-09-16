@@ -1,17 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+// components/GameBoard.tsx
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTheme } from '../../store/gameStore';
 import { haptic } from '../feedback/HapticFeedback';
 
-// 햅틱 피드백을 위한 유틸리티 (누락된 함수들 추가)
-if (!haptic.lightTap) {
-  haptic.lightTap = () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(50); // 50ms 가벼운 진동
-    }
-  };
-}
 
 export interface BoardState {
+  // board[y][x], 1=black, -1=white, 0=empty
   board: number[][];
   currentPlayer: 'black' | 'white';
   validMoves: Array<{ x: number; y: number }>;
@@ -26,13 +20,13 @@ interface AnimatingDisc {
 interface GameBoardProps {
   boardState: BoardState;
   onCellClick?: (x: number, y: number) => void;
-  flippedDiscs?: Array<{x: number, y: number}>;
+  flippedDiscs?: Array<{ x: number; y: number }>;
   showValidMoves?: boolean;
   disabled?: boolean;
   lastMove?: { x: number; y: number } | null;
 }
 
-const ANIMATION_DURATION = 400; // 400ms for a smooth flip
+const ANIMATION_DURATION = 400; // ms
 
 function setupHiDPICanvas(canvas: HTMLCanvasElement, logicalSize: number): CanvasRenderingContext2D {
   const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -45,6 +39,35 @@ function setupHiDPICanvas(canvas: HTMLCanvasElement, logicalSize: number): Canva
   return ctx;
 }
 
+/* 색 변환 유틸 */
+function discToColor(d: number): 'black' | 'white' {
+  return d === 1 ? 'black' : 'white';
+}
+function oppositeColor(c: 'black' | 'white'): 'white' | 'black' {
+  return c === 'black' ? 'white' : 'black';
+}
+
+/** 마지막 착수자의 색을 보드 상태로부터 “확정적으로” 산출 */
+function getLastMoverColor(
+  boardState: BoardState,
+  lastMove: { x: number; y: number } | null,
+  flippedDiscs: Array<{ x: number; y: number }>
+): 'black' | 'white' {
+  // 1) lastMove 칸의 현재 보드 색 = 마지막 착수자 색
+  if (lastMove) {
+    const v = boardState.board[lastMove.y]?.[lastMove.x] ?? 0;
+    if (v === 1 || v === -1) return discToColor(v);
+  }
+  // 2) 뒤집힌 디스크 중 하나의 "현재 보드 색" = 마지막 착수자 색
+  if (flippedDiscs.length > 0) {
+    const any = flippedDiscs[0];
+    const v = boardState.board[any.y]?.[any.x] ?? 0;
+    if (v === 1 || v === -1) return discToColor(v);
+  }
+  // 3) 최후 수단: 지금 둘 사람과 반대가 마지막 착수자
+  return oppositeColor(boardState.currentPlayer);
+}
+
 export function GameBoard({
   boardState,
   onCellClick,
@@ -55,27 +78,24 @@ export function GameBoard({
 }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>();
+  const lastFlipScheduledAtRef = useRef(0); // 플리커 방지용 타임스탬프
   const theme = useTheme();
 
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
   const [animatingDiscs, setAnimatingDiscs] = useState<AnimatingDisc[]>([]);
-  const [prevBoard, setPrevBoard] = useState<number[][] | null>(null);
   const [pressedCell, setPressedCell] = useState<{ x: number; y: number } | null>(null);
 
-  const prevBoardRef = useRef<number[][]>();
-  useEffect(() => {
-    prevBoardRef.current = boardState.board;
-  });
-  const previousBoard = prevBoardRef.current;
-
-  useEffect(() => {
+  // 새 뒤집힘 입력 → 애니메이션 시작 (페인트 전 보장)
+  useLayoutEffect(() => {
     if (flippedDiscs.length > 0) {
-      haptic.discFlip();
-      setAnimatingDiscs(flippedDiscs.map(d => ({ ...d, startTime: performance.now() })));
-      setPrevBoard(previousBoard || boardState.board);
+      try { haptic.discFlip?.(); } catch {}
+      const now = performance.now();
+      lastFlipScheduledAtRef.current = now;
+      setAnimatingDiscs(flippedDiscs.map(d => ({ ...d, startTime: now })));
     }
   }, [flippedDiscs]);
 
+  // 캔버스 렌더 루프
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -85,31 +105,50 @@ export function GameBoard({
     const cellSize = boardSize / 8;
     const ctx = setupHiDPICanvas(canvas, boardSize);
 
-    let activeAnimations = animatingDiscs.length > 0;
-
+    // 진행 중인 애니메이션 판별
     const now = performance.now();
-    const stillAnimating = animatingDiscs.filter(d => now - d.startTime < ANIMATION_DURATION);
+    const still = animatingDiscs.filter(d => now - d.startTime < ANIMATION_DURATION);
+    const active = still.length > 0;
 
-    if (activeAnimations && stillAnimating.length === 0) {
-      activeAnimations = false;
-      setAnimatingDiscs([]);
-      setPrevBoard(null);
-    }
+    // 보드 그리기
+    drawBoard(
+      ctx,
+      boardState,
+      theme,
+      hoveredCell,
+      showValidMoves,
+      animatingDiscs, // 현재 틱의 전체 목록 (셀 내부에서 progress 계산)
+      boardSize,
+      cellSize,
+      lastMove,
+      pressedCell,
+      flippedDiscs,
+      lastFlipScheduledAtRef.current
+    );
 
-    drawBoard(ctx, boardState, theme, hoveredCell, showValidMoves, animatingDiscs, boardSize, cellSize, prevBoard, lastMove, pressedCell);
-
-    if (activeAnimations) {
+    // 다음 프레임 스케줄링 (진행 중일 때만)
+    if (active) {
       animationFrameRef.current = requestAnimationFrame(() => {
-        setAnimatingDiscs(current => [...current]);
+        // 동일 배열 재할당(아이덴티티 변경)로 리렌더 트리거
+        setAnimatingDiscs(prev => [...prev]);
       });
+    } else if (animatingDiscs.length > 0) {
+      // 모든 애니메이션 종료 → 목록 비우기
+      setAnimatingDiscs([]);
     }
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [boardState, theme, hoveredCell, animatingDiscs]);
+  }, [
+    boardState,
+    theme,
+    hoveredCell,
+    animatingDiscs,
+    flippedDiscs,
+    lastMove,      // 의존성 보강
+    pressedCell    // 의존성 보강
+  ]);
 
   const getGridCoordinates = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
@@ -128,59 +167,50 @@ export function GameBoard({
     if (disabled) return;
     setHoveredCell(getGridCoordinates(event.clientX, event.clientY));
   };
-
   const handleMouseLeave = () => setHoveredCell(null);
 
-  const handleClick = (event: React.MouseEvent) => {
-    if (disabled || !onCellClick) return;
-    const coords = getGridCoordinates(event.clientX, event.clientY);
-    if (coords) {
-      const isValidMove = boardState.validMoves.some(move => move.x === coords.x && move.y === coords.y);
-      if (isValidMove) {
-        haptic.discPlace();
-        onCellClick(coords.x, coords.y);
-      } else {
-        haptic.invalidMove();
-      }
+  const placeIfValid = (x: number, y: number) => {
+    if (!onCellClick) return;
+    const isValidMove = boardState.validMoves.some(m => m.x === x && m.y === y);
+    if (isValidMove) {
+      try { haptic.discPlace?.(); } catch {}
+      onCellClick(x, y);
+    } else {
+      try { haptic.invalidMove?.(); } catch {}
     }
   };
 
-  // 터치 이벤트 핸들러
+  const handleClick = (e: React.MouseEvent) => {
+    if (disabled) return;
+    const c = getGridCoordinates(e.clientX, e.clientY);
+    if (c) placeIfValid(c.x, c.y);
+  };
+
+  // 터치 이벤트
   const handleTouchStart = (event: React.TouchEvent) => {
     if (disabled) return;
     event.preventDefault();
-    const touch = event.touches[0];
-    const coords = getGridCoordinates(touch.clientX, touch.clientY);
-    if (coords) {
-      const isValidMove = boardState.validMoves.some(move => move.x === coords.x && move.y === coords.y);
+    const t = event.touches[0];
+    const c = getGridCoordinates(t.clientX, t.clientY);
+    if (c) {
+      const isValidMove = boardState.validMoves.some(m => m.x === c.x && m.y === c.y);
       if (isValidMove) {
-        setPressedCell(coords);
-        haptic.lightTap(); // 가벼운 햅틱 피드백
+        setPressedCell(c);
+        haptic.lightTap();
       }
     }
   };
-
   const handleTouchEnd = (event: React.TouchEvent) => {
-    if (disabled || !onCellClick) return;
+    if (disabled) return;
     event.preventDefault();
-    const touch = event.changedTouches[0];
-    const coords = getGridCoordinates(touch.clientX, touch.clientY);
-
-    if (coords && pressedCell && coords.x === pressedCell.x && coords.y === pressedCell.y) {
-      const isValidMove = boardState.validMoves.some(move => move.x === coords.x && move.y === coords.y);
-      if (isValidMove) {
-        haptic.discPlace();
-        onCellClick(coords.x, coords.y);
-      } else {
-        haptic.invalidMove();
-      }
+    const t = event.changedTouches[0];
+    const c = getGridCoordinates(t.clientX, t.clientY);
+    if (c && pressedCell && c.x === pressedCell.x && c.y === pressedCell.y) {
+      placeIfValid(c.x, c.y);
     }
     setPressedCell(null);
   };
-
-  const handleTouchCancel = () => {
-    setPressedCell(null);
-  };
+  const handleTouchCancel = () => setPressedCell(null);
 
   return (
     <div className="relative w-full aspect-square touch-manipulation">
@@ -232,57 +262,62 @@ function drawBoard(
   animatingDiscs: AnimatingDisc[],
   boardSize: number,
   cellSize: number,
-  prevBoard: number[][] | null,
   lastMove: { x: number; y: number } | null,
-  pressedCell: { x: number; y: number } | null
+  pressedCell: { x: number; y: number } | null,
+  flippedDiscs: Array<{ x: number; y: number }>,
+  lastFlipScheduledAt: number
 ) {
   ctx.clearRect(0, 0, boardSize, boardSize);
   drawBoardBackground(ctx, theme, boardSize, cellSize);
   drawGrid(ctx, boardSize, cellSize);
 
-  const animationMap = new Map(animatingDiscs.map(d => [`${d.x}-${d.y}`, d]));
+  // 마지막 착수자 색 계산(확정)
+  const lastMoverColor = getLastMoverColor(boardState, lastMove, flippedDiscs);
+  const toColor = lastMoverColor;
+  const fromColor = oppositeColor(lastMoverColor);
+
+  const animMap = new Map(animatingDiscs.map(d => [`${d.x}-${d.y}`, d]));
+  const flippedSet = new Set(flippedDiscs.map(d => `${d.x}-${d.y}`));
+
+  // 등록 직후 첫 페인트에서 fromColor 강제 (레이아웃 타이밍 비껴가도 플리커 방지)
+  const nowForForce = performance.now();
+  const forceFromColor =
+    animatingDiscs.length === 0 &&
+    flippedDiscs.length > 0 &&
+    (nowForForce - lastFlipScheduledAt) < 48; // 한 프레임 여유 버퍼
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
-      const animation = animationMap.get(`${x}-${y}`);
-      const discValue = boardState.board[y][x];
+      const a = animMap.get(`${x}-${y}`);
+      const v = boardState.board[y][x];
 
-      if (animation) {
+      if (a) {
         const now = performance.now();
-        const elapsed = now - animation.startTime;
+        const elapsed = now - a.startTime;
         const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
-
-        const fromColorValue = prevBoard ? prevBoard[y][x] : (discValue * -1);
-
-        drawDisc(ctx, x, y, fromColorValue === 1 ? 'black' : 'white', theme, cellSize, progress, discValue === 1 ? 'black' : 'white');
-
-      } else if (discValue !== 0) {
-        drawDisc(ctx, x, y, discValue === 1 ? 'black' : 'white', theme, cellSize);
+        // 뒤집힌 돌: fromColor(이전) → toColor(마지막 착수자)
+        drawDisc(ctx, x, y, fromColor, theme, cellSize, progress, toColor);
+      } else if (forceFromColor && flippedSet.has(`${x}-${y}`)) {
+        // 애니메이션 등록과 보드 반영 사이 첫 페인트에서 옛 색 강제 표시
+        drawDisc(ctx, x, y, fromColor, theme, cellSize);
+      } else if (v !== 0) {
+        // 정적 렌더: 보드 값 그대로
+        drawDisc(ctx, x, y, discToColor(v), theme, cellSize);
       }
     }
   }
 
-  // 호버 효과 (데스크톱)
-  if (hoveredCell) {
-    const isValidMove = boardState.validMoves.some(move => move.x === hoveredCell.x && move.y === hoveredCell.y);
-    if (isValidMove) {
-      drawHoverEffect(ctx, hoveredCell.x, hoveredCell.y, cellSize, boardState.currentPlayer);
-    }
+  // 호버/프레스 프리뷰
+  if (hoveredCell && showValidMoves) {
+    const ok = boardState.validMoves.some(m => m.x === hoveredCell.x && m.y === hoveredCell.y);
+    if (ok) drawHoverEffect(ctx, hoveredCell.x, hoveredCell.y, cellSize, boardState.currentPlayer);
+  }
+  if (pressedCell && showValidMoves) {
+    const ok = boardState.validMoves.some(m => m.x === pressedCell.x && m.y === pressedCell.y);
+    if (ok) drawPressEffect(ctx, pressedCell.x, pressedCell.y, cellSize, boardState.currentPlayer);
   }
 
-  // 프레스 효과 (모바일)
-  if (pressedCell) {
-    const isValidMove = boardState.validMoves.some(move => move.x === pressedCell.x && move.y === pressedCell.y);
-    if (isValidMove) {
-      drawPressEffect(ctx, pressedCell.x, pressedCell.y, cellSize, boardState.currentPlayer);
-    }
-  }
-
-  // 마지막 둔 위치 표시
-  if (lastMove) {
-    drawLastMoveIndicator(ctx, lastMove.x, lastMove.y, cellSize);
-  }
-
+  if (lastMove) drawLastMoveIndicator(ctx, lastMove.x, lastMove.y, cellSize);
   drawCornerMarkers(ctx, cellSize);
 }
 
@@ -303,22 +338,17 @@ function drawDisc(
   ctx.save();
 
   if (animationProgress !== null && toColor) {
-    // 매우 부드러운 회전 애니메이션 (번쩍임 완전 제거)
-    const easeInOutQuad = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    const easedProgress = easeInOutQuad(animationProgress);
-
-    // 안전한 회전 애니메이션 (최소 스케일 보장)
-    const scaleY = Math.cos(easedProgress * Math.PI);
-    const currentColor = easedProgress < 0.5 ? color : toColor;
+    // 부드러운 플립
+    const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+    const eased = easeInOutQuad(animationProgress);
+    const scaleY = Math.cos(eased * Math.PI);
+    const currentColor = eased < 0.5 ? color : toColor;
 
     ctx.translate(centerX, centerY);
-    // 번쩍임 방지를 위해 최소 스케일을 0.2로 설정
-    const safeFinalScale = Math.max(0.2, Math.abs(scaleY));
-    ctx.scale(1, safeFinalScale);
+    ctx.scale(1, Math.max(0.2, Math.abs(scaleY))); // 완전 사라짐 방지
     ctx.translate(-centerX, -centerY);
 
     drawClassicDisc(ctx, centerX, centerY, radius, currentColor);
-
   } else {
     drawClassicDisc(ctx, centerX, centerY, radius, color);
   }
@@ -326,88 +356,63 @@ function drawDisc(
   ctx.restore();
 }
 
-function drawBoardBackground(ctx: CanvasRenderingContext2D, theme: any, boardSize: number, cellSize: number) {
-  // 부드럽고 고급스러운 녹색 오델로 보드
-  const gradient = ctx.createLinearGradient(0, 0, boardSize, boardSize);
-  gradient.addColorStop(0, '#064e3b');    // 깊은 에메랄드
-  gradient.addColorStop(0.3, '#065f46');  // 중간 에메랄드
-  gradient.addColorStop(0.7, '#047857');  // 밝은 에메랄드
-  gradient.addColorStop(1, '#059669');    // 가장 밝은 에메랄드
+/* --- 보드/디스크 데코 --- */
 
-  ctx.fillStyle = gradient;
+function drawBoardBackground(ctx: CanvasRenderingContext2D, theme: any, boardSize: number, cellSize: number) {
+  const g = ctx.createLinearGradient(0, 0, boardSize, boardSize);
+  g.addColorStop(0, '#064e3b');
+  g.addColorStop(0.3, '#065f46');
+  g.addColorStop(0.7, '#047857');
+  g.addColorStop(1, '#059669');
+  ctx.fillStyle = g;
   ctx.fillRect(0, 0, boardSize, boardSize);
 
-  // 미묘한 체스판 패턴으로 오델로 느낌
   ctx.fillStyle = 'rgba(6, 78, 59, 0.1)';
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
-      if ((i + j) % 2 === 0) {
-        ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-      }
+      if ((i + j) % 2 === 0) ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
     }
   }
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D, boardSize: number, cellSize: number) {
-  // 부드럽고 고급스러운 그리드 라인 (녹색 테마)
-  ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)'; // 부드러운 에메랄드
-  ctx.lineWidth = 0.8; // 적당한 두께
-
-  // 미묘한 녹색 글로우
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+  ctx.lineWidth = 0.8;
   ctx.shadowColor = 'rgba(16, 185, 129, 0.15)';
   ctx.shadowBlur = 1;
 
   for (let i = 1; i < 8; i++) {
-    const pos = i * cellSize;
-    // Vertical lines
-    ctx.beginPath();
-    ctx.moveTo(pos, 0);
-    ctx.lineTo(pos, boardSize);
-    ctx.stroke();
-
-    // Horizontal lines
-    ctx.beginPath();
-    ctx.moveTo(0, pos);
-    ctx.lineTo(boardSize, pos);
-    ctx.stroke();
+    const p = i * cellSize;
+    ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, boardSize); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(boardSize, p); ctx.stroke();
   }
 
-  // 보드 외곽 테두리 (녹색 테마)
   ctx.shadowBlur = 2;
   ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(0, 0, boardSize, boardSize);
-
   ctx.shadowBlur = 0;
 }
 
 function drawClassicDisc(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: 'black' | 'white') {
-  // 고급스러운 평평한 오델로 디스크 - 미묘한 그림자만
   ctx.save();
 
-  // 보드에 미묘한 그림자
+  // 보드 그림자
   ctx.beginPath();
   ctx.arc(x, y + 1, radius + 1, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
   ctx.fill();
 
-  // 메인 디스크 - 완전히 평평하고 고급스러운 단색
+  // 디스크 본체
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
-
-  if (color === 'black') {
-    // 깔끔하고 고급스러운 검은색
-    ctx.fillStyle = '#1a1a1a';
-  } else {
-    // 깔끔하고 고급스러운 흰색
-    ctx.fillStyle = '#f8f9fa';
-  }
+  ctx.fillStyle = color === 'black' ? '#1a1a1a' : '#f8f9fa';
   ctx.fill();
 
-  // 디스크 가장자리에 미묘한 테두리 - 평평함을 강조
+  // 미묘한 테두리
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = color === 'black' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  ctx.strokeStyle = color === 'black' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
   ctx.lineWidth = 0.5;
   ctx.stroke();
 
@@ -415,85 +420,47 @@ function drawClassicDisc(ctx: CanvasRenderingContext2D, x: number, y: number, ra
 }
 
 function drawHoverEffect(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number, currentPlayer: 'black' | 'white') {
-  const centerX = x * cellSize + cellSize / 2;
-  const centerY = y * cellSize + cellSize / 2;
-  const radius = cellSize * 0.35;
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const r = cellSize * 0.35;
 
   ctx.fillStyle = 'rgba(252, 211, 77, 0.15)';
   ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
   ctx.save();
   ctx.globalAlpha = 0.6;
-  const previewColor = currentPlayer;
-  if (previewColor === 'black') {
-    ctx.fillStyle = 'rgba(31, 41, 55, 0.8)';
-  } else {
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.8)';
-  }
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  ctx.fillStyle = currentPlayer === 'black' ? 'rgba(31,41,55,0.8)' : 'rgba(248,250,252,0.8)';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.stroke();
   ctx.restore();
 }
 
 function drawPressEffect(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number, currentPlayer: 'black' | 'white') {
-  const centerX = x * cellSize + cellSize / 2;
-  const centerY = y * cellSize + cellSize / 2;
-  const radius = cellSize * 0.38;
-
-  // 더 강한 프레스 피드백
-  ctx.fillStyle = 'rgba(34, 197, 94, 0.3)'; // 에메랄드 테마
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const r = cellSize * 0.38;
+  ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
   ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
   ctx.save();
   ctx.globalAlpha = 0.8;
-
-  // 프레스된 디스크 프리뷰 (더 선명하게)
-  const previewColor = currentPlayer;
-  if (previewColor === 'black') {
-    ctx.fillStyle = 'rgba(26, 26, 26, 0.9)';
-  } else {
-    ctx.fillStyle = 'rgba(248, 249, 250, 0.9)';
-  }
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 에메랄드 글로우 효과
+  ctx.fillStyle = currentPlayer === 'black' ? 'rgba(26,26,26,0.9)' : 'rgba(248,249,250,0.9)';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
-  ctx.lineWidth = 3;
-  ctx.shadowColor = 'rgba(34, 197, 94, 0.4)';
-  ctx.shadowBlur = 8;
-  ctx.stroke();
-
+  ctx.lineWidth = 3; ctx.shadowColor = 'rgba(34,197,94,0.4)'; ctx.shadowBlur = 8; ctx.stroke();
   ctx.restore();
 }
 
 function drawLastMoveIndicator(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number) {
-  const centerX = x * cellSize + cellSize / 2;
-  const centerY = y * cellSize + cellSize / 2;
-  const radius = cellSize * 0.45;
+  const cx = x * cellSize + cellSize / 2;
+  const cy = y * cellSize + cellSize / 2;
+  const r = cellSize * 0.45;
 
   ctx.save();
-
-  // 미묘한 글로우 링
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)'; // 에메랄드 테마
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // 더 작은 내부 링
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius - 4, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r - 4, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(34, 197, 94, 0.2)'; ctx.lineWidth = 1; ctx.stroke();
   ctx.restore();
 }
 
@@ -504,17 +471,17 @@ function drawCornerMarkers(ctx: CanvasRenderingContext2D, cellSize: number) {
   corners.forEach(([x, y]) => {
     const cellX = x * cellSize;
     const cellY = y * cellSize;
-    const markerSize = cellSize * 0.15;
-    const crownX = cellX + cellSize / 2;
-    const crownY = cellY + cellSize / 2;
+    const s = cellSize * 0.15;
+    const cx = cellX + cellSize / 2;
+    const cy = cellY + cellSize / 2;
     ctx.beginPath();
-    ctx.moveTo(crownX - markerSize, crownY + markerSize * 0.5);
-    ctx.lineTo(crownX + markerSize, crownY + markerSize * 0.5);
-    ctx.lineTo(crownX + markerSize * 0.7, crownY - markerSize * 0.5);
-    ctx.lineTo(crownX + markerSize * 0.3, crownY);
-    ctx.lineTo(crownX, crownY - markerSize * 0.8);
-    ctx.lineTo(crownX - markerSize * 0.3, crownY);
-    ctx.lineTo(crownX - markerSize * 0.7, crownY - markerSize * 0.5);
+    ctx.moveTo(cx - s, cy + s * 0.5);
+    ctx.lineTo(cx + s, cy + s * 0.5);
+    ctx.lineTo(cx + s * 0.7, cy - s * 0.5);
+    ctx.lineTo(cx + s * 0.3, cy);
+    ctx.lineTo(cx, cy - s * 0.8);
+    ctx.lineTo(cx - s * 0.3, cy);
+    ctx.lineTo(cx - s * 0.7, cy - s * 0.5);
     ctx.closePath();
     ctx.stroke();
     ctx.fillStyle = 'rgba(252, 211, 77, 0.2)';

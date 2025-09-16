@@ -60,6 +60,11 @@ export class HapticFeedback {
     }
   }
 
+static lightTap() {
+    this.trigger('light');
+  }
+
+
   // 게임 특화 햅틱 패턴들
   static discPlace() {
     this.trigger('medium');

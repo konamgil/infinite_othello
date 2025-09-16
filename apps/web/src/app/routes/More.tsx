@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreStarCanvas } from '../../ui/more/MoreStarCanvas';
-import { Palette, ShoppingBag, User, Settings, HelpCircle, Info } from 'lucide-react';
+import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock } from 'lucide-react';
 
 export default function More() {
   const navigate = useNavigate();
@@ -32,6 +32,23 @@ export default function More() {
 
         {/* 마이스타이컴 메뉴들 */}
         <div className="space-y-4">
+          {/* 시공간 아카이브 (리플레이) */}
+          <button
+            className="group w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+                       hover:bg-black/30 hover:border-white/20 active:scale-[0.99]
+                       transition-all duration-300 flex items-center justify-between"
+            onClick={() => navigate('/replay')}
+          >
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400/30 to-blue-500/30 rounded-xl
+                            flex items-center justify-center mr-4 backdrop-blur-sm border border-purple-400/20">
+                <Clock size={18} className="text-purple-300" />
+              </div>
+              <span className="text-white/90 font-smooth font-medium">시공간 아카이브</span>
+            </div>
+            <span className="text-white/50 text-sm font-smooth">대국 기록</span>
+          </button>
+
           {/* 테마 및 커스터마이징 */}
           <button
             className="group w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10

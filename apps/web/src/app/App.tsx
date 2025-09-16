@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "../ui/common/AppShell";
 import { BottomNav } from "../ui/bottom-nav/BottomNav";
 
+import { useGameStore } from "../store/gameStore";
+
 // 페이지 컴포넌트들 (lazy loading)
 const Home = React.lazy(() => import("./routes/Home"));
 const Tower = React.lazy(() => import("./routes/Tower"));
@@ -11,6 +13,7 @@ const Stella = React.lazy(() => import("./routes/Stella"));
 const More = React.lazy(() => import("./routes/More"));
 const Game = React.lazy(() => import("./routes/Game"));
 const Settings = React.lazy(() => import("./routes/Settings"));
+const Replay = React.lazy(() => import("./routes/Replay"));
 
 // 로딩 컴포넌트
 function LoadingSpinner() {
@@ -22,7 +25,7 @@ function LoadingSpinner() {
 }
 
 // 바텀 네비게이션을 숨길 페이지들
-const hideBottomNavPaths = ['/settings', '/game'];
+const hideBottomNavPaths = ['/settings', '/game', '/replay'];
 
 function AppContent() {
   const location = useLocation();
@@ -42,6 +45,7 @@ function AppContent() {
               <Route path="/more" element={<More />} />
               <Route path="/game" element={<Game />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/replay" element={<Replay />} />
             </Routes>
           </Suspense>
         </div>

@@ -15,7 +15,7 @@ export function BottomNav() {
     if (path === '/tower') return 'tower';
     if (path === '/battle') return 'battle';
     if (path === '/stella') return 'stella';
-    if (path === '/more') return 'more';
+    if (path === '/more' || path === '/replay') return 'more'; // /replay maps to more tab
     return 'home';
   };
 
@@ -35,7 +35,7 @@ export function BottomNav() {
       newTab = 'battle';
     } else if (path === '/stella') {
       newTab = 'stella';
-    } else if (path === '/more') {
+    } else if (path === '/more' || path === '/replay') {
       newTab = 'more';
     }
 

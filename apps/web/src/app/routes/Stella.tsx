@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../store/gameStore';
 import { StellaCanvas } from '../../ui/stella/StellaCanvas';
 import { TypewriterText } from '../../ui/stella/TypewriterText';
@@ -97,8 +98,14 @@ const PRACTICE_SCENARIOS = [
 ];
 
 export default function Stella() {
+  const navigate = useNavigate();
   const { player } = useGameStore();
   const [activeTab, setActiveTab] = useState<'missions' | 'strategy' | 'practice' | null>(null);
+
+  const handleTabChange = (tab: 'missions' | 'strategy' | 'practice' | null) => {
+    setActiveTab(tab);
+    
+  };
 
   const stellaWisdoms = [
     "안녕하세요! 오늘도 오델로의 우주적 지혜를 나누어 드릴게요.",
@@ -120,7 +127,7 @@ export default function Stella() {
 
       {/* 오버레이 콘텐츠 */}
       <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
-        <div className="content-padding section-spacing pb-32">
+        <div className={`content-padding section-spacing ${activeTab ? 'pb-4' : 'pb-32'}`}>
         {!activeTab ? (
           <div>
             {/* 스텔라의 우주적 지혜 - 맨 위로 이동 */}
@@ -174,7 +181,7 @@ export default function Stella() {
                 className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                          hover:bg-black/30 hover:border-white/20 active:scale-[0.98]
                          transition-all duration-300 cursor-pointer"
-                onClick={() => setActiveTab('missions')}
+                onClick={() => handleTabChange('missions')}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -203,7 +210,7 @@ export default function Stella() {
                 className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                          hover:bg-black/30 hover:border-white/20 active:scale-[0.98]
                          transition-all duration-300 cursor-pointer"
-                onClick={() => setActiveTab('strategy')}
+                                onClick={() => handleTabChange('strategy')}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -232,7 +239,7 @@ export default function Stella() {
                 className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                          hover:bg-black/30 hover:border-white/20 active:scale-[0.98]
                          transition-all duration-300 cursor-pointer"
-                onClick={() => setActiveTab('practice')}
+                                onClick={() => handleTabChange('practice')}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -252,9 +259,12 @@ export default function Stella() {
               </div>
 
               {/* 기보 분석 */}
-              <div className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
-                           hover:bg-black/30 hover:border-white/20 active:scale-[0.98]
-                           transition-all duration-300 cursor-pointer">
+              <div
+                className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+                         hover:bg-black/30 hover:border-white/20 active:scale-[0.98]
+                         transition-all duration-300 cursor-pointer"
+                onClick={() => navigate('/replay')}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400/30 to-blue-600/30
@@ -286,7 +296,7 @@ export default function Stella() {
                 <h2 className="text-2xl font-display font-bold text-white tracking-wider">데일리 미션</h2>
               </div>
               <button
-                onClick={() => setActiveTab(null)}
+                onClick={() => handleTabChange(null)}
                 className="px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
                          text-white/80 font-display tracking-wider
                          hover:bg-black/30 hover:border-white/20 hover:text-white
@@ -370,7 +380,7 @@ export default function Stella() {
                 <h2 className="text-2xl font-display font-bold text-white tracking-wider">전략 학습</h2>
               </div>
               <button
-                onClick={() => setActiveTab(null)}
+                onClick={() => handleTabChange(null)}
                 className="px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
                          text-white/80 font-display tracking-wider
                          hover:bg-black/30 hover:border-white/20 hover:text-white
@@ -449,7 +459,7 @@ export default function Stella() {
                 <h2 className="text-2xl font-display font-bold text-white tracking-wider">연습 시나리오</h2>
               </div>
               <button
-                onClick={() => setActiveTab(null)}
+                onClick={() => handleTabChange(null)}
                 className="px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
                          text-white/80 font-display tracking-wider
                          hover:bg-black/30 hover:border-white/20 hover:text-white
