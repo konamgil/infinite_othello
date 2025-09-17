@@ -1,39 +1,40 @@
-// Supabase client with graceful fallback
-interface SupabaseClient {
-  auth: {
-    getSession(): Promise<{ data: { session: null }, error: null }>;
-    signInWithPassword(credentials: any): Promise<{ data: null, error: { message: string } }>;
-    signOut(): Promise<{ error: null }>;
-  };
-  from(table: string): any;
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
 }
 
-// Mock client for development - replace with real Supabase when configured
-const mockSupabase: SupabaseClient = {
+// Create Supabase client
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    async getSession() {
-      return { data: { session: null }, error: null };
-    },
-    async signInWithPassword() {
-      return { data: null, error: { message: 'Supabase not configured' } };
-    },
-    async signOut() {
-      return { error: null };
-    }
-  },
-  from() {
-    return {
-      select: () => ({ data: [], error: null }),
-      insert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
-      update: () => ({ data: null, error: { message: 'Supabase not configured' } }),
-      delete: () => ({ data: null, error: { message: 'Supabase not configured' } })
-    };
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
   }
-};
+});
 
-export function getSupabase(): SupabaseClient {
-  // TODO: Replace with actual Supabase client when configured
-  // const supabase = createClient(url, key);
-  return mockSupabase;
+export function getSupabase() {
+  return supabase;
+}
+
+// 연결 테스트 함수
+export async function testSupabaseConnection() {
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').limit(1);
+
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ Supabase connection successful!', data);
+    return { success: true, data };
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
 }
 
