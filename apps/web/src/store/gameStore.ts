@@ -8,6 +8,7 @@ export interface GameState {
 
   // 플레이어 정보
   player: {
+    name: string;
     rating: number;
     rank: string;
     currentFloor: number;
@@ -57,8 +58,8 @@ const getInitialTab = (): GameState['activeTab'] => {
 // 초기 상태
 const initialState: GameState = {
   activeTab: getInitialTab(),
-  stellaDetailViewActive: false,
   player: {
+    name: 'Stella',
     rating: 1500,
     rank: 'Bronze',
     currentFloor: 1,
@@ -86,9 +87,6 @@ export const useGameStore = create<GameStore>()(
 
       setActiveTab: (tab) =>
         set({ activeTab: tab }, false, 'setActiveTab'),
-
-      setStellaDetailViewActive: (isActive) =>
-        set({ stellaDetailViewActive: isActive }, false, 'setStellaDetailViewActive'),
 
       updatePlayer: (playerUpdate) =>
         set(
@@ -128,3 +126,6 @@ export const useActiveTab = () => useGameStore((state) => state.activeTab);
 export const usePlayer = () => useGameStore((state) => state.player);
 export const useTheme = () => useGameStore((state) => state.theme);
 export const useUISettings = () => useGameStore((state) => state.ui);
+
+
+

@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ReplayStarCanvas } from '../../ui/replay/ReplayStarCanvas';
-import { ReplayViewer } from '../../ui/replay/ReplayViewer';
-import { useReplayStore } from '../../store/replayStore';
-import { GameReplay } from '../../types/replay';
+import { ReplayStarCanvas } from '../../../../../ui/replay/ReplayStarCanvas';
+import { ReplayViewer } from '../../../../../ui/replay/ReplayViewer';
+import { useReplayStore } from '../../../../../store/replayStore';
+import { GameReplay } from '../../../../../types/replay';
 import {
   Clock,
   Search,
@@ -229,7 +229,7 @@ interface LegacyGameRecord {
   tags?: string[];
 }
 
-export default function Replay() {
+export function ReplayScreen() {
   const navigate = useNavigate();
   const {
     replays,

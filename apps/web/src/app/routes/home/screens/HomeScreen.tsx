@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGameStore } from '../../store/gameStore';
-import { ParticleSystem } from '../../ui/effects/ParticleSystem';
-import { OthelloStarCanvas } from '../../ui/game/OthelloStarCanvas';
-import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../ui/fx/FXHooks';
-import { haptic } from '../../ui/feedback/HapticFeedback';
-import { testSupabaseConnection } from '../../services/supabase';
+import { useGameStore } from '../../../../store/gameStore';
+import { ParticleSystem } from '../../../../ui/effects/ParticleSystem';
+import { OthelloStarCanvas } from '../../../../ui/game/OthelloStarCanvas';
+import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../../../ui/fx/FXHooks';
+import { haptic } from '../../../../ui/feedback/HapticFeedback';
+import { testSupabaseConnection } from '../../../../services/supabase';
 import {
   Zap,
   Crown,
@@ -19,7 +19,7 @@ import {
   Users
 } from 'lucide-react';
 
-export default function Home() {
+export function HomeScreen() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
   const effects = useFXEffects();
@@ -272,7 +272,11 @@ export default function Home() {
               </div>
               <button
                 className="btn-primary px-4 py-2 text-sm"
-                onClick={() => navigate('/game')}
+                onClick={() =>
+                  navigate('/battle/game/battle/quick', {
+                    state: { mode: 'battle', battleVariant: 'quick', title: 'Quick Battle' }
+                  })
+                }
               >
                 시작하기
               </button>

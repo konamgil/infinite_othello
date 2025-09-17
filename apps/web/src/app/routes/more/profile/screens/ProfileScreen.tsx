@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGameStore } from '../../store/gameStore';
-import { ProfileStarCanvas } from '../../ui/profile/ProfileStarCanvas';
+import { useGameStore } from '../../../../../store/gameStore';
+import { ProfileStarCanvas } from '../../../../../ui/profile/ProfileStarCanvas';
 import {
   ArrowLeft, Trophy, Crown, Target, Zap, Star, Award,
   TrendingUp, Calendar, Clock, Flame, Shield, Sword,
@@ -46,8 +46,8 @@ interface PlayerStats {
 const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'first-win',
-    title: '첫 승리',
-    description: '첫 번째 게임에서 승리하세요',
+    title: '泥??밸━',
+    description: '泥?踰덉㎏ 寃뚯엫?먯꽌 ?밸━?섏꽭??,
     icon: <Trophy size={24} className="text-yellow-400" />,
     category: 'gameplay',
     rarity: 'common',
@@ -59,8 +59,8 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tower-climber',
-    title: '탑 등반가',
-    description: '무한의 탑 10층 돌파',
+    title: '???깅컲媛',
+    description: '臾댄븳????10痢??뚰뙆',
     icon: <Crown size={24} className="text-purple-400" />,
     category: 'gameplay',
     rarity: 'rare',
@@ -68,12 +68,12 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
     maxProgress: 10,
     completed: true,
     completedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    reward: { type: 'theme', value: '황금 보드 테마' }
+    reward: { type: 'theme', value: '?⑷툑 蹂대뱶 ?뚮쭏' }
   },
   {
     id: 'perfect-game',
-    title: '완벽한 승리',
-    description: '상대방이 한 수도 두지 못하게 하세요',
+    title: '?꾨꼍???밸━',
+    description: '?곷?諛⑹씠 ???섎룄 ?먯? 紐삵븯寃??섏꽭??,
     icon: <Sparkles size={24} className="text-cyan-400" />,
     category: 'skill',
     rarity: 'epic',
@@ -81,12 +81,12 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
     maxProgress: 1,
     completed: true,
     completedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    reward: { type: 'title', value: '완벽주의자' }
+    reward: { type: 'title', value: '?꾨꼍二쇱쓽?? }
   },
   {
     id: 'dedication',
-    title: '헌신적인 플레이어',
-    description: '연속 7일 접속하세요',
+    title: '?뚯떊?곸씤 ?뚮젅?댁뼱',
+    description: '?곗냽 7???묒냽?섏꽭??,
     icon: <Calendar size={24} className="text-green-400" />,
     category: 'dedication',
     rarity: 'common',
@@ -97,27 +97,27 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'win-streak',
-    title: '연승 행진',
-    description: '10연승을 달성하세요',
+    title: '?곗듅 ?됱쭊',
+    description: '10?곗듅???ъ꽦?섏꽭??,
     icon: <Flame size={24} className="text-red-400" />,
     category: 'skill',
     rarity: 'rare',
     progress: 7,
     maxProgress: 10,
     completed: false,
-    reward: { type: 'theme', value: '불꽃 이펙트' }
+    reward: { type: 'theme', value: '遺덇퐙 ?댄럺?? }
   },
   {
     id: 'legendary-player',
-    title: '전설의 플레이어',
-    description: 'Diamond 티어 달성',
+    title: '?꾩꽕???뚮젅?댁뼱',
+    description: 'Diamond ?곗뼱 ?ъ꽦',
     icon: <Medal size={24} className="text-blue-400" />,
     category: 'skill',
     rarity: 'legendary',
     progress: 0,
     maxProgress: 1,
     completed: false,
-    reward: { type: 'title', value: '전설' }
+    reward: { type: 'title', value: '?꾩꽕' }
   }
 ];
 
@@ -129,16 +129,16 @@ const MOCK_STATS: PlayerStats = {
   winRate: 61.4,
   currentStreak: 3,
   longestStreak: 12,
-  totalPlayTime: 185400, // 51시간 30분
-  averageGameTime: 1460, // 24분 20초
+  totalPlayTime: 185400, // 51?쒓컙 30遺?
+  averageGameTime: 1460, // 24遺?20珥?
   perfectGames: 2,
   comebackWins: 15,
   towerHighest: 15,
   rankingPeak: 'Silver I',
-  favoriteOpenings: ['대각선 개방', '코너 장악', '중앙 집중']
+  favoriteOpenings: ['?媛곸꽑 媛쒕갑', '肄붾꼫 ?μ븙', '以묒븰 吏묒쨷']
 };
 
-export default function Profile() {
+export function ProfileScreen() {
   const navigate = useNavigate();
   const { player } = useGameStore();
   const [activeTab, setActiveTab] = useState<'stats' | 'achievements'>('stats');
@@ -164,7 +164,7 @@ export default function Profile() {
   const formatPlayTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}시간 ${minutes}분`;
+    return `${hours}?쒓컙 ${minutes}遺?;
   };
 
   const completedAchievements = MOCK_ACHIEVEMENTS.filter(a => a.completed);
@@ -172,15 +172,15 @@ export default function Profile() {
 
   return (
     <div className="h-full w-full overflow-hidden relative">
-      {/* 프로필 우주 배경 */}
+      {/* ?꾨줈???곗＜ 諛곌꼍 */}
       <div className="absolute inset-0">
         <ProfileStarCanvas className="w-full h-full" />
       </div>
 
-      {/* 오버레이 콘텐츠 */}
+      {/* ?ㅻ쾭?덉씠 肄섑뀗痢?*/}
       <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden">
         <div className="px-6 py-4 pb-32">
-          {/* 헤더 */}
+          {/* ?ㅻ뜑 */}
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => navigate('/more')}
@@ -190,12 +190,12 @@ export default function Profile() {
               <ArrowLeft size={20} className="text-white/90" />
             </button>
             <div>
-              <h1 className="text-2xl font-display font-bold text-white tracking-wider">🏆 전사 기록</h1>
-              <p className="text-sm text-white/60 font-display tracking-wide">당신의 오델로 여정과 업적</p>
+              <h1 className="text-2xl font-display font-bold text-white tracking-wider">?룇 ?꾩궗 湲곕줉</h1>
+              <p className="text-sm text-white/60 font-display tracking-wide">?뱀떊???ㅻ뜽濡??ъ젙怨??낆쟻</p>
             </div>
           </div>
 
-          {/* 플레이어 프로필 카드 */}
+          {/* ?뚮젅?댁뼱 ?꾨줈??移대뱶 */}
           <div className="mb-6 p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-20 h-20 bg-gradient-to-br from-yellow-400/30 to-orange-500/30 rounded-full
@@ -217,28 +217,28 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* 빠른 통계 */}
+            {/* 鍮좊Ⅸ ?듦퀎 */}
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-3 rounded-xl bg-white/5">
                 <div className="text-lg font-display font-bold text-green-400">{MOCK_STATS.wins}</div>
-                <div className="text-xs text-white/60 font-display">승리</div>
+                <div className="text-xs text-white/60 font-display">?밸━</div>
               </div>
               <div className="text-center p-3 rounded-xl bg-white/5">
                 <div className="text-lg font-display font-bold text-red-400">{MOCK_STATS.losses}</div>
-                <div className="text-xs text-white/60 font-display">패배</div>
+                <div className="text-xs text-white/60 font-display">?⑤같</div>
               </div>
               <div className="text-center p-3 rounded-xl bg-white/5">
                 <div className="text-lg font-display font-bold text-yellow-400">{MOCK_STATS.winRate}%</div>
-                <div className="text-xs text-white/60 font-display">승률</div>
+                <div className="text-xs text-white/60 font-display">?밸쪧</div>
               </div>
               <div className="text-center p-3 rounded-xl bg-white/5">
-                <div className="text-lg font-display font-bold text-purple-400">{player.towerProgress}층</div>
-                <div className="text-xs text-white/60 font-display">최고 탑</div>
+                <div className="text-lg font-display font-bold text-purple-400">{player.towerProgress}痢?/div>
+                <div className="text-xs text-white/60 font-display">理쒓퀬 ??/div>
               </div>
             </div>
           </div>
 
-          {/* 탭 네비게이션 */}
+          {/* ???ㅻ퉬寃뚯씠??*/}
           <div className="flex mb-6 p-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-2xl">
             <button
               onClick={() => setActiveTab('stats')}
@@ -248,7 +248,7 @@ export default function Profile() {
                   : 'text-white/60 hover:text-white/80'
               }`}
             >
-              📊 상세 통계
+              ?뱤 ?곸꽭 ?듦퀎
             </button>
             <button
               onClick={() => setActiveTab('achievements')}
@@ -258,72 +258,72 @@ export default function Profile() {
                   : 'text-white/60 hover:text-white/80'
               }`}
             >
-              🏆 업적 ({completedAchievements.length}/{MOCK_ACHIEVEMENTS.length})
+              ?룇 ?낆쟻 ({completedAchievements.length}/{MOCK_ACHIEVEMENTS.length})
             </button>
           </div>
 
-          {/* 상세 통계 탭 */}
+          {/* ?곸꽭 ?듦퀎 ??*/}
           {activeTab === 'stats' && (
             <div className="space-y-6">
-              {/* 게임 통계 */}
+              {/* 寃뚯엫 ?듦퀎 */}
               <div className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
                 <h3 className="text-lg font-display font-bold text-white tracking-wider mb-4 flex items-center gap-2">
                   <TrendingUp size={20} className="text-green-400" />
-                  게임 통계
+                  寃뚯엫 ?듦퀎
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">총 게임 수</span>
-                    <span className="text-white font-display font-semibold">{MOCK_STATS.totalGames}게임</span>
+                    <span className="text-white/60 font-display">珥?寃뚯엫 ??/span>
+                    <span className="text-white font-display font-semibold">{MOCK_STATS.totalGames}寃뚯엫</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">현재 연승</span>
-                    <span className="text-white font-display font-semibold">{MOCK_STATS.currentStreak}연승</span>
+                    <span className="text-white/60 font-display">?꾩옱 ?곗듅</span>
+                    <span className="text-white font-display font-semibold">{MOCK_STATS.currentStreak}?곗듅</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">최고 연승</span>
-                    <span className="text-white font-display font-semibold">{MOCK_STATS.longestStreak}연승</span>
+                    <span className="text-white/60 font-display">理쒓퀬 ?곗듅</span>
+                    <span className="text-white font-display font-semibold">{MOCK_STATS.longestStreak}?곗듅</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">완벽한 게임</span>
-                    <span className="text-white font-display font-semibold">{MOCK_STATS.perfectGames}회</span>
+                    <span className="text-white/60 font-display">?꾨꼍??寃뚯엫</span>
+                    <span className="text-white font-display font-semibold">{MOCK_STATS.perfectGames}??/span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">역전승</span>
-                    <span className="text-white font-display font-semibold">{MOCK_STATS.comebackWins}회</span>
+                    <span className="text-white/60 font-display">??쟾??/span>
+                    <span className="text-white font-display font-semibold">{MOCK_STATS.comebackWins}??/span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">최고 랭킹</span>
+                    <span className="text-white/60 font-display">理쒓퀬 ??궧</span>
                     <span className="text-white font-display font-semibold">{MOCK_STATS.rankingPeak}</span>
                   </div>
                 </div>
               </div>
 
-              {/* 플레이 시간 통계 */}
+              {/* ?뚮젅???쒓컙 ?듦퀎 */}
               <div className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
                 <h3 className="text-lg font-display font-bold text-white tracking-wider mb-4 flex items-center gap-2">
                   <Clock size={20} className="text-blue-400" />
-                  플레이 시간
+                  ?뚮젅???쒓컙
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">총 플레이 시간</span>
+                    <span className="text-white/60 font-display">珥??뚮젅???쒓컙</span>
                     <span className="text-white font-display font-semibold">{formatPlayTime(MOCK_STATS.totalPlayTime)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/60 font-display">평균 게임 시간</span>
+                    <span className="text-white/60 font-display">?됯퇏 寃뚯엫 ?쒓컙</span>
                     <span className="text-white font-display font-semibold">
-                      {Math.floor(MOCK_STATS.averageGameTime / 60)}분 {MOCK_STATS.averageGameTime % 60}초
+                      {Math.floor(MOCK_STATS.averageGameTime / 60)}遺?{MOCK_STATS.averageGameTime % 60}珥?
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* 선호하는 전략 */}
+              {/* ?좏샇?섎뒗 ?꾨왂 */}
               <div className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
                 <h3 className="text-lg font-display font-bold text-white tracking-wider mb-4 flex items-center gap-2">
                   <Target size={20} className="text-purple-400" />
-                  선호하는 전략
+                  ?좏샇?섎뒗 ?꾨왂
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {MOCK_STATS.favoriteOpenings.map((strategy, index) => (
@@ -339,15 +339,15 @@ export default function Profile() {
             </div>
           )}
 
-          {/* 업적 탭 */}
+          {/* ?낆쟻 ??*/}
           {activeTab === 'achievements' && (
             <div className="space-y-6">
-              {/* 완료된 업적 */}
+              {/* ?꾨즺???낆쟻 */}
               {completedAchievements.length > 0 && (
                 <div>
                   <h3 className="text-lg font-display font-bold text-white tracking-wider mb-4 flex items-center gap-2">
                     <CheckCircle size={20} className="text-green-400" />
-                    완료된 업적 ({completedAchievements.length})
+                    ?꾨즺???낆쟻 ({completedAchievements.length})
                   </h3>
                   <div className="space-y-3">
                     {completedAchievements.map(achievement => (
@@ -356,7 +356,7 @@ export default function Profile() {
                         className={`p-4 rounded-2xl bg-gradient-to-br ${getRarityColor(achievement.rarity)}
                                  backdrop-blur-sm border relative overflow-hidden`}
                       >
-                        {/* 완료 표시 */}
+                        {/* ?꾨즺 ?쒖떆 */}
                         <div className="absolute top-2 right-2">
                           <CheckCircle size={16} className="text-green-400" />
                         </div>
@@ -375,10 +375,10 @@ export default function Profile() {
                             <p className="text-sm text-white/70 font-display mb-2">{achievement.description}</p>
                             <div className="flex items-center gap-4 text-xs">
                               <span className="text-green-400 font-display">
-                                ✓ {achievement.completedDate?.toLocaleDateString('ko-KR')}
+                                ??{achievement.completedDate?.toLocaleDateString('ko-KR')}
                               </span>
                               <span className="text-yellow-400 font-display">
-                                🎁 {achievement.reward.value}
+                                ?럞 {achievement.reward.value}
                               </span>
                             </div>
                           </div>
@@ -389,12 +389,12 @@ export default function Profile() {
                 </div>
               )}
 
-              {/* 진행 중인 업적 */}
+              {/* 吏꾪뻾 以묒씤 ?낆쟻 */}
               {inProgressAchievements.length > 0 && (
                 <div>
                   <h3 className="text-lg font-display font-bold text-white tracking-wider mb-4 flex items-center gap-2">
                     <RotateCcw size={20} className="text-yellow-400" />
-                    진행 중인 업적 ({inProgressAchievements.length})
+                    吏꾪뻾 以묒씤 ?낆쟻 ({inProgressAchievements.length})
                   </h3>
                   <div className="space-y-3">
                     {inProgressAchievements.map(achievement => (
@@ -417,7 +417,7 @@ export default function Profile() {
                             </div>
                             <p className="text-sm text-white/60 font-display mb-3">{achievement.description}</p>
 
-                            {/* 진행도 바 */}
+                            {/* 吏꾪뻾??諛?*/}
                             <div className="mb-2">
                               <div className="bg-white/10 rounded-full h-2 overflow-hidden">
                                 <div
@@ -432,7 +432,7 @@ export default function Profile() {
                                   {achievement.progress} / {achievement.maxProgress}
                                 </span>
                                 <span className="text-yellow-400 font-display">
-                                  🎁 {achievement.reward.value}
+                                  ?럞 {achievement.reward.value}
                                 </span>
                               </div>
                             </div>

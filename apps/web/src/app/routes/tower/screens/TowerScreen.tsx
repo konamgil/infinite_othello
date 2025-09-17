@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGameStore } from '../../store/gameStore';
-import { haptic } from '../../ui/feedback/HapticFeedback';
-import { TypewriterText } from '../../ui/stella/TypewriterText';
-import { CosmicTowerCanvas } from '../../ui/tower/CosmicTowerCanvas';
-import { CosmicGuardian } from '../../ui/tower/CosmicGuardian';
-import { TowerStatsCard } from '../../ui/tower/TowerStatsCard';
+import { useGameStore } from '../../../../store/gameStore';
+import { haptic } from '../../../../ui/feedback/HapticFeedback';
+import { TypewriterText } from '../../../../ui/stella/TypewriterText';
+import { CosmicTowerCanvas } from '../../../../ui/tower/CosmicTowerCanvas';
+import { CosmicGuardian } from '../../../../ui/tower/CosmicGuardian';
+import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
 import { Zap, Crown } from 'lucide-react';
 
 function getGuardianSpeech(floor: number): string[] {
@@ -25,7 +25,7 @@ function getGuardianSpeech(floor: number): string[] {
   ];
 }
 
-export default function Tower() {
+export function TowerScreen() {
   const navigate = useNavigate();
   const { player } = useGameStore();
   const currentFloor = player.towerProgress;
@@ -38,7 +38,13 @@ export default function Tower() {
       return;
     }
     haptic.bossEncounter();
-    navigate('/game', { state: { towerFloor: currentFloor } });
+    navigate(`/tower/game/tower/${currentFloor}`, {
+      state: {
+        mode: 'tower',
+        towerFloor: currentFloor,
+        title: `Tower Floor ${currentFloor}`,
+      },
+    });
   };
 
   const guardianMessages = getGuardianSpeech(currentFloor);

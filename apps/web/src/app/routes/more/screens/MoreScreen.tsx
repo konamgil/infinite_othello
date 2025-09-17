@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreStarCanvas } from '../../ui/more/MoreStarCanvas';
+import { MoreStarCanvas } from '../../../../ui/more/MoreStarCanvas';
 import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock } from 'lucide-react';
 
-export default function More() {
+export function MoreScreen() {
   const navigate = useNavigate();
 
   return (
@@ -37,7 +37,7 @@ export default function More() {
             className="group w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                        hover:bg-black/30 hover:border-white/20 active:scale-[0.99]
                        transition-all duration-300 flex items-center justify-between"
-            onClick={() => navigate('/replay')}
+            onClick={() => navigate('/more/replay')}
           >
             <div className="flex items-center">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-400/30 to-blue-500/30 rounded-xl
@@ -54,7 +54,7 @@ export default function More() {
             className="group w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                        hover:bg-black/30 hover:border-white/20 active:scale-[0.99]
                        transition-all duration-300 flex items-center justify-between"
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/more/settings')}
           >
             <div className="flex items-center">
               <div className="w-10 h-10 bg-gradient-to-br from-yellow-400/30 to-orange-500/30 rounded-xl
