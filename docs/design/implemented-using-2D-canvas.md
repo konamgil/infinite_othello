@@ -1,4 +1,15 @@
+---
+title: "Features to be Implemented using 2D Canvas"
+owner: dev-team
+status: draft
+last_update: 2025-09-16
+tags: [canvas, rendering, frontend, implementation]
+related: [design/design-docs.md, dev/dev-docs.md]
+---
+
 # 2D Canvas로 구현해야 하는 부분
+
+**문서 레벨**: Reference / Guide
 
 ## 1. **오델로 게임 보드**
 
@@ -40,3 +51,7 @@
 - 승리/패배 연출 (돌이 흩어지는 애니메이션, 보드가 붉게 변하는 효과)
 - 스텔라 조언 시 → 착수 추천 위치에 **반짝임/파티클** 표시
 - 미션 도전 시 → 조건 달성 순간 별도 시각 효과
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: dev/dev-docs.md]

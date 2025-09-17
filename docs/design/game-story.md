@@ -1,4 +1,15 @@
+---
+title: "Game Story: Othello Knight: Infinite Tower"
+owner: story-team
+status: approved
+last_update: 2025-09-16
+tags: [story, narrative, design]
+related: [design/design-docs.md, design/design-concept-guide.md]
+---
+
 # 🏰 오델로 나이트: 인피니트 탑
+
+**문서 레벨**: Reference / Guide
 
 ## 세계관
 
@@ -48,3 +59,7 @@
 2. **보스 전투(50층 단위)** → 새로운 전략 학습 & 난관 극복
 3. **오델로 스텔라** → 내 오델로 실력을 성장시키는 가이드
 4. **최종 목표(300층)** → 오델로 킹과의 대결이라는 장대한 서사
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/design-concept-guide.md]

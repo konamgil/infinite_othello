@@ -1,3 +1,16 @@
+---
+title: Design Feedback - Reducing Clutter
+owner: design-team
+status: approved
+last_update: 2025-09-16
+tags: [design, feedback, ui, fx]
+related: [design/design-docs.md, design/design-concept-guide.md]
+---
+
+# Design Feedback - Reducing Clutter
+
+**문서 레벨**: Reference / Guide
+
 지금 “조잡·과함” 느낌은 모션·광량·입자·색 대비가 동시에 높아서 생겨.
 핵심은 **“고요한 기본 + 순간 피크”**로 재구성하는 거야. 아래 값만 적용해도 인상이 확 달라져.
 
@@ -110,3 +123,7 @@ FX 스로틀러/큐 먼저 붙이기(겹침 제거).
 클릭/착수/뒤집기/승패 같은 순간에만 짧게 터진다.
 
 500ms 이상 지속되는 FX는 히어로 1개 외 금지.
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/design-concept-guide.md]

@@ -1,3 +1,16 @@
+---
+title: Design Theme Customization Concept
+owner: design-team
+status: draft
+last_update: 2025-09-16
+tags: [design, theme, customization, monetization]
+related: [design/design-docs.md, design/design-concept-guide.md]
+---
+
+# 🎨 Design Theme Customization Concept
+
+**문서 레벨**: Reference / Guide
+
 ## 1. 기본 구조
 
 - *보드(Board)**와 **스톤(돌, Stone)**은 플레이어가 원하는 테마로 변경 가능
@@ -40,3 +53,7 @@
 - **설정 메뉴** → “보드/스톤 테마 선택” 탭 제공
 - 선택 시 미리보기 애니메이션 (보드 위에서 스톤이 둥글게 돌아가며 보여줌)
 - 전투 시작 시 테마 적용
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/design-concept-guide.md]

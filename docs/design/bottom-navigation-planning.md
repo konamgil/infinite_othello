@@ -1,4 +1,15 @@
+---
+title: Bottom Navigation Planning (v2)
+owner: ui-team
+status: approved
+last_update: 2025-09-16
+tags: [ui, navigation, design, planning]
+related: [design/design-docs.md, design/mobile-ui-guide.md]
+---
+
 # 바텀 네비게이션 기획 (최종안 v2)
+
+**문서 레벨**: Reference / Guide
 
 ## 1. 🏠 홈 (Home)
 
@@ -57,3 +68,7 @@
     - 프로필, 업적, 칭호
     - 환경설정 (언어, 접근성, 알림)
 - **포인트**: 개인화 + 수익화의 거점
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/mobile-ui-guide.md]
