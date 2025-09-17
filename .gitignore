@@ -9,7 +9,10 @@ dist/
 .env*
 
 # Vite
-apps/web/dist/
+
+# System files
+nul
+
 
 # Build caches
 coverage/
