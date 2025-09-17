@@ -1,3 +1,16 @@
+---
+title: Mobile UI Guide (Fixed Layout)
+owner: ui-team
+status: approved
+last_update: 2025-09-16
+tags: [ui, mobile, design, layout, canvas]
+related: [design/design-docs.md, design/bottom-navigation-planning.md]
+---
+
+# 📱 Mobile UI Guide (Fixed Layout)
+
+**문서 레벨**: Reference / Guide
+
 # 🎯 아트보드 개념
 
 - **고정 논리폭**: `390px` (iPhone 12/13/14 표준폭)
@@ -116,3 +129,7 @@ const ctx = setupHiDPICanvas(document.querySelector('#board'), BOARD_SIZE);
 - [ ]  캔버스 HiDPI 스케일링 적용 여부
 - [ ]  바텀탭 **안전영역** 겹침 없음
 - [ ]  30/60fps 애니메이션 유지(저성능 폰에서 파티클 강도 낮춤)
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/bottom-navigation-planning.md]

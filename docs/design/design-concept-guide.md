@@ -1,4 +1,15 @@
+---
+title: Design Concept Guide (Othello Knight: Infinite Tower)
+owner: design-team
+status: approved
+last_update: 2025-09-16
+tags: [design, concept, art, theme]
+related: [design/design-docs.md, design/game-story.md]
+---
+
 # 🎨 디자인 컨셉 가이드 (오델로 나이트: 인피니트 탑)
+
+**문서 레벨**: Reference / Guide
 
 ## 1. 전체 아트 방향
 
@@ -52,3 +63,7 @@
 - **승리 시**: 흰빛 폭발, 탑이 위로 흔들리며 다음 층으로 이동
 - **패배 시**: 보드가 붉게 물들며 문지기가 비웃는 컷신
 - **스텔라 등장 시**: 별빛 파편이 모여 형상이 생김
+
+---
+[📎 관련 문서: design/design-docs.md]
+[📎 관련 문서: design/game-story.md]
