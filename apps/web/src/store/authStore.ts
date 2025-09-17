@@ -1,0 +1,429 @@
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import { supabase, supabaseUtils } from '../lib/supabase';
+import { guestAuthUtils, type GuestAuthState } from '../lib/guestAuth';
+import { oauthUtils, type SupportedProvider } from '../lib/oauthProviders';
+import { sessionUtils, type SessionConflictInfo } from '../lib/sessionManager';
+import type { User, Session, AuthError } from '@supabase/supabase-js';
+import type { Profile } from '../types/supabase';
+
+// 인증 상태 타입 정의
+export interface AuthState {
+  // 사용자 정보
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+
+  // 게스트 상태
+  guestProfile: Profile | null;
+  isGuest: boolean;
+
+  // 인증 상태
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  isInitialized: boolean;
+
+  // 에러 상태
+  error: string | null;
+
+  // 가입/로그인 상태
+  signUpLoading: boolean;
+  signInLoading: boolean;
+  signOutLoading: boolean;
+  oauthLoading: boolean;
+
+  // 연동 상태
+  linkingProvider: SupportedProvider | null;
+  showLinkPrompt: boolean;
+
+  // 세션 충돌 상태
+  sessionConflict: SessionConflictInfo | null;
+  showSessionConflict: boolean;
+}
+
+// 액션 타입 정의
+export interface AuthActions {
+  // 초기화
+  initialize: () => Promise<void>;
+
+  // 게스트 계정
+  createGuestAccount: () => Promise<{ success: boolean; profile?: Profile; error?: string }>;
+  loadGuestFromLocal: () => void;
+
+  // OAuth 로그인
+  signInWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  handleOAuthCallback: () => Promise<{ success: boolean; error?: string }>;
+
+  // 계정 연동
+  linkAccountWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  showLinkingPrompt: (show: boolean, context?: string) => void;
+
+  // 로그아웃
+  signOut: () => Promise<void>;
+
+  // 프로필 업데이트
+  updateProfile: (updates: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
+
+  // 세션 관리
+  handleSessionConflict: (conflictInfo: SessionConflictInfo) => void;
+  forceEndOtherSessions: () => Promise<{ success: boolean; error?: string }>;
+  resolveSessionConflict: (action: 'force' | 'cancel') => Promise<void>;
+
+  // 게스트 유틸리티
+  shouldPromptLinking: (context: string) => boolean;
+  getGuestLimitations: () => ReturnType<typeof guestAuthUtils.getLimitations>;
+
+  // 에러 초기화
+  clearError: () => void;
+
+  // 내부 상태 업데이트 (인증 리스너용)
+  setAuth: (user: User | null, session: Session | null) => void;
+  setProfile: (profile: Profile | null) => void;
+  setGuestProfile: (profile: Profile | null) => void;
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
+}
+
+export type AuthStore = AuthState & AuthActions;
+
+// 초기 상태
+const initialState: AuthState = {
+  user: null,
+  session: null,
+  profile: null,
+  guestProfile: null,
+  isGuest: false,
+  isLoading: true,
+  isAuthenticated: false,
+  isInitialized: false,
+  error: null,
+  signUpLoading: false,
+  signInLoading: false,
+  signOutLoading: false,
+  oauthLoading: false,
+  linkingProvider: null,
+  showLinkPrompt: false,
+  sessionConflict: null,
+  showSessionConflict: false,
+};
+
+// Zustand 스토어 생성
+export const useAuthStore = create<AuthStore>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        ...initialState,
+
+        // 초기화
+        initialize: async () => {
+          try {
+            set({ isLoading: true, error: null });
+
+            // 현재 세션 가져오기
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError) {
+              console.error('Session error:', sessionError);
+              set({ error: supabaseUtils.translateError(sessionError) });
+              return;
+            }
+
+            if (session?.user) {
+              // 프로필 정보 가져오기
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profileError && profileError.code !== 'PGRST116') {
+                console.error('Profile fetch error:', profileError);
+              }
+
+              set({
+                user: session.user,
+                session,
+                profile: profile || null,
+                isAuthenticated: true,
+              });
+            }
+
+            // 인증 상태 변경 리스너 설정
+            supabase.auth.onAuthStateChange(async (event, session) => {
+              console.log('Auth state changed:', event, session?.user?.id);
+
+              if (event === 'SIGNED_IN' && session?.user) {
+                // 프로필 정보 가져오기
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+
+                get().setAuth(session.user, session);
+                get().setProfile(profile || null);
+              } else if (event === 'SIGNED_OUT') {
+                get().setAuth(null, null);
+                get().setProfile(null);
+              }
+            });
+
+          } catch (error) {
+            console.error('Auth initialization error:', error);
+            set({ error: '인증 초기화 중 오류가 발생했습니다.' });
+          } finally {
+            set({ isLoading: false, isInitialized: true });
+          }
+        },
+
+        // 회원가입
+        signUp: async (email, password, username, displayName) => {
+          try {
+            set({ signUpLoading: true, error: null });
+
+            // 사용자 생성
+            const { data, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  username,
+                  display_name: displayName || username,
+                },
+              },
+            });
+
+            if (signUpError) {
+              const errorMessage = supabaseUtils.translateError(signUpError);
+              set({ error: errorMessage });
+              return { success: false, error: errorMessage };
+            }
+
+            if (data.user) {
+              // 프로필 생성
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: data.user.id,
+                  email,
+                  username,
+                  display_name: displayName || username,
+                  rating: 1500,
+                  rank: 'Bronze',
+                  total_games: 0,
+                  wins: 0,
+                  losses: 0,
+                  draws: 0,
+                });
+
+              if (profileError) {
+                console.error('Profile creation error:', profileError);
+                // 프로필 생성 실패해도 가입은 성공으로 처리
+              }
+
+              return { success: true };
+            }
+
+            return { success: false, error: '회원가입에 실패했습니다.' };
+
+          } catch (error) {
+            const errorMessage = '회원가입 중 오류가 발생했습니다.';
+            set({ error: errorMessage });
+            return { success: false, error: errorMessage };
+          } finally {
+            set({ signUpLoading: false });
+          }
+        },
+
+        // 로그인
+        signIn: async (email, password) => {
+          try {
+            set({ signInLoading: true, error: null });
+
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (signInError) {
+              const errorMessage = supabaseUtils.translateError(signInError);
+              set({ error: errorMessage });
+              return { success: false, error: errorMessage };
+            }
+
+            if (data.user && data.session) {
+              // 프로필 정보 가져오기
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .single();
+
+              // 마지막 접속 시간 업데이트
+              if (profile) {
+                await supabase
+                  .from('profiles')
+                  .update({ last_seen: new Date().toISOString() })
+                  .eq('id', data.user.id);
+              }
+
+              set({
+                user: data.user,
+                session: data.session,
+                profile: profile || null,
+                isAuthenticated: true,
+              });
+
+              return { success: true };
+            }
+
+            return { success: false, error: '로그인에 실패했습니다.' };
+
+          } catch (error) {
+            const errorMessage = '로그인 중 오류가 발생했습니다.';
+            set({ error: errorMessage });
+            return { success: false, error: errorMessage };
+          } finally {
+            set({ signInLoading: false });
+          }
+        },
+
+        // 로그아웃
+        signOut: async () => {
+          try {
+            set({ signOutLoading: true, error: null });
+
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+              const errorMessage = supabaseUtils.translateError(error);
+              set({ error: errorMessage });
+              return;
+            }
+
+            // 상태 초기화는 onAuthStateChange에서 처리됨
+
+          } catch (error) {
+            set({ error: '로그아웃 중 오류가 발생했습니다.' });
+          } finally {
+            set({ signOutLoading: false });
+          }
+        },
+
+        // 프로필 업데이트
+        updateProfile: async (updates) => {
+          try {
+            const { user } = get();
+            if (!user) {
+              return { success: false, error: '로그인이 필요합니다.' };
+            }
+
+            const { error } = await supabase
+              .from('profiles')
+              .update({
+                ...updates,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', user.id);
+
+            if (error) {
+              const errorMessage = supabaseUtils.translateError(error);
+              set({ error: errorMessage });
+              return { success: false, error: errorMessage };
+            }
+
+            // 로컬 상태 업데이트
+            set((state) => ({
+              profile: state.profile ? { ...state.profile, ...updates } : null,
+            }));
+
+            return { success: true };
+
+          } catch (error) {
+            const errorMessage = '프로필 업데이트 중 오류가 발생했습니다.';
+            set({ error: errorMessage });
+            return { success: false, error: errorMessage };
+          }
+        },
+
+        // 비밀번호 재설정
+        resetPassword: async (email) => {
+          try {
+            set({ error: null });
+
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: `${window.location.origin}/reset-password`,
+            });
+
+            if (error) {
+              const errorMessage = supabaseUtils.translateError(error);
+              set({ error: errorMessage });
+              return { success: false, error: errorMessage };
+            }
+
+            return { success: true };
+
+          } catch (error) {
+            const errorMessage = '비밀번호 재설정 중 오류가 발생했습니다.';
+            set({ error: errorMessage });
+            return { success: false, error: errorMessage };
+          }
+        },
+
+        // 에러 초기화
+        clearError: () => set({ error: null }),
+
+        // 내부 상태 업데이트 함수들
+        setAuth: (user, session) => set({
+          user,
+          session,
+          isAuthenticated: !!user && !!session,
+        }),
+
+        setProfile: (profile) => set({ profile }),
+
+        setError: (error) => set({ error }),
+
+        setLoading: (isLoading) => set({ isLoading }),
+      }),
+      {
+        name: 'infinity-othello-auth-store',
+        partialize: (state) => ({
+          // 민감한 정보는 저장하지 않음
+          profile: state.profile,
+          isAuthenticated: state.isAuthenticated,
+        }),
+      }
+    ),
+    {
+      name: 'AuthStore',
+    }
+  )
+);
+
+// 편의 훅들
+export const useAuth = () => useAuthStore((state) => ({
+  user: state.user,
+  session: state.session,
+  profile: state.profile,
+  isLoading: state.isLoading,
+  isAuthenticated: state.isAuthenticated,
+  isInitialized: state.isInitialized,
+  error: state.error,
+}));
+
+export const useAuthActions = () => useAuthStore((state) => ({
+  initialize: state.initialize,
+  signUp: state.signUp,
+  signIn: state.signIn,
+  signOut: state.signOut,
+  updateProfile: state.updateProfile,
+  resetPassword: state.resetPassword,
+  clearError: state.clearError,
+}));
+
+export const useAuthLoading = () => useAuthStore((state) => ({
+  signUpLoading: state.signUpLoading,
+  signInLoading: state.signInLoading,
+  signOutLoading: state.signOutLoading,
+}));
