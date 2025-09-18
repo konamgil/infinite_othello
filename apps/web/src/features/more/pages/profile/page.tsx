@@ -17,7 +17,7 @@ export default function ProfilePage() {
         <div className="content-padding section-spacing pb-32 space-y-6">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/more')}
             className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
           >
             <ArrowLeft size={16} />

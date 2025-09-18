@@ -61,7 +61,7 @@ export default function MorePage() {
                             flex items-center justify-center mr-4 backdrop-blur-sm border border-yellow-400/20">
                 <Palette size={18} className="text-yellow-300" />
               </div>
-              <span className="text-white/90 font-smooth font-medium">테마 설정</span>
+              <span className="text-white/90 font-smooth font-medium">기본 설정</span>
             </div>
             <span className="text-white/50 text-sm font-smooth">보드 & 스톤</span>
           </button>

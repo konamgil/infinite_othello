@@ -397,14 +397,14 @@ export default function ReplayPage() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate('/stella')}
+                onClick={() => navigate('/more')}
                 className="w-10 h-10 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl
                          flex items-center justify-center hover:bg-black/30 active:scale-95 transition-all"
               >
                 <ArrowLeft size={20} className="text-white/90" />
               </button>
               <div>
-                <h1 className="text-2xl font-display font-bold text-white tracking-wider">📼 시공간 기록 보관소</h1>
+                <h1 className="text-2xl font-display font-bold text-white tracking-wider">📼 시공간 아카이브</h1>
                 <p className="text-sm text-white/60 font-display tracking-wide">당신의 오델로 여정을 돌아보세요</p>
               </div>
             </div>

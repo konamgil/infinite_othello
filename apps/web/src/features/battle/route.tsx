@@ -7,7 +7,6 @@ import { BattleLayout } from './layouts/BattleLayout';
 import BattleHome from './pages/index/page';
 import BattleMatchScreen from './pages/match/page';
 import BattleTournamentScreen from './pages/tournament/page';
-import GameScreen from './pages/game/page';
 import QuickMatchPage from './pages/quick/page';
 import RankedMatchPage from './pages/ranked/page';
 
@@ -67,17 +66,17 @@ export const battleRoute: AppRouteObject = {
     {
       path: 'quick',
       element: <QuickMatchPage />,
-      handle: { meta: { ...BATTLE_ROOT_META, hideBottomNav: true, title: '빠른 매치' } },
+      handle: { meta: { ...BATTLE_DETAIL_META, title: '빠른 매치' } },
     },
     {
       path: 'ranked',
       element: <RankedMatchPage />,
-      handle: { meta: { ...BATTLE_ROOT_META, hideBottomNav: true, title: '랭크 매치' } },
+      handle: { meta: { ...BATTLE_DETAIL_META, title: '랭크 매치' } },
     },
     {
       path: 'tournament',
       element: <BattleTournamentScreen />,
-      handle: { meta: { ...BATTLE_ROOT_META, hideBottomNav: true, title: '토너먼트', icon: Trophy } },
+      handle: { meta: { ...BATTLE_DETAIL_META, title: '토너먼트', icon: Trophy } },
     },
     {
       path: '*',

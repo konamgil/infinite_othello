@@ -38,7 +38,7 @@ export default function TowerPage() {
       return;
     }
     haptic.bossEncounter();
-    navigate(`/tower/game/tower/${currentFloor}`, {
+    navigate(`/tower/${currentFloor}`, {
       state: {
         mode: 'tower',
         towerFloor: currentFloor,

@@ -60,13 +60,18 @@ export function RootLayout() {
   }, [activeMeta?.title, rootMeta?.title]);
 
   const shouldShowBottomNav = useMemo(() => {
+    // 현재 활성 라우트가 hideBottomNav를 설정했으면 숨김
+    if (activeMeta?.hideBottomNav) {
+      return false;
+    }
+
     if (!rootMeta || rootMeta.hideBottomNav) {
       return false;
     }
     const normalized = normalizePath(location.pathname);
     const rootSegment = getRootSegment(normalized);
     return rootNavSet.has(rootSegment);
-  }, [location.pathname, rootMeta, rootNavSet]);
+  }, [location.pathname, rootMeta, activeMeta, rootNavSet]);
 
   const activeNavPath = rootMeta?.navPath;
   const isNavigating = navigation.state === 'loading';
