@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 미니멀 글로우 -->
+    <filter id="minimalGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 미니멀 배경 -->
+  <rect width="512" height="512" fill="#000814"/>
+
+  <!-- 미니멀 4개 디스크 -->
+  <!-- 좌상 -->
+  <circle cx="176" cy="176" r="52" fill="#ffffff"
+          stroke="#4da6ff" stroke-width="6" filter="url(#minimalGlow)"/>
+
+  <!-- 우상 -->
+  <circle cx="336" cy="176" r="52" fill="#202020"
+          stroke="#4da6ff" stroke-width="6" filter="url(#minimalGlow)"/>
+
+  <!-- 좌하 -->
+  <circle cx="176" cy="336" r="52" fill="#202020"
+          stroke="#4da6ff" stroke-width="6" filter="url(#minimalGlow)"/>
+
+  <!-- 우하 -->
+  <circle cx="336" cy="336" r="52" fill="#ffffff"
+          stroke="#4da6ff" stroke-width="6" filter="url(#minimalGlow)"/>
+
+  <!-- 중앙 라인 -->
+  <line x1="256" y1="120" x2="256" y2="392" stroke="#4da6ff" stroke-width="2" opacity="0.5"/>
+  <line x1="120" y1="256" x2="392" y2="256" stroke="#4da6ff" stroke-width="2" opacity="0.5"/>
+</svg>

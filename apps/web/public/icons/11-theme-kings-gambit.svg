@@ -1,0 +1,25 @@
+<!-- Theme: The King's Gambit -->
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="abyss_grad" x1="50%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#0a0a1a"/></linearGradient>
+    <radialGradient id="w_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0e0e0"/></radialGradient>
+    <radialGradient id="b_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#333"/><stop offset="100%" stop-color="#0a0a0a"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/></filter>
+    <filter id="king_glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="4"/></filter>
+    <clipPath id="clip"><path d="M 50,0 C 10,0 0,10 0,50 L 0,206 C 0,246 10,256 50,256 L 206,256 C 246,256 256,246 256,206 L 256,50 C 256,10 246,0 206,0 Z"/></clipPath>
+  </defs>
+  <path d="M 50,0 C 10,0 0,10 0,50 L 0,206 C 0,246 10,256 50,256 L 206,256 C 246,256 256,246 256,206 L 256,50 C 256,10 246,0 206,0 Z" fill="url(#abyss_grad)"/>
+  <g clip-path="url(#clip)" stroke="#4c1d95" stroke-width="2" stroke-opacity="0.6">
+    <line x1="0" y1="128" x2="256" y2="128"/><line x1="0" y1="88" x2="256" y2="88"/><line x1="0" y1="168" x2="256" y2="168"/><line x1="0" y1="48" x2="256" y2="48"/><line x1="0" y1="208" x2="256" y2="208"/>
+    <line x1="128" y1="0" x2="128" y2="256"/><line x1="88" y1="0" x2="88" y2="256"/><line x1="168" y1="0" x2="168" y2="256"/><line x1="48" y1="0" x2="48" y2="256"/><line x1="208" y1="0" x2="208" y2="256"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="108" cy="108" r="18" fill="url(#w_disk)"/>
+    <circle cx="148" cy="108" r="18" fill="url(#b_disk)"/>
+    <circle cx="108" cy="148" r="18" fill="url(#b_disk)"/>
+    <circle cx="148" cy="148" r="18" fill="url(#w_disk)"/>
+  </g>
+  <g transform="translate(148, 108)">
+    <circle cx="0" cy="0" r="20" fill="none" stroke="#ef4444" stroke-width="2" filter="url(#king_glow)" opacity="0.8"/>
+  </g>
+</svg>

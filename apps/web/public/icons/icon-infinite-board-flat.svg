@@ -1,0 +1,45 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="board_grad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#0c8237"/>
+      <stop offset="100%" stop-color="#085c25"/>
+    </linearGradient>
+    <radialGradient id="w_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0e0e0"/></radialGradient>
+    <radialGradient id="b_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#333"/><stop offset="100%" stop-color="#0a0a0a"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/></filter>
+    <filter id="glow"><feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/></filter>
+  </defs>
+
+  <!-- The Board is the Frame (Flat) -->
+  <path d="M 50,0 C 10,0 0,10 0,50 L 0,206 C 0,246 10,256 50,256 L 206,256 C 246,256 256,246 256,206 L 256,50 C 256,10 246,0 206,0 Z" fill="url(#board_grad)"/>
+
+  <!-- Flat Grid -->
+  <g stroke="#06441e" stroke-width="2" stroke-opacity="0.8">
+    <line x1="0" y1="56" x2="256" y2="56"/>
+    <line x1="0" y1="96" x2="256" y2="96"/>
+    <line x1="0" y1="136" x2="256" y2="136"/>
+    <line x1="0" y1="176" x2="256" y2="176"/>
+    <line x1="0" y1="216" x2="256" y2="216"/>
+    
+    <line x1="56" y1="0" x2="56" y2="256"/>
+    <line x1="96" y1="0" x2="96" y2="256"/>
+    <line x1="136" y1="0" x2="136" y2="256"/>
+    <line x1="176" y1="0" x2="176" y2="256"/>
+    <line x1="216" y1="0" x2="216" y2="256"/>
+  </g>
+
+  <!-- Disks -->
+  <g filter="url(#shadow)">
+    <circle cx="116" cy="116" r="18" fill="url(#w_disk)"/>
+    <circle cx="156" cy="116" r="18" fill="url(#b_disk)"/>
+    <circle cx="116" cy="156" r="18" fill="url(#b_disk)"/>
+    <circle cx="156" cy="156" r="18" fill="url(#w_disk)"/>
+  </g>
+
+  <!-- Particles -->
+  <g transform="translate(156, 156)" filter="url(#glow)" opacity="0.7">
+    <circle cx="-25" cy="-10" r="2.5" fill="#fff"/>
+    <circle cx="0" cy="-25" r="2" fill="#fff"/>
+    <circle cx="22" cy="-15" r="2.5" fill="#fff"/>
+  </g>
+</svg>

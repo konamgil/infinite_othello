@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 스페이스 글로우 -->
+    <filter id="spaceGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="7" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 스페이스 배경 -->
+  <rect width="512" height="512" fill="#000510"/>
+
+  <!-- 십자 라인 -->
+  <line x1="256" y1="80" x2="256" y2="432" stroke="#00ffff" stroke-width="4" filter="url(#spaceGlow)"/>
+  <line x1="80" y1="256" x2="432" y2="256" stroke="#00ffff" stroke-width="4" filter="url(#spaceGlow)"/>
+
+  <!-- 4개 스페이스 디스크 -->
+  <!-- 상 -->
+  <circle cx="256" cy="160" r="48" fill="#ffffff"
+          stroke="#ffd700" stroke-width="6" filter="url(#spaceGlow)"/>
+
+  <!-- 우 -->
+  <circle cx="352" cy="256" r="48" fill="#101010"
+          stroke="#4da6ff" stroke-width="6" filter="url(#spaceGlow)"/>
+
+  <!-- 하 -->
+  <circle cx="256" cy="352" r="48" fill="#101010"
+          stroke="#ff00ff" stroke-width="6" filter="url(#spaceGlow)"/>
+
+  <!-- 좌 -->
+  <circle cx="160" cy="256" r="48" fill="#ffffff"
+          stroke="#00ffff" stroke-width="6" filter="url(#spaceGlow)"/>
+
+  <!-- 중앙 코어 -->
+  <circle cx="256" cy="256" r="12" fill="#ffd700" filter="url(#spaceGlow)"/>
+</svg>

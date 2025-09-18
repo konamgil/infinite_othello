@@ -1,0 +1,50 @@
+<!-- Final Version v4: Yellow/Sky Blue Rays -->
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ray_grad_yellow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(250, 204, 21, 0.6)"/>
+      <stop offset="100%" stop-color="rgba(250, 204, 21, 0)"/>
+    </radialGradient>
+    <radialGradient id="ray_grad_skyblue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(14, 165, 233, 0.6)"/>
+      <stop offset="100%" stop-color="rgba(14, 165, 233, 0)"/>
+    </radialGradient>
+    <linearGradient id="bevel_grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a8a29e"/><stop offset="30%" stop-color="#4c1d95"/><stop offset="70%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient>
+    <linearGradient id="board_grad" x1="50%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#0c8237"/><stop offset="100%" stop-color="#085c25"/></linearGradient>
+    <radialGradient id="w_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0e0e0"/></radialGradient>
+    <radialGradient id="b_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#333"/><stop offset="100%" stop-color="#0a0a0a"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="3" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/></filter>
+    <clipPath id="clip"><path d="M 50,12 C 12,12 12,12 12,50 L 12,206 C 12,244 12,244 50,244 L 206,244 C 244,244 244,244 244,206 L 244,50 C 244,12 244,12 206,12 Z"/></clipPath>
+  </defs>
+  
+  <!-- Light Rays (Yellow & Sky Blue) -->
+  <g transform="translate(128, 128)">
+    <g opacity="0.7">
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_yellow)" transform="rotate(0)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_skyblue)" transform="rotate(45)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_yellow)" transform="rotate(90)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_skyblue)" transform="rotate(135)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_yellow)" transform="rotate(180)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_skyblue)" transform="rotate(225)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_yellow)" transform="rotate(270)"/>
+      <path d="M 0 -180 L 25 -20 L -25 -20 Z" fill="url(#ray_grad_skyblue)" transform="rotate(315)"/>
+    </g>
+  </g>
+
+  <!-- Floating Icon -->
+  <g transform="translate(0, 0)">
+    <path d="M 50,0 C 10,0 0,10 0,50 L 0,206 C 0,246 10,256 50,256 L 206,256 C 246,256 256,246 256,206 L 256,50 C 256,10 246,0 206,0 Z" fill="transparent"/>
+    <path d="M 50,4 C 14,4 4,14 4,50 L 4,206 C 4,242 14,252 50,252 L 206,252 C 242,252 252,242 252,206 L 252,50 C 252,14 242,4 206,4 Z" fill="url(#bevel_grad)"/>
+    <path d="M 50,8 C 18,8 8,18 8,50 L 8,206 C 8,238 18,248 50,248 L 206,248 C 238,248 248,238 248,206 L 248,50 C 248,18 238,8 206,8 Z" fill="#0a0a1a" opacity="0.2"/>
+    <g transform="translate(12, 12)">
+      <path d="M 38,0 C 0,0 0,0 0,38 L 0,194 C 0,232 0,232 38,232 L 194,232 C 232,232 232,232 232,194 L 232,38 C 232,0 232,0 194,0 Z" fill="url(#board_grad)"/>
+      <g clip-path="url(#clip)" transform="translate(-12, -12)" stroke="#06441e" stroke-width="3" stroke-opacity="0.8">
+        <line x1="0" y1="128" x2="256" y2="128"/><line x1="0" y1="48" x2="256" y2="48"/><line x1="0" y1="208" x2="256" y2="208"/>
+        <line x1="128" y1="0" x2="128" y2="256"/><line x1="48" y1="0" x2="48" y2="256"/><line x1="208" y1="0" x2="208" y2="256"/>
+      </g>
+      <g filter="url(#shadow)" transform="translate(-12, -12)">
+        <circle cx="88" cy="88" r="32" fill="url(#w_disk)"/><circle cx="168" cy="88" r="32" fill="url(#b_disk)"/><circle cx="88" cy="168" r="32" fill="url(#b_disk)"/><circle cx="168" cy="168" r="32" fill="url(#w_disk)"/>
+      </g>
+    </g>
+  </g>
+</svg>

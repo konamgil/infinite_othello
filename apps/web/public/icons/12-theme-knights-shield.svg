@@ -1,0 +1,25 @@
+<!-- Theme: Knight's Shield -->
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shield_grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d1d5db"/><stop offset="100%" stop-color="#6b7280"/></linearGradient>
+    <linearGradient id="board_grad" x1="50%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#0c8237"/><stop offset="100%" stop-color="#085c25"/></linearGradient>
+    <radialGradient id="w_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0e0e0"/></radialGradient>
+    <radialGradient id="b_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#333"/><stop offset="100%" stop-color="#0a0a0a"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/></filter>
+    <clipPath id="clip"><path d="M 128,20 C 120,20 40,40 40,128 C 40,200 120,240 128,240 C 136,240 216,200 216,128 C 216,40 136,20 128,20 Z"/></clipPath>
+  </defs>
+  <path d="M 128,12 C 120,12 20,30 20,128 C 20,210 120,250 128,250 C 136,250 236,210 236,128 C 236,30 136,12 128,12 Z" fill="url(#shield_grad)" stroke="#374151" stroke-width="4"/>
+  <g clip-path="url(#clip)">
+    <rect x="0" y="0" width="256" height="256" fill="url(#board_grad)"/>
+    <g stroke="#06441e" stroke-width="2" stroke-opacity="0.8">
+      <line x1="0" y1="128" x2="256" y2="128"/><line x1="0" y1="88" x2="256" y2="88"/><line x1="0" y1="168" x2="256" y2="168"/><line x1="0" y1="48" x2="256" y2="48"/><line x1="0" y1="208" x2="256" y2="208"/>
+      <line x1="128" y1="0" x2="128" y2="256"/><line x1="88" y1="0" x2="88" y2="256"/><line x1="168" y1="0" x2="168" y2="256"/><line x1="48" y1="0" x2="48" y2="256"/><line x1="208" y1="0" x2="208" y2="256"/>
+    </g>
+    <g filter="url(#shadow)">
+      <circle cx="108" cy="108" r="18" fill="url(#w_disk)"/>
+      <circle cx="148" cy="108" r="18" fill="url(#b_disk)"/>
+      <circle cx="108" cy="148" r="18" fill="url(#b_disk)"/>
+      <circle cx="148" cy="148" r="18" fill="url(#w_disk)"/>
+    </g>
+  </g>
+</svg>
