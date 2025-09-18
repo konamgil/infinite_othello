@@ -15,6 +15,7 @@ export interface GameState {
     towerProgress: number;
     wins: number;
     losses: number;
+    winStreak: number;
     rp: number;
   };
 
@@ -66,6 +67,7 @@ const initialState: GameState = {
     towerProgress: 1, // 1층으로 초기화
     wins: 45,
     losses: 12,
+    winStreak: 3,
     rp: 1750,
   },
   theme: {

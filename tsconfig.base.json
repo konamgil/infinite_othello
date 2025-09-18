@@ -11,8 +11,25 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "baseUrl": "."
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "engine-a": [
+        "packages/engine-a/src/index.ts"
+      ],
+      "core": [
+        "packages/core/src/index.ts"
+      ],
+      "render": [
+        "packages/render/src/index.ts"
+      ],
+      "shared-types": [
+        "packages/shared-types/src/index.ts"
+      ]
+    }
   }
 }
-

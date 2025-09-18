@@ -45,6 +45,9 @@ export class GuestAuthManager {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       last_seen: new Date().toISOString(),
+      current_session_id: null,
+      current_device_info: null,
+      session_started_at: null,
     };
 
     try {

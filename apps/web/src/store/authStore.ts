@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { supabase, supabaseUtils } from '../lib/supabase';
+import { supabase, supabaseUtils } from '../services/supabase';
 import { guestAuthUtils, type GuestAuthState } from '../lib/guestAuth';
 import { oauthUtils, type SupportedProvider } from '../lib/oauthProviders';
 import { sessionUtils, type SessionConflictInfo } from '../lib/sessionManager';
@@ -119,6 +119,34 @@ export const useAuthStore = create<AuthStore>()(
           try {
             set({ isLoading: true, error: null });
 
+            if (typeof window !== 'undefined' && !(window as any).__infinitySessionConflictListener) {
+              const handleConflictEvent = async (event: Event) => {
+                const custom = event as CustomEvent<{ message?: string }>;
+                const { user } = get();
+
+                if (user) {
+                  const activeSession = await sessionUtils.getActive(user.id);
+                  if (activeSession) {
+                    get().handleSessionConflict({
+                      deviceInfo: activeSession.current_device_info ?? '알 수 없는 기기',
+                      startedAt: activeSession.session_started_at ?? new Date().toISOString(),
+                      lastSeen: activeSession.last_seen ?? new Date().toISOString(),
+                    });
+                    return;
+                  }
+                }
+
+                get().handleSessionConflict({
+                  deviceInfo: custom.detail?.message ?? '알 수 없는 기기',
+                  startedAt: new Date().toISOString(),
+                  lastSeen: new Date().toISOString(),
+                });
+              };
+
+              window.addEventListener('session-conflict', handleConflictEvent);
+              (window as any).__infinitySessionConflictListener = true;
+            }
+
             // 현재 세션 가져오기
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
@@ -146,6 +174,19 @@ export const useAuthStore = create<AuthStore>()(
                 profile: profile || null,
                 isAuthenticated: true,
               });
+
+              const sessionStart = await sessionUtils.start(session.user.id);
+              if (!sessionStart.success && sessionStart.conflictInfo) {
+                const info = sessionStart.conflictInfo as { deviceInfo?: string; startedAt?: string; lastSeen?: string };
+                set({
+                  sessionConflict: {
+                    deviceInfo: info.deviceInfo ?? '알 수 없는 기기',
+                    startedAt: info.startedAt ?? new Date().toISOString(),
+                    lastSeen: info.lastSeen ?? new Date().toISOString(),
+                  },
+                  showSessionConflict: true,
+                });
+              }
             }
 
             // 인증 상태 변경 리스너 설정
@@ -162,9 +203,24 @@ export const useAuthStore = create<AuthStore>()(
 
                 get().setAuth(session.user, session);
                 get().setProfile(profile || null);
+
+                const sessionStart = await sessionUtils.start(session.user.id);
+                if (!sessionStart.success && sessionStart.conflictInfo) {
+                  const info = sessionStart.conflictInfo as { deviceInfo?: string; startedAt?: string; lastSeen?: string };
+                  set({
+                    sessionConflict: {
+                      deviceInfo: info.deviceInfo ?? '알 수 없는 기기',
+                      startedAt: info.startedAt ?? new Date().toISOString(),
+                      lastSeen: info.lastSeen ?? new Date().toISOString(),
+                    },
+                    showSessionConflict: true,
+                  });
+                }
               } else if (event === 'SIGNED_OUT') {
+                await sessionUtils.end();
                 get().setAuth(null, null);
                 get().setProfile(null);
+                set({ sessionConflict: null, showSessionConflict: false });
               }
             });
 
@@ -274,6 +330,20 @@ export const useAuthStore = create<AuthStore>()(
                 isAuthenticated: true,
               });
 
+              const sessionStart = await sessionUtils.start(data.user.id);
+              if (!sessionStart.success && sessionStart.conflictInfo) {
+                const info = sessionStart.conflictInfo as { deviceInfo?: string; startedAt?: string; lastSeen?: string };
+                set({
+                  sessionConflict: {
+                    deviceInfo: info.deviceInfo ?? '알 수 없는 기기',
+                    startedAt: info.startedAt ?? new Date().toISOString(),
+                    lastSeen: info.lastSeen ?? new Date().toISOString(),
+                  },
+                  showSessionConflict: true,
+                });
+                return { success: false, error: sessionStart.error ?? '다른 기기에서 이미 로그인되어 있습니다.' };
+              }
+
               return { success: true };
             }
 
@@ -300,6 +370,9 @@ export const useAuthStore = create<AuthStore>()(
               set({ error: errorMessage });
               return;
             }
+
+            await sessionUtils.end();
+            set({ sessionConflict: null, showSessionConflict: false });
 
             // 상태 초기화는 onAuthStateChange에서 처리됨
 
@@ -344,6 +417,55 @@ export const useAuthStore = create<AuthStore>()(
             set({ error: errorMessage });
             return { success: false, error: errorMessage };
           }
+        },
+
+        // 세션 관리
+        handleSessionConflict: (conflictInfo) => {
+          set({ sessionConflict: conflictInfo, showSessionConflict: true });
+        },
+
+        forceEndOtherSessions: async () => {
+          const { user } = get();
+          if (!user) {
+            return { success: false, error: '로그인이 필요합니다.' };
+          }
+
+          const result = await sessionUtils.forceEnd(user.id);
+          if (!result.success && result.error) {
+            set({ error: result.error });
+            return result;
+          }
+
+          set({ sessionConflict: null, showSessionConflict: false });
+
+          const restart = await sessionUtils.start(user.id);
+          if (!restart.success && restart.conflictInfo) {
+            const info = restart.conflictInfo as { deviceInfo?: string; startedAt?: string; lastSeen?: string };
+            set({
+              sessionConflict: {
+                deviceInfo: info.deviceInfo ?? '알 수 없는 기기',
+                startedAt: info.startedAt ?? new Date().toISOString(),
+                lastSeen: info.lastSeen ?? new Date().toISOString(),
+              },
+              showSessionConflict: true,
+            });
+          }
+
+          return result;
+        },
+
+        resolveSessionConflict: async (action) => {
+          if (action === 'force') {
+            const result = await get().forceEndOtherSessions();
+            if (!result.success) {
+              return;
+            }
+          } else {
+            set({ sessionConflict: null, showSessionConflict: false });
+            return;
+          }
+
+          set({ sessionConflict: null, showSessionConflict: false });
         },
 
         // 비밀번호 재설정
@@ -410,6 +532,8 @@ export const useAuth = () => useAuthStore((state) => ({
   isAuthenticated: state.isAuthenticated,
   isInitialized: state.isInitialized,
   error: state.error,
+  sessionConflict: state.sessionConflict,
+  showSessionConflict: state.showSessionConflict,
 }));
 
 export const useAuthActions = () => useAuthStore((state) => ({
@@ -420,6 +544,9 @@ export const useAuthActions = () => useAuthStore((state) => ({
   updateProfile: state.updateProfile,
   resetPassword: state.resetPassword,
   clearError: state.clearError,
+  handleSessionConflict: state.handleSessionConflict,
+  forceEndOtherSessions: state.forceEndOtherSessions,
+  resolveSessionConflict: state.resolveSessionConflict,
 }));
 
 export const useAuthLoading = () => useAuthStore((state) => ({

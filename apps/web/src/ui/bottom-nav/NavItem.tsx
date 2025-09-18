@@ -1,21 +1,18 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
-  id: 'home' | 'tower' | 'battle' | 'stella' | 'more';
+  path: string;
   label: string;
   icon: LucideIcon;
   isActive: boolean;
+  onNavigate: (path: string) => void;
   badge?: number;
 }
 
-export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps) {
-  const navigate = useNavigate();
-
+export function NavItem({ path, label, icon: Icon, isActive, onNavigate, badge }: NavItemProps) {
   const handleClick = () => {
-    // 네비게이션만 수행, 상태는 BottomNav에서 관리
-    navigate(`/${id === 'home' ? '' : id}`);
+    onNavigate(path);
   };
 
   return (
@@ -32,11 +29,9 @@ export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      {/* 터치시 ripple 효과 */}
       <div className="absolute inset-0 rounded-2xl opacity-0 group-active:opacity-100
                       bg-gradient-to-br from-white/20 to-white/10 transition-opacity duration-150" />
 
-      {/* 별빛 효과 - 항상 표시하되 활성/비활성에 따라 다르게 */}
       <div className={`absolute inset-0 transition-opacity duration-500 ${
         isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
       }`}>
@@ -58,14 +53,12 @@ export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps
         ))}
       </div>
 
-      {/* 활성 상태 글로우 */}
       {isActive && (
         <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-blue-400/10
                         rounded-2xl blur-lg animate-pulse"
              style={{ animationDuration: '3s' }} />
       )}
 
-      {/* 아이콘 */}
       <div className="relative mb-1.5 z-10">
         <Icon
           size={20}
@@ -77,7 +70,6 @@ export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps
           }`}
         />
 
-        {/* 배지 (알림 숫자) */}
         {badge && badge > 0 && (
           <span className="absolute -top-1 -right-1 min-w-4 h-4 text-xs font-bold
                            bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full
@@ -88,7 +80,6 @@ export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps
         )}
       </div>
 
-      {/* 라벨 */}
       <span className={`text-xs font-medium transition-all duration-200 z-10 ${
         isActive
           ? 'text-white drop-shadow-sm'
@@ -97,7 +88,6 @@ export function NavItem({ id, label, icon: Icon, isActive, badge }: NavItemProps
         {label}
       </span>
 
-      {/* 활성 상태 인디케이터 - 조건부 렌더링으로 완전 분리 */}
       {isActive && (
         <div className="absolute -bottom-1 left-1/2 z-10 animate-slideInScale">
           <div className="w-8 h-0.5 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full

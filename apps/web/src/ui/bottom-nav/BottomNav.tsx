@@ -1,36 +1,40 @@
-﻿import React, { useEffect } from 'react';
-import { NavItem } from './NavItem';
-import { useActiveTab, useGameStore } from '../../store/gameStore';
-import { useLocation } from 'react-router-dom';
-import { Home, Castle, Swords, Sparkles, Settings } from 'lucide-react';
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
 
-type BottomNavTab = 'home' | 'tower' | 'battle' | 'stella' | 'more';
+import { NavItem } from './NavItem';
+
+export type BottomNavItem = {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: number;
+};
 
 const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
 
-const resolveTabFromPath = (path: string): BottomNavTab => {
-  const normalized = normalizePath(path);
-  if (normalized === '/' || normalized === '/home') return 'home';
-  const [, firstSegment = ''] = normalized.split('/');
-  if (firstSegment === 'tower') return 'tower';
-  if (firstSegment === 'battle') return 'battle';
-  if (firstSegment === 'stella') return 'stella';
-  if (firstSegment === 'more' || firstSegment === 'replay') return 'more';
-  return 'home';
+const getRootSegment = (path: string) => {
+  if (path === '/') return '/';
+  const [, first = ''] = path.split('/');
+  return first ? `/${first}` : '/';
 };
 
-export function BottomNav() {
-  const location = useLocation();
-  const setActiveTab = useGameStore((state) => state.setActiveTab);
-  const currentTab = resolveTabFromPath(location.pathname);
-  const activeTab = useActiveTab();
+interface BottomNavProps {
+  items: BottomNavItem[];
+  activePath?: string;
+}
 
-  useEffect(() => {
-    const newTab = resolveTabFromPath(location.pathname);
-    if (newTab !== activeTab) {
-      setActiveTab(newTab);
-    }
-  }, [location.pathname, activeTab, setActiveTab]);
+export function BottomNav({ items, activePath }: BottomNavProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const normalizedCurrent = normalizePath(location.pathname);
+  const fallbackActive = getRootSegment(normalizedCurrent);
+  const normalizedActive = normalizePath(activePath ?? fallbackActive);
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
 
   return (
     <nav
@@ -54,11 +58,24 @@ export function BottomNav() {
       </div>
 
       <div className="relative flex justify-around items-center">
-        <NavItem id="home" label="홈" icon={Home} isActive={currentTab === 'home'} />
-        <NavItem id="tower" label="탑" icon={Castle} isActive={currentTab === 'tower'} />
-        <NavItem id="battle" label="랭크전" icon={Swords} isActive={currentTab === 'battle'} />
-        <NavItem id="stella" label="스텔라" icon={Sparkles} isActive={currentTab === 'stella'} />
-        <NavItem id="more" label="더보기" icon={Settings} isActive={currentTab === 'more'} />
+        {items.map((item) => {
+          const itemPath = normalizePath(item.path);
+          const isActive = itemPath === '/'
+            ? normalizedActive === '/'
+            : normalizedActive.startsWith(itemPath);
+
+          return (
+            <NavItem
+              key={item.path}
+              path={item.path}
+              label={item.label}
+              icon={item.icon}
+              badge={item.badge}
+              isActive={isActive}
+              onNavigate={handleNavigate}
+            />
+          );
+        })}
       </div>
     </nav>
   );
