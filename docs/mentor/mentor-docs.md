@@ -2,7 +2,7 @@
 title: 멘토링 해설 문서
 owner: ai-team
 status: draft
-last_update: 2025-09-14
+last_update: 2025-09-19
 tags: [mentor, explanation, guidance]
 related: [engine_guide/engine-guide-docs.md, glossary/glossary-docs.md]
 ---

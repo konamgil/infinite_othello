@@ -2,7 +2,7 @@
 title: Infinity Othello 기능 정의 및 스펙 문서
 owner: ai-team
 status: approved
-last_update: 2025-09-14
+last_update: 2025-09-19
 tags: [features, requirements, specifications, user-stories]
 related: [engine_guide/engine-guide-docs.md, design/design-docs.md, architecture/architecture-docs.md]
 ---
