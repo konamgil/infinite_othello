@@ -44,36 +44,40 @@ export default function StellaStrategy() {
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {STRATEGY_LESSONS.map((lesson) => {
             const style = DIFFICULTY_STYLES[lesson.difficulty] ?? DIFFICULTY_STYLES['초급'];
 
             return (
-              <div key={lesson.id} className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/25 hover:border-white/15 transition-all duration-300">
+              <div key={lesson.id} className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl ${style.container} flex items-center justify-center backdrop-blur-sm`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl ${style.container} flex items-center justify-center`}>
                       {lesson.completed ? (
-                        <CheckCircle size={20} className="text-green-300" />
+                        <CheckCircle size={16} className="text-green-400" />
                       ) : (
-                        <Brain size={20} className={style.text} />
+                        <Brain size={16} className={style.text} />
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-display font-semibold text-white/90 tracking-wider mb-1">{lesson.title}</h3>
-                      <p className="text-sm text-white/60 font-display tracking-wide leading-relaxed mb-3">{lesson.description}</p>
-                      <div className="flex items-center gap-4 text-xs">
-                        <span className="px-3 py-1 rounded-full font-display font-semibold tracking-wider bg-white/10 text-white/70">
-                          {lesson.difficulty}
-                        </span>
-                        <span className="text-white/50 font-display tracking-wider">{lesson.duration}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-white/90 text-sm">{lesson.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${style.container} ${style.text}`}>
+                            {lesson.difficulty}
+                          </span>
+                          <span className="text-xs text-white/50">{lesson.duration}</span>
+                        </div>
                       </div>
+                      <p className="text-xs text-white/60">{lesson.description}</p>
                     </div>
                   </div>
-                  <button className={`px-6 py-2 rounded-xl font-display font-semibold tracking-wider active:scale-95 transition-all duration-300 ${
-                    lesson.completed ? 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white/80' : 'bg-purple-400/20 text-purple-300 hover:bg-purple-400/30 hover:text-purple-200'
+                  <button className={`px-4 py-2 rounded-lg text-xs font-medium ml-3 transition-all duration-300 active:scale-95 ${
+                    lesson.completed
+                      ? 'bg-white/10 text-white/70 hover:bg-white/15'
+                      : 'bg-purple-400/20 text-purple-300 hover:bg-purple-400/30 border border-purple-400/30'
                   }`}>
-                    {lesson.completed ? '복습하기' : '학습하기'}
+                    {lesson.completed ? '복습' : '학습'}
                   </button>
                 </div>
               </div>

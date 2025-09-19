@@ -6,6 +6,7 @@ import { OthelloStarCanvas } from '../../../../ui/game/OthelloStarCanvas';
 import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../../../ui/fx/FXHooks';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { testSupabaseConnection } from '../../../services/supabase';
+import { DAILY_MISSIONS } from '../../../stella/constants';
 import {
   Zap,
   Crown,
@@ -16,13 +17,28 @@ import {
   TrendingUp,
   ArrowRight,
   Play,
-  Users
+  Users,
+  CheckCircle
 } from 'lucide-react';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
   const effects = useFXEffects();
+
+  // 반응형 캔버스 크기
+  const [canvasSize, setCanvasSize] = useState(400);
+
+  // 화면 크기 변경 시 캔버스 크기 조정
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      setCanvasSize(window.innerWidth);
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
   // FX 레이어 설정
   const heroLayerRef = useFXLayer('home-hero', 390, 300, true);
@@ -68,21 +84,46 @@ export default function HomePage() {
     <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
         {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
         <div className="relative min-h-96 overflow-hidden">
-          {/* 별빛 오델로 캔버스 */}
-          <div className="absolute inset-0">
-            <OthelloStarCanvas
-              width={400}
-              height={400}
-              boardScale={1}
-              perspectiveSkew={2}
-              safeBottom={72}
-              fpsCap={45}
-            />
+          {/* 별빛 오델로 캔버스 - 상단/좌우 붙임 + 자연스러운 경계 */}
+          <div className="absolute top-0 left-0 right-0 overflow-hidden">
+            <div className="relative w-full">
+              <OthelloStarCanvas
+                width={canvasSize}
+                height={400}
+                boardScale={1}
+                perspectiveSkew={2}
+                safeBottom={72}
+                fpsCap={45}
+              />
+
+              {/* 자연스러운 경계 오버레이 - 하단으로 페이드 */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(0, 0, 0, 0.3) 80%, rgba(0, 0, 0, 0.8) 90%, black 100%)`
+                }}
+              />
+            </div>
+          </div>
+
+          {/* RP Display - 우측 상단 */}
+          <div className="absolute top-8 right-6 z-20">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
+              <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Star size={6} className="text-white" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-white/70 font-display text-[10px]">RP</span>
+                <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
+                  {player.rp.toLocaleString()}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* 메인 콘텐츠 */}
-          <div className="relative z-10 px-6 py-12 text-center">
-            {/* 게임 로고/타이틀 */}
+          <div className="relative z-10 px-6 pt-24 pb-16 text-center">
+            {/* 게임 로고/타이틀 - RP와 거리 확보 */}
             <div className="mb-8">
               <div className="relative inline-block">
                 <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent mb-3 tracking-wider">
@@ -98,7 +139,7 @@ export default function HomePage() {
               <div className="relative group">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-yellow-400/90 tracking-wider">{player.towerProgress}</span>
+                  <span className="text-sm font-display text-yellow-400/90 tracking-wider">{player.towerProgress}층</span>
                 </div>
                 <div className="absolute -inset-1 bg-yellow-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
@@ -107,7 +148,7 @@ export default function HomePage() {
               <div className="relative group">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-green-400/90 tracking-wider">2,847</span>
+                  <span className="text-sm font-display text-green-400/90 tracking-wider">온라인 2,847</span>
                 </div>
                 <div className="absolute -inset-1 bg-green-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
@@ -132,7 +173,7 @@ export default function HomePage() {
               <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400/80 to-blue-400/80 flex items-center justify-center">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               </div>
-              <span className="font-display text-white/90 tracking-wider text-lg">ENTER</span>
+              <span className="font-display text-white/90 tracking-wider text-lg">탑 입장하기</span>
             </div>
 
             {/* 호버 시 글로우 */}
@@ -150,8 +191,8 @@ export default function HomePage() {
                   <Crown size={16} className="text-yellow-400/80" />
                 </div>
                 <div>
-                  <div className="text-xs text-white/60 font-display tracking-wide">{player.rank}</div>
-                  <div className="text-sm font-display text-yellow-400/90 tracking-wider">{player.rp} RP</div>
+                  <div className="text-xs text-white/60 font-display tracking-wide">RANK</div>
+                  <div className="text-sm font-display text-yellow-400/90 tracking-wider">{player.rank}</div>
                 </div>
               </div>
               <div className="absolute -inset-1 bg-yellow-400/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -239,68 +280,116 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 오늘의 퀘스트 */}
-        <div className="content-padding mt-6">
-          <h3 className="text-lg font-bold text-tower-silver-200 mb-4 flex items-center gap-2">
-            <Target size={20} className="text-tower-gold-400" />
-            오늘의 도전
-          </h3>
+        {/* 오늘의 미션 */}
+        <div className="px-8 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
+              <Target size={20} className="text-green-400" />
+              오늘의 미션
+            </h3>
+            <button
+              onClick={() => navigate('/stella')}
+              className="text-xs text-white/60 hover:text-white/80 transition-colors"
+            >
+              더보기
+            </button>
+          </div>
 
-          <div className="card bg-gradient-to-br from-tower-deep-100 to-blue-900/20">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h4 className="font-semibold text-tower-silver-200">첫 수를 모서리로</h4>
-                <p className="text-sm text-tower-silver-400">게임을 모서리 위치에서 시작하세요</p>
+          {DAILY_MISSIONS.every(mission => mission.completed) ? (
+            /* 모든 미션 완료 UI */
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-400/20 to-emerald-500/20
+                          backdrop-blur-sm border border-green-400/30 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400/30 to-emerald-500/30
+                            rounded-full flex items-center justify-center mx-auto mb-4 border border-green-400/40">
+                <Trophy size={24} className="text-green-400" />
               </div>
-              <div className="text-right">
-                <div className="text-sm text-tower-gold-400 font-semibold">50 RP</div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex-1 mr-4">
-                <div className="bg-tower-deep-200 rounded-full h-2">
-                  <div className="bg-tower-gold-400 h-2 rounded-full w-0 transition-all duration-500" />
-                </div>
-                <div className="text-xs text-tower-silver-400 mt-1">0 / 1</div>
-              </div>
+              <h4 className="font-bold text-white/90 mb-2">🎉 오늘의 미션 완료!</h4>
+              <p className="text-sm text-white/70 mb-4">모든 미션을 완료했습니다. 내일 새로운 도전이 기다려요!</p>
               <button
-                className="btn-primary px-4 py-2 text-sm"
-                onClick={() =>
-                  navigate('/battle/game/battle/quick', {
-                    state: { mode: 'battle', battleVariant: 'quick', title: 'Quick Battle' }
-                  })
-                }
+                onClick={() => navigate('/stella')}
+                className="px-4 py-2 bg-green-400/20 text-green-400 rounded-lg text-sm
+                         hover:bg-green-400/30 transition-colors border border-green-400/30"
               >
-                시작하기
+                스텔라에게 보고하기
               </button>
             </div>
-          </div>
+          ) : (
+            /* 진행중인 미션 표시 (첫 번째 미완료 미션) */
+            (() => {
+              const currentMission = DAILY_MISSIONS.find(mission => !mission.completed);
+              return currentMission ? (
+                <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        currentMission.progress > 0
+                          ? 'bg-yellow-400/20 border border-yellow-400/60'
+                          : 'bg-white/10 border border-white/20'
+                      }`}>
+                        {currentMission.progress > 0 ? (
+                          <div className="w-1 h-1 bg-yellow-400 rounded-full" />
+                        ) : (
+                          <div className="w-1 h-1 bg-white/40 rounded-full" />
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-white/90 text-sm">{currentMission.title}</h4>
+                      <div className="text-green-400/80 font-display text-xs font-medium">
+                        {currentMission.rewards[0]?.value}
+                      </div>
+                    </div>
+                    <button
+                      className="px-3 py-1.5 text-xs bg-green-400/20 text-green-400 rounded-lg
+                               hover:bg-green-400/30 transition-colors border border-green-400/30 ml-3"
+                      onClick={() => navigate('/stella')}
+                    >
+                      도전
+                    </button>
+                  </div>
+                </div>
+              ) : null;
+            })()
+          )}
         </div>
 
-        {/* 실시간 활동 피드 */}
-        <div className="content-padding mt-6 pb-24">
-          <h3 className="text-lg font-bold text-tower-silver-200 mb-4 flex items-center gap-2">
-            <Users size={20} className="text-tower-gold-400" />
-            실시간 활동
-          </h3>
+        {/* 최근 대국 */}
+        <div className="px-8 mt-6 pb-24">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
+              <Users size={20} className="text-blue-400" />
+              최근 대국
+            </h3>
+            <button
+              onClick={() => navigate('/more/replay')}
+              className="text-xs text-white/60 hover:text-white/80 transition-colors"
+            >
+              더보기
+            </button>
+          </div>
 
           <div className="space-y-2">
             {[
-              { name: '드래곤슬레이어', action: '100층 돌파!', time: '방금 전', type: 'tower' },
-              { name: '마법사의검', action: '골드 승격', time: '2분 전', type: 'rank' },
-              { name: '어둠의기사', action: '완벽한 승리', time: '5분 전', type: 'battle' }
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 bg-tower-deep-200/50 rounded-lg">
+              { opponent: '드래곤슬레이어', result: '승리', score: '34-30', time: '2시간 전', type: 'win' },
+              { opponent: '마법사의검', result: '패배', score: '28-36', time: '1일 전', type: 'lose' },
+              { opponent: '어둠의기사', result: '승리', score: '42-22', time: '2일 전', type: 'win' }
+            ].map((game, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
                 <div className={`w-2 h-2 rounded-full ${
-                  activity.type === 'tower' ? 'bg-tower-gold-400' :
-                  activity.type === 'rank' ? 'bg-purple-400' : 'bg-green-400'
-                } animate-pulse`} />
+                  game.type === 'win' ? 'bg-green-400' : 'bg-red-400'
+                }`} />
                 <div className="flex-1">
-                  <span className="text-tower-silver-200 font-medium">{activity.name}</span>
-                  <span className="text-tower-silver-400 ml-2">{activity.action}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/90 font-medium text-sm">vs {game.opponent}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      game.type === 'win'
+                        ? 'bg-green-400/20 text-green-400 border border-green-400/30'
+                        : 'bg-red-400/20 text-red-400 border border-red-400/30'
+                    }`}>
+                      {game.result}
+                    </span>
+                  </div>
+                  <div className="text-xs text-white/60 mt-1">{game.score}</div>
                 </div>
-                <div className="text-xs text-tower-silver-500">{activity.time}</div>
+                <div className="text-xs text-white/50">{game.time}</div>
               </div>
             ))}
           </div>

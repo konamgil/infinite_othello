@@ -23,7 +23,8 @@ import {
   Swords,
   Star,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Brain
 } from 'lucide-react';
 
 // Convert GameReplay to legacy format for UI compatibility
@@ -529,26 +530,22 @@ export default function ReplayPage() {
                         재생
                       </button>
 
-                      {game.aiAnalysis && (
-                        <button
-                          onClick={() => {
-                            // Convert back to new format for analysis
-                            const replay = currentFilteredReplays.find(r => r.id === game.id) || replays.find(r => r.id === game.id);
-                            if (replay) {
-                              setSelectedReplay(replay);
-                              saveFilterMemory();
-                            }
-                            console.log('AI 분석 시작:', game.aiAnalysis);
-                            alert(`🤖 AI 분석\n\n${game.aiAnalysis?.[0]?.comment || '이 게임에 대한 분석을 시작합니다!'}\n\n평가: ${game.aiAnalysis?.[0]?.evaluation || 0}점\n카테고리: ${game.aiAnalysis?.[0]?.category || '분석중'}`);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-400/20
-                                         text-blue-300 font-display font-semibold tracking-wider
-                                         hover:bg-blue-400/30 hover:text-blue-200
-                                         active:scale-95 transition-all duration-200">
-                          <Eye size={14} />
-                          분석
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          // Convert back to new format for ReplayViewer with analysis
+                          const replay = currentFilteredReplays.find(r => r.id === game.id) || replays.find(r => r.id === game.id);
+                          if (replay) {
+                            setSelectedReplay(replay);
+                            saveFilterMemory();
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-400/20
+                                       text-green-300 font-display font-semibold tracking-wider
+                                       hover:bg-green-400/30 hover:text-green-200
+                                       active:scale-95 transition-all duration-200">
+                        <Brain size={14} />
+                        AI 분석
+                      </button>
 
                       <button
                         onClick={() => {

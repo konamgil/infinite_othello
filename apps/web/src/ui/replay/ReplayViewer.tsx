@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { GameReplay, GameMove as ReplayGameMove } from '../../types/replay';
 import { OthelloEngine } from '../../utils/othelloEngine';
+import { MobileAnalysisPanel } from './MobileAnalysisPanel';
+import { FloatingMinimap } from './FloatingMinimap';
 import {
   Play, Pause, SkipBack, SkipForward, X,
   ChevronLeft, ChevronRight, FastForward,
@@ -88,6 +90,8 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showMobileAnalysis, setShowMobileAnalysis] = useState(false);
+  const [showMinimap, setShowMinimap] = useState(false);
 
   // 안전한 빈 보드
   const EMPTY_BOARD: Board = useMemo(
@@ -129,8 +133,8 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
   const board = boardStates[boardIdx] ?? EMPTY_BOARD;
   const currentMove = moves[currentMoveIndex];
 
-  // 안정적인(결정론적) 임시 분석 생성 (수순이 바뀔 때만 갱신)
-  const currentAnalysis = useMemo(() => {
+  // 모바일 분석 패널용 GameMove 데이터 생성
+  const currentAnalysisMove = useMemo(() => {
     if (!currentMove) return null;
 
     const seedBase =
@@ -140,25 +144,31 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
       currentMoveIndex * 17;
 
     const evalVal = Math.floor(seededRand(seedBase) * 100) - 50;
+    const isOptimal = evalVal >= 30;
 
     const alt1 = {
-      move: { x: Math.floor(seededRand(seedBase + 1) * 8), y: Math.floor(seededRand(seedBase + 2) * 8) },
-      evaluation: Math.floor(seededRand(seedBase + 3) * 40) + 20
+      x: Math.floor(seededRand(seedBase + 1) * 8),
+      y: Math.floor(seededRand(seedBase + 2) * 8),
+      score: Math.floor(seededRand(seedBase + 3) * 40) + 20
     };
     const alt2 = {
-      move: { x: Math.floor(seededRand(seedBase + 4) * 8), y: Math.floor(seededRand(seedBase + 5) * 8) },
-      evaluation: Math.floor(seededRand(seedBase + 6) * 30) + 10
+      x: Math.floor(seededRand(seedBase + 4) * 8),
+      y: Math.floor(seededRand(seedBase + 5) * 8),
+      score: Math.floor(seededRand(seedBase + 6) * 30) + 10
     };
 
-    const categories = ['excellent', 'good', 'inaccuracy', 'mistake', 'blunder'] as const;
-    const category = categories[Math.floor(seededRand(seedBase + 7) * categories.length)];
-
+    // GameMove 형식으로 변환
     return {
-      evaluation: evalVal,
-      category,
-      alternatives: [alt1, alt2],
-      comment: `이 수에 대한 AI 분석입니다. ${currentMove.player === 1 ? '흑돌' : '백돌'}이 ${String.fromCharCode(65 + currentMove.position.x)}${currentMove.position.y + 1}에 착수했습니다.`
-    };
+      x: currentMove.position.x,
+      y: currentMove.position.y,
+      player: currentMove.player === 1 ? 'black' : 'white',
+      moveNumber: currentMoveIndex + 1,
+      timestamp: currentMove.timestamp,
+      flippedDiscs: currentMove.capturedDiscs,
+      evaluationScore: evalVal,
+      isOptimal,
+      alternativeMoves: [alt1, alt2]
+    } as ReplayGameMove;
   }, [currentMoveIndex, currentMove]);
 
   // Auto-play
@@ -232,153 +242,65 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
               </p>
             </div>
           </div>
-          <div className="text-white/60 font-display text-xs sm:text-sm flex-shrink-0">
-            {currentMoveNumber}/{moves.length}
+          <div className="flex items-center gap-2 text-white/60 font-display text-xs sm:text-sm flex-shrink-0">
+            <span>{currentMoveNumber}/{moves.length}</span>
           </div>
         </div>
 
         {/* Main */}
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
           {/* Game Board */}
-          <div className="flex-1 min-h-0 p-2 sm:p-4 lg:p-6 flex items-center justify-center overflow-auto">
-            <div className="relative w-full max-w-sm lg:max-w-md">
-              {/* Board */}
-              <div className="grid grid-cols-8 gap-1 p-3 sm:p-4
-                              bg-gradient-to-br from-green-800/20 to-green-600/20
-                              rounded-xl sm:rounded-2xl border border-white/10 aspect-square">
-                {board && board.length > 0 ? board.map((row, y) =>
-                  row.map((disc, x) => {
-                    const isLastMove = !!currentMove && currentMove.position.x === x && currentMove.position.y === y;
-                    return (
-                      <div
-                        key={`${x}-${y}`}
-                        className={`aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
-                                    flex items-center justify-center transition-all duration-300
-                                    ${isLastMove ? 'ring-2 ring-yellow-400 ring-opacity-80' : ''}`}
-                      >
-                        {disc !== 0 && (
-                          <div
-                            className={`w-[70%] h-[70%] rounded-full border-2 transition-all duration-500
-                                        ${disc === 1 ? 'bg-black border-white/30 shadow-lg' : 'bg-white border-gray-300 shadow-lg'}
-                                        ${isLastMove ? 'scale-110 shadow-yellow-400/50' : ''}`}
-                          />
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  // Fallback empty board
-                  Array.from({ length: 8 }).map((_, y) =>
-                    Array.from({ length: 8 }).map((_, x) => (
-                      <div
-                        key={`${x}-${y}`}
-                        className="aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
-                                  flex items-center justify-center transition-all duration-300"
-                      />
-                    ))
-                  )
-                )}
-              </div>
-
-              {/* Move indicator */}
-              {currentMove && (
-                <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 -translate-x-1/2">
-                  <div className="px-2 sm:px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-                    <span className="text-xs text-white/80 font-display whitespace-nowrap">
-                      {currentMove.player === 1 ? '⚫ 흑돌' : '⚪ 백돌'}
-                      ({String.fromCharCode(65 + currentMove.position.x)}{currentMove.position.y + 1})
-                    </span>
-                  </div>
-                </div>
+          <div className="relative w-full max-w-sm lg:max-w-md p-2 sm:p-4 lg:p-6">
+            {/* Board */}
+            <div className="grid grid-cols-8 gap-1 p-3 sm:p-4
+                            bg-gradient-to-br from-green-800/20 to-green-600/20
+                            rounded-xl sm:rounded-2xl border border-white/10 aspect-square">
+              {board && board.length > 0 ? board.map((row, y) =>
+                row.map((disc, x) => {
+                  const isLastMove = !!currentMove && currentMove.position.x === x && currentMove.position.y === y;
+                  return (
+                    <div
+                      key={`${x}-${y}`}
+                      className={`aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
+                                  flex items-center justify-center transition-all duration-300
+                                  ${isLastMove ? 'ring-2 ring-yellow-400 ring-opacity-80' : ''}`}
+                    >
+                      {disc !== 0 && (
+                        <div
+                          className={`w-[70%] h-[70%] rounded-full border-2 transition-all duration-500
+                                      ${disc === 1 ? 'bg-black border-white/30 shadow-lg' : 'bg-white border-gray-300 shadow-lg'}
+                                      ${isLastMove ? 'scale-110 shadow-yellow-400/50' : ''}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                // Fallback empty board
+                Array.from({ length: 8 }).map((_, y) =>
+                  Array.from({ length: 8 }).map((_, x) => (
+                    <div
+                      key={`${x}-${y}`}
+                      className="aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
+                                flex items-center justify-center transition-all duration-300"
+                    />
+                  ))
+                )
               )}
             </div>
-          </div>
 
-          {/* Analysis Panel */}
-          {currentAnalysis && (
-            <aside className="w-full lg:w-80 shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 p-3 sm:p-4 lg:p-6 overflow-y-auto min-h-0 max-h-48 lg:max-h-none">
-              <div className="space-y-4">
-                <h3 className="text-lg font-display font-bold text-white tracking-wider flex items-center gap-2">
-                  <Brain size={20} className="text-purple-400" />
-                  AI 분석
-                </h3>
-
-                {/* Move Quality */}
-                <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10">
-                  {(() => {
-                    const quality = getMoveQualityInfo(currentAnalysis.evaluation);
-                    const Icon = quality.icon;
-                    return (
-                      <>
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`w-10 h-10 ${quality.bgColor} rounded-xl flex items-center justify-center`}>
-                            <Icon size={18} className={quality.color} />
-                          </div>
-                          <div>
-                            <div className={`font-display font-bold ${quality.color}`}>
-                              {quality.label}
-                            </div>
-                            <div className="text-xs text-white/60 font-display">
-                              평가: {currentAnalysis.evaluation > 0 ? '+' : ''}{currentAnalysis.evaluation}
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-white/80 font-display leading-relaxed">
-                          {currentAnalysis.comment}
-                        </p>
-                      </>
-                    );
-                  })()}
-                </div>
-
-                {/* Alternatives */}
-                {currentAnalysis.alternatives?.length > 0 && (
-                  <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10">
-                    <h4 className="font-display font-semibold text-white/90 mb-3">더 나은 수</h4>
-                    <div className="space-y-2">
-                      {currentAnalysis.alternatives.slice(0, 3).map((alt, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                          <span className="text-sm text-white/80 font-display">
-                            {String.fromCharCode(65 + alt.move.x)}{alt.move.y + 1}
-                          </span>
-                          <span
-                            className={`text-sm font-display font-semibold ${
-                              alt.evaluation > 0 ? 'text-green-400' : 'text-red-400'
-                            }`}
-                          >
-                            {alt.evaluation > 0 ? '+' : ''}{alt.evaluation}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Position Info */}
-                <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10">
-                  <h4 className="font-display font-semibold text-white/90 mb-3">포지션 정보</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-white/60 font-display">현재 수순</span>
-                      <span className="text-white/90 font-display font-semibold">{currentMoveNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60 font-display">흑돌 개수</span>
-                      <span className="text-white/90 font-display font-semibold">
-                        {board && board.length > 0 ? board.flat().filter(d => d === 1).length : 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60 font-display">백돌 개수</span>
-                      <span className="text-white/90 font-display font-semibold">
-                        {board && board.length > 0 ? board.flat().filter(d => d === -1).length : 0}
-                      </span>
-                    </div>
-                  </div>
+            {/* Move indicator */}
+            {currentMove && (
+              <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 -translate-x-1/2">
+                <div className="px-2 sm:px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
+                  <span className="text-xs text-white/80 font-display whitespace-nowrap">
+                    {currentMove.player === 1 ? '⚫ 흑돌' : '⚪ 백돌'}
+                    ({String.fromCharCode(65 + currentMove.position.x)}{currentMove.position.y + 1})
+                  </span>
                 </div>
               </div>
-            </aside>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Controls */}
@@ -474,6 +396,48 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
           </div>
         </div>
       </div>
+
+      {/* Floating Analysis Button */}
+      <button
+        onClick={() => {
+          setShowMobileAnalysis(true);
+          setShowMinimap(true);
+        }}
+        className="fixed bottom-24 right-4 w-14 h-14 bg-purple-500/20 backdrop-blur-md border border-purple-400/30
+                   rounded-full flex items-center justify-center hover:bg-purple-500/30 transition-all z-40
+                   shadow-lg shadow-purple-500/20"
+      >
+        <Brain size={24} className="text-purple-300" />
+      </button>
+
+      {/* Mobile Analysis Panel */}
+      <MobileAnalysisPanel
+        currentMove={currentAnalysisMove || undefined}
+        currentMoveIndex={currentMoveIndex}
+        totalMoves={moves.length}
+        isVisible={showMobileAnalysis}
+        showMinimap={showMinimap}
+        onMinimapToggle={() => setShowMinimap(!showMinimap)}
+        onToggle={() => {
+          setShowMobileAnalysis(!showMobileAnalysis);
+          // 분석 패널이 닫히면 미니맵도 함께 닫기
+          if (showMobileAnalysis) {
+            setShowMinimap(false);
+          }
+        }}
+      />
+
+      {/* Floating Minimap */}
+      {showMinimap && (
+        <FloatingMinimap
+          gameReplay={gameReplay}
+          currentMoveIndex={currentMoveIndex}
+          onMoveSelect={(moveIndex) => {
+            setCurrentMoveIndex(moveIndex);
+            setIsPlaying(false);
+          }}
+        />
+      )}
     </div>
   );
 }

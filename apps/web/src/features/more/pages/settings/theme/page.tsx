@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Palette, Sparkles } from 'lucide-react';
+import { ArrowLeft, Palette } from 'lucide-react';
 import { ThemeSelector } from '../../../../../ui/theme/ThemeSelector';
 import { MoreLayout } from '../../../layouts/MoreLayout';
 
@@ -11,28 +11,18 @@ export default function ThemeSettingsPage() {
 
   return (
     <MoreLayout detail>
-      {/* 세련된 헤더 */}
-      <div className="relative mb-8">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-cyan-500/10 rounded-2xl blur-xl animate-pulse" />
-        <div className="relative flex items-center p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
-          <button
-            onClick={() => navigate('/more/settings')}
-            className="w-12 h-12 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center mr-4 active:scale-90 transition-all duration-200 group"
-          >
-            <ArrowLeft size={20} className="text-white/90 group-active:text-white transition-colors" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-purple-400/20">
-              <Palette size={20} className="text-purple-300 animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white/90 font-smooth">테마 설정</h1>
-              <p className="text-xs text-white/50 font-smooth">게임 보드와 디스크를 꾸며보세요</p>
-            </div>
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate('/more/settings')}
+          className="w-10 h-10 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center mr-4 hover:bg-black/30 active:scale-95 transition-all"
+        >
+          <ArrowLeft size={20} className="text-white/90" />
+        </button>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-xl flex items-center justify-center border border-purple-400/20">
+            <Palette size={20} className="text-purple-300" />
           </div>
-          <div className="ml-auto">
-            <Sparkles size={16} className="text-yellow-400/60 animate-spin" style={{animationDuration: '3s'}} />
-          </div>
+          <h1 className="text-xl font-bold text-white/90 font-smooth">테마 설정</h1>
         </div>
       </div>
 
