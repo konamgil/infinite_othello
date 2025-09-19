@@ -2,7 +2,7 @@
 title: 전략 및 엔진 용어 사전
 owner: ai-team
 status: draft
-last_update: 2025-09-14
+last_update: 2025-09-19
 tags: [glossary, terminology, othello, engine]
 related: [strategy/strategy-docs.md, engine_guide/engine-guide-docs.md]
 ---

@@ -2,7 +2,7 @@
 title: Infinity Othello AI 엔진 모듈 설명 문서
 owner: ai-team
 status: approved
-last_update: 2025-09-14
+last_update: 2025-09-19
 tags: [engine, ai, search, algorithms, interface, mcts, wasm, llm]
 related: [architecture/architecture-docs.md, strategy/strategy-docs.md, glossary/glossary-docs.md, data/data-docs.md]
 ---

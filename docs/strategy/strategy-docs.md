@@ -2,7 +2,7 @@
 title: 오델로 전략/전술 가이드 문서
 owner: ai-team
 status: draft
-last_update: 2025-09-14
+last_update: 2025-09-19
 tags: [strategy, tactics, othello, guide]
 related: [glossary/glossary-docs.md, engine_guide/engine-guide-docs.md]
 ---

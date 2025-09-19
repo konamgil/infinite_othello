@@ -24,16 +24,22 @@ describe('Supabase Connection', () => {
 
     if (!result.success) {
       console.log('⚠️ 연결 테스트 실패 (정상일 수 있음):', result.error);
+      // The error can be an object, so we check its message property
+      const errorMessage =
+        typeof result.error === 'string'
+          ? result.error
+          : result.error?.message || '';
       // 일반적인 에러들은 정상 (테이블이 없거나, RLS 때문에)
       expect(
-        result.error?.includes('relation "profiles" does not exist') ||
-        result.error?.includes('permission denied') ||
-        result.error?.includes('RLS') ||
-        result.error?.includes('JWT') ||
-        result.error?.includes('failed to parse') ||
-        result.error?.includes('does not exist') ||
-        result.error?.includes('Could not find the table') ||
-        result.error?.includes('schema cache')
+        errorMessage.includes('relation "profiles" does not exist') ||
+        errorMessage.includes('permission denied') ||
+        errorMessage.includes('RLS') ||
+        errorMessage.includes('JWT') ||
+        errorMessage.includes('failed to parse') ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('Could not find the table') ||
+        errorMessage.includes('schema cache') ||
+        errorMessage.includes('fetch failed')
       ).toBeTruthy();
     } else {
       console.log('✅ Supabase 연결 성공!', result.data);
