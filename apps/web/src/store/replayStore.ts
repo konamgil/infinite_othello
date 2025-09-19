@@ -141,9 +141,11 @@ const generateMockReplays = (): GameReplay[] => {
 
 interface ReplayState {
   replays: GameReplay[];
+  filteredReplays: GameReplay[];
   uiState: ReplayUIState;
   isLoading: boolean;
   error: string | null;
+  filterMemory: ReplayFilters | null;
 }
 
 interface ReplayActions {
@@ -157,6 +159,10 @@ interface ReplayActions {
   toggleStatistics: () => void;
   clearFilters: () => void;
   getStatistics: () => ReplayStatistics;
+  getFilteredReplays: () => GameReplay[];
+  applyQuickFilter: (type: 'recentWins' | 'challengingGames' | 'aiMatches' | 'longGames') => void;
+  saveFilterMemory: () => void;
+  loadFilterMemory: () => void;
 }
 
 type ReplayStore = ReplayState & ReplayActions;
@@ -164,7 +170,12 @@ type ReplayStore = ReplayState & ReplayActions;
 const initialFilters: ReplayFilters = {
   gameMode: [],
   opponent: 'any',
-  result: 'any'
+  result: 'any',
+  dateRange: undefined,
+  minDuration: undefined,
+  maxDuration: undefined,
+  ratingRange: undefined,
+  tags: []
 };
 
 const initialSortOptions: ReplaySortOptions = {
@@ -179,7 +190,11 @@ const initialPlayerControls: ReplayPlayerControls = {
   autoPlay: false,
   showAnalysis: true,
   showCoordinates: true,
-  highlightLastMove: true
+  highlightLastMove: true,
+  showMoveAnnotations: true,
+  criticalMoveDetection: true,
+  soundEnabled: false,
+  keyboardShortcutsEnabled: true
 };
 
 const initialUIState: ReplayUIState = {
@@ -192,13 +207,129 @@ const initialUIState: ReplayUIState = {
   searchQuery: ''
 };
 
+// Performance optimization: memoized filter functions
+const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, searchQuery: string): GameReplay[] => {
+  return replays.filter(replay => {
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesPlayer =
+        replay.playerBlack.name.toLowerCase().includes(query) ||
+        replay.playerWhite.name.toLowerCase().includes(query);
+      const matchesMode = replay.gameMode.toLowerCase().includes(query);
+      const matchesTags = replay.metadata.tags?.some(tag =>
+        tag.toLowerCase().includes(query)
+      ) || false;
+      if (!matchesPlayer && !matchesMode && !matchesTags) return false;
+    }
+
+    // Game mode filter
+    if (filters.gameMode && filters.gameMode.length > 0) {
+      if (!filters.gameMode.includes(replay.gameMode)) return false;
+    }
+
+    // Result filter
+    if (filters.result && filters.result !== 'any') {
+      const isPlayerBlack = replay.playerBlack.name === '우주의 오델로 수호자';
+      const playerWon = replay.result.winner === (isPlayerBlack ? 'black' : 'white');
+      const isDraw = replay.result.winner === 'draw';
+
+      if (filters.result === 'win' && !playerWon) return false;
+      if (filters.result === 'loss' && (playerWon || isDraw)) return false;
+      if (filters.result === 'draw' && !isDraw) return false;
+    }
+
+    // Opponent filter
+    if (filters.opponent && filters.opponent !== 'any') {
+      const isPlayerBlack = replay.playerBlack.name === '우주의 오델로 수호자';
+      const opponentIsAI = isPlayerBlack ? replay.playerWhite.isAI : replay.playerBlack.isAI;
+
+      if (filters.opponent === 'ai' && !opponentIsAI) return false;
+      if (filters.opponent === 'human' && opponentIsAI) return false;
+    }
+
+    // Date range filter
+    if (filters.dateRange) {
+      const gameDate = replay.gameInfo.startTime;
+      if (filters.dateRange.start && gameDate < filters.dateRange.start.getTime()) return false;
+      if (filters.dateRange.end && gameDate > filters.dateRange.end.getTime()) return false;
+    }
+
+    // Duration filters
+    if (filters.minDuration && replay.gameInfo.duration < filters.minDuration) return false;
+    if (filters.maxDuration && replay.gameInfo.duration > filters.maxDuration) return false;
+
+    // Rating range filter
+    if (filters.ratingRange) {
+      const playerRating = replay.playerBlack.name === '우주의 오델로 수호자'
+        ? replay.playerBlack.rating
+        : replay.playerWhite.rating;
+      const opponentRating = replay.playerBlack.name === '우주의 오델로 수호자'
+        ? replay.playerWhite.rating
+        : replay.playerBlack.rating;
+
+      const maxRating = Math.max(playerRating || 0, opponentRating || 0);
+      if (filters.ratingRange.min && maxRating < filters.ratingRange.min) return false;
+      if (filters.ratingRange.max && maxRating > filters.ratingRange.max) return false;
+    }
+
+    // Tags filter
+    if (filters.tags && filters.tags.length > 0) {
+      const replayTags = replay.metadata.tags || [];
+      const hasMatchingTag = filters.tags.some(tag =>
+        replayTags.some(replayTag =>
+          replayTag.toLowerCase().includes(tag.toLowerCase())
+        )
+      );
+      if (!hasMatchingTag) return false;
+    }
+
+    return true;
+  });
+};
+
+const sortReplays = (replays: GameReplay[], sortOptions: ReplaySortOptions): GameReplay[] => {
+  return [...replays].sort((a, b) => {
+    const { field, direction } = sortOptions;
+    let comparison = 0;
+
+    switch (field) {
+      case 'date':
+        comparison = a.gameInfo.startTime - b.gameInfo.startTime;
+        break;
+      case 'duration':
+        comparison = a.gameInfo.duration - b.gameInfo.duration;
+        break;
+      case 'rating':
+        const aRating = (a.playerBlack.rating || 0) + (a.playerWhite.rating || 0);
+        const bRating = (b.playerBlack.rating || 0) + (b.playerWhite.rating || 0);
+        comparison = aRating - bRating;
+        break;
+      case 'accuracy':
+        const aAccuracy = (a.analysis?.accuracy.black || 0) + (a.analysis?.accuracy.white || 0);
+        const bAccuracy = (b.analysis?.accuracy.black || 0) + (b.analysis?.accuracy.white || 0);
+        comparison = aAccuracy - bAccuracy;
+        break;
+      case 'moves':
+        comparison = a.gameInfo.totalMoves - b.gameInfo.totalMoves;
+        break;
+      default:
+        comparison = 0;
+    }
+
+    return direction === 'asc' ? comparison : -comparison;
+  });
+};
+
 export const useReplayStore = create<ReplayStore>()(
   devtools(
     (set, get) => ({
       replays: [],
+      filteredReplays: [],
       uiState: initialUIState,
       isLoading: false,
       error: null,
+      filterMemory: null,
 
       loadReplays: () => {
         set({ isLoading: true, error: null });
@@ -207,8 +338,13 @@ export const useReplayStore = create<ReplayStore>()(
         setTimeout(() => {
           try {
             const mockReplays = generateMockReplays();
+            const state = get();
+            const filtered = applyFiltersToReplays(mockReplays, state.uiState.filters, state.uiState.searchQuery);
+            const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
             set({
               replays: mockReplays,
+              filteredReplays: sorted,
               isLoading: false
             });
           } catch (error) {
@@ -230,18 +366,31 @@ export const useReplayStore = create<ReplayStore>()(
           uiState: { ...state.uiState, selectedReplay: replay }
         })),
 
-      updateFilters: (filters) =>
-        set((state) => ({
+      updateFilters: (filters) => {
+        const state = get();
+        const newFilters = { ...state.uiState.filters, ...filters };
+        const filtered = applyFiltersToReplays(state.replays, newFilters, state.uiState.searchQuery);
+        const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
+        set({
           uiState: {
             ...state.uiState,
-            filters: { ...state.uiState.filters, ...filters }
-          }
-        })),
+            filters: newFilters
+          },
+          filteredReplays: sorted
+        });
+      },
 
-      updateSortOptions: (sort) =>
-        set((state) => ({
-          uiState: { ...state.uiState, sortOptions: sort }
-        })),
+      updateSortOptions: (sort) => {
+        const state = get();
+        const filtered = applyFiltersToReplays(state.replays, state.uiState.filters, state.uiState.searchQuery);
+        const sorted = sortReplays(filtered, sort);
+
+        set({
+          uiState: { ...state.uiState, sortOptions: sort },
+          filteredReplays: sorted
+        });
+      },
 
       updatePlayerControls: (controls) =>
         set((state) => ({
@@ -251,10 +400,16 @@ export const useReplayStore = create<ReplayStore>()(
           }
         })),
 
-      setSearchQuery: (query) =>
-        set((state) => ({
-          uiState: { ...state.uiState, searchQuery: query }
-        })),
+      setSearchQuery: (query) => {
+        const state = get();
+        const filtered = applyFiltersToReplays(state.replays, state.uiState.filters, query);
+        const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
+        set({
+          uiState: { ...state.uiState, searchQuery: query },
+          filteredReplays: sorted
+        });
+      },
 
       toggleStatistics: () =>
         set((state) => ({
@@ -264,17 +419,101 @@ export const useReplayStore = create<ReplayStore>()(
           }
         })),
 
-      clearFilters: () =>
-        set((state) => ({
+      clearFilters: () => {
+        const state = get();
+        const filtered = applyFiltersToReplays(state.replays, initialFilters, '');
+        const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
+        set({
           uiState: {
             ...state.uiState,
             filters: initialFilters,
             searchQuery: ''
+          },
+          filteredReplays: sorted
+        });
+      },
+
+      getFilteredReplays: () => {
+        return get().filteredReplays;
+      },
+
+      applyQuickFilter: (type) => {
+        const state = get();
+        let quickFilters: Partial<ReplayFilters> = {};
+
+        switch (type) {
+          case 'recentWins':
+            quickFilters = {
+              result: 'win',
+              dateRange: {
+                start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                end: new Date()
+              }
+            };
+            break;
+          case 'challengingGames':
+            quickFilters = {
+              ratingRange: { min: 1500, max: 2000 }
+            };
+            break;
+          case 'aiMatches':
+            quickFilters = {
+              opponent: 'ai'
+            };
+            break;
+          case 'longGames':
+            quickFilters = {
+              minDuration: 1800 // 30+ minutes
+            };
+            break;
+        }
+
+        const newFilters = { ...state.uiState.filters, ...quickFilters };
+        const filtered = applyFiltersToReplays(state.replays, newFilters, state.uiState.searchQuery);
+        const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
+        set({
+          uiState: {
+            ...state.uiState,
+            filters: newFilters
+          },
+          filteredReplays: sorted
+        });
+      },
+
+      saveFilterMemory: () => {
+        const state = get();
+        set({ filterMemory: state.uiState.filters });
+        // In a real app, you'd save to localStorage here
+        localStorage.setItem('replayFilterMemory', JSON.stringify(state.uiState.filters));
+      },
+
+      loadFilterMemory: () => {
+        try {
+          const saved = localStorage.getItem('replayFilterMemory');
+          if (saved) {
+            const filters = JSON.parse(saved);
+            const state = get();
+            const filtered = applyFiltersToReplays(state.replays, filters, state.uiState.searchQuery);
+            const sorted = sortReplays(filtered, state.uiState.sortOptions);
+
+            set({
+              uiState: {
+                ...state.uiState,
+                filters
+              },
+              filteredReplays: sorted,
+              filterMemory: filters
+            });
           }
-        })),
+        } catch (error) {
+          console.warn('Failed to load filter memory:', error);
+        }
+      },
 
       getStatistics: (): ReplayStatistics => {
-        const { replays } = get();
+        const { filteredReplays: replays } = get();
         const totalGames = replays.length;
 
         if (totalGames === 0) {
@@ -299,8 +538,11 @@ export const useReplayStore = create<ReplayStore>()(
           };
         }
 
-        // Calculate win rate (assuming player is always black for simplicity)
-        const wins = replays.filter(r => r.result.winner === 'black').length;
+        // Calculate win rate based on which player is '우주의 오델로 수호자'
+        const wins = replays.filter(r => {
+          const isPlayerBlack = r.playerBlack.name === '우주의 오델로 수호자';
+          return r.result.winner === (isPlayerBlack ? 'black' : 'white');
+        }).length;
         const winRate = (wins / totalGames) * 100;
 
         // Calculate averages
@@ -314,7 +556,9 @@ export const useReplayStore = create<ReplayStore>()(
             acc[mode] = { games: 0, winRate: 0, wins: 0 };
           }
           acc[mode].games++;
-          if (replay.result.winner === 'black') {
+          const isPlayerBlack = replay.playerBlack.name === '우주의 오델로 수호자';
+          const playerWon = replay.result.winner === (isPlayerBlack ? 'black' : 'white');
+          if (playerWon) {
             acc[mode].wins++;
           }
           return acc;
@@ -322,7 +566,7 @@ export const useReplayStore = create<ReplayStore>()(
 
         Object.keys(performanceByMode).forEach(mode => {
           const data = performanceByMode[mode];
-          data.winRate = (data.wins / data.games) * 100;
+          data.winRate = data.games > 0 ? (data.wins / data.games) * 100 : 0;
           delete data.wins;
         });
 
@@ -358,15 +602,24 @@ export const useReplayStore = create<ReplayStore>()(
           recentTrends: {
             last7Days: {
               games: last7Days.length,
-              winRate: last7Days.length > 0 ? (last7Days.filter(r => r.result.winner === 'black').length / last7Days.length) * 100 : 0
+              winRate: last7Days.length > 0 ? (last7Days.filter(r => {
+                const isPlayerBlack = r.playerBlack.name === '우주의 오델로 수호자';
+                return r.result.winner === (isPlayerBlack ? 'black' : 'white');
+              }).length / last7Days.length) * 100 : 0
             },
             last30Days: {
               games: last30Days.length,
-              winRate: last30Days.length > 0 ? (last30Days.filter(r => r.result.winner === 'black').length / last30Days.length) * 100 : 0
+              winRate: last30Days.length > 0 ? (last30Days.filter(r => {
+                const isPlayerBlack = r.playerBlack.name === '우주의 오델로 수호자';
+                return r.result.winner === (isPlayerBlack ? 'black' : 'white');
+              }).length / last30Days.length) * 100 : 0
             },
             last90Days: {
               games: last90Days.length,
-              winRate: last90Days.length > 0 ? (last90Days.filter(r => r.result.winner === 'black').length / last90Days.length) * 100 : 0
+              winRate: last90Days.length > 0 ? (last90Days.filter(r => {
+                const isPlayerBlack = r.playerBlack.name === '우주의 오델로 수호자';
+                return r.result.winner === (isPlayerBlack ? 'black' : 'white');
+              }).length / last90Days.length) * 100 : 0
             }
           }
         };

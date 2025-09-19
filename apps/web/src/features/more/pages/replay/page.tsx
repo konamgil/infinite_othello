@@ -5,6 +5,7 @@ import { ReplayViewer } from '../../../../ui/replay/ReplayViewer';
 import { useReplayStore } from '../../../../store/replayStore';
 import type { ReplaySortOptions } from '../../../../types/replay';
 import { GameReplay } from '../../../../types/replay';
+import { ReplayFilters } from '../../../../ui/replay/ReplayFilters';
 import {
   Clock,
   Search,
@@ -234,6 +235,7 @@ export default function ReplayPage() {
   const navigate = useNavigate();
   const {
     replays,
+    filteredReplays,
     uiState,
     isLoading,
     error,
@@ -242,80 +244,33 @@ export default function ReplayPage() {
     setSearchQuery,
     updateFilters,
     updateSortOptions,
-    getStatistics
+    getStatistics,
+    getFilteredReplays,
+    applyQuickFilter,
+    saveFilterMemory,
+    loadFilterMemory
   } = useReplayStore();
 
   const [showFilters, setShowFilters] = useState(false);
+
+  // Load filter memory on mount
+  useEffect(() => {
+    loadFilterMemory();
+  }, [loadFilterMemory]);
 
   // Load replays on mount
   useEffect(() => {
     loadReplays();
   }, [loadReplays]);
 
-  // Convert replays to legacy format and apply filters
-  const legacyGames = useMemo(() => replays.map(convertReplayToLegacyFormat), [replays]);
+  // Use filtered replays from store for optimized performance
+  const currentFilteredReplays = getFilteredReplays();
 
-  // 필터링 및 정렬된 게임 목록
-  const filteredAndSortedGames = useMemo(() => {
-    let games = [...legacyGames];
-
-    // 검색 필터
-    if (uiState.searchQuery.trim()) {
-      games = games.filter(game =>
-        game.opponent.name.toLowerCase().includes(uiState.searchQuery.toLowerCase()) ||
-        game.tags?.some(tag => tag.toLowerCase().includes(uiState.searchQuery.toLowerCase()))
-      );
-    }
-
-    // 카테고리 필터 - using simple string for now
-    const filterBy = 'all'; // Default filter
-    if (filterBy !== 'all') {
-      switch (filterBy) {
-        case 'wins':
-          games = games.filter(game => game.result.winner === game.player.color);
-          break;
-        case 'losses':
-          games = games.filter(game => game.result.winner !== game.player.color && game.result.winner !== 'draw');
-          break;
-        case 'draws':
-          games = games.filter(game => game.result.winner === 'draw');
-          break;
-        case 'tower':
-        case 'ranked':
-        case 'quick':
-          games = games.filter(game => game.mode === filterBy);
-          break;
-      }
-    }
-
-    // 정렬
-    games.sort((a, b) => {
-      const { field, direction } = uiState.sortOptions;
-
-      const diff = (() => {
-        switch (field) {
-          case 'date':
-            return a.date.getTime() - b.date.getTime();
-          case 'duration':
-            return a.duration - b.duration;
-          case 'rating': {
-            const getResultPriority = (game: LegacyGameRecord) => {
-              if (game.result.winner === game.player.color) return 2;
-              if (game.result.winner === 'draw') return 1;
-              return 0;
-            };
-            return getResultPriority(a) - getResultPriority(b);
-          }
-          default:
-            return 0;
-        }
-      })();
-
-      return direction === 'asc' ? diff : -diff;
-    });
-
-    return games;
-  }, [legacyGames, uiState.searchQuery, uiState.sortOptions]);
+  // Convert filtered replays to legacy format for UI compatibility
+  const filteredAndSortedGames = useMemo(() =>
+    currentFilteredReplays.map(convertReplayToLegacyFormat),
+    [currentFilteredReplays]
+  );
 
   const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -433,96 +388,30 @@ export default function ReplayPage() {
             );
           })()}
 
-          {/* 검색 및 필터 */}
-          <div className="mb-6 space-y-3">
-            {/* 검색바 */}
-            <div className="relative">
-              <Search size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50" />
-              <input
-                type="text"
-                placeholder="상대 이름이나 태그로 검색..."
-                value={uiState.searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
-                         text-white placeholder-white/50 font-display tracking-wide
-                         focus:bg-black/30 focus:border-white/20 focus:outline-none transition-all"
-              />
-            </div>
-
-            {/* 필터 토글 버튼 */}
+          {/* Enhanced Filters Component */}
+          <div className="mb-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
-                       text-white/80 font-display tracking-wide hover:bg-black/30 transition-all"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
+                       text-white/80 font-display tracking-wide hover:bg-black/30 transition-all mb-4 w-full justify-between"
             >
-              <Filter size={16} />
-              <span>필터 & 정렬</span>
+              <div className="flex items-center gap-2">
+                <Filter size={16} />
+                <span>고급 필터링 및 검색</span>
+              </div>
               {showFilters ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
 
-            {/* 필터 옵션들 */}
             {showFilters && (
-              <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 space-y-4">
-                <div>
-                  <h4 className="text-white/90 font-display font-semibold mb-2 tracking-wider">정렬</h4>
-                  <div className="flex gap-2 flex-wrap">
-                    {[
-                      { value: 'date', label: '최신순' },
-                      { value: 'duration', label: '플레이시간순' },
-                      { value: 'rating', label: '평점순' }
-                    ].map(option => (
-                      <button
-                        key={option.value}
-                        onClick={() => updateSortOptions({
-                          field: option.value as 'date' | 'duration' | 'rating',
-                          direction: 'desc'
-                        })}
-                        className={`px-3 py-1.5 rounded-lg font-display text-sm tracking-wider transition-all ${
-                          uiState.sortOptions.field === option.value
-                            ? 'bg-purple-400/30 text-purple-300 border border-purple-400/40'
-                            : 'bg-white/10 text-white/70 border border-white/10 hover:bg-white/15'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-white/90 font-display font-semibold mb-2 tracking-wider">필터</h4>
-                  <div className="flex gap-2 flex-wrap">
-                    {[
-                      { value: 'all', label: '전체' },
-                      { value: 'wins', label: '승리' },
-                      { value: 'losses', label: '패배' },
-                      { value: 'draws', label: '무승부' },
-                      { value: 'tower', label: '탑' },
-                      { value: 'ranked', label: '랭크' },
-                      { value: 'quick', label: '빠른게임' }
-                    ].map(option => {
-                      // Simple filter state for now
-                      const currentFilter = 'all';
-                      return (
-                        <button
-                          key={option.value}
-                          onClick={() => {
-                            // TODO: Implement proper filtering
-                            console.log('Filter by:', option.value);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg font-display text-sm tracking-wider transition-all ${
-                            currentFilter === option.value
-                              ? 'bg-blue-400/30 text-blue-300 border border-blue-400/40'
-                              : 'bg-white/10 text-white/70 border border-white/10 hover:bg-white/15'
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <ReplayFilters
+                filters={uiState.filters}
+                sortOptions={uiState.sortOptions}
+                searchQuery={uiState.searchQuery}
+                onFiltersChange={updateFilters}
+                onSortChange={updateSortOptions}
+                onSearchChange={setSearchQuery}
+                onClose={() => setShowFilters(false)}
+              />
             )}
           </div>
 
@@ -546,7 +435,24 @@ export default function ReplayPage() {
             ) : filteredAndSortedGames.length === 0 ? (
               <div className="text-center py-12 text-white/60 font-display">
                 <Star size={48} className="mx-auto mb-4 text-white/30" />
-                <p>검색 조건에 맞는 게임이 없습니다</p>
+                <h3 className="text-xl font-bold text-white/90 mb-2">검색 결과가 없습니다</h3>
+                <p className="mb-4">필터 조건에 맞는 리플레이를 찾을 수 없습니다</p>
+                <button
+                  onClick={() => {
+                    updateFilters({
+                      gameMode: [],
+                      opponent: 'any',
+                      result: 'any',
+                      dateRange: undefined,
+                      ratingRange: undefined
+                    });
+                    setSearchQuery('');
+                  }}
+                  className="px-4 py-2 bg-purple-400/20 rounded-lg hover:bg-purple-400/30 transition-all
+                           text-purple-300 font-display tracking-wider"
+                >
+                  필터 초기화
+                </button>
               </div>
             ) : (
               filteredAndSortedGames.map((game, index) => {
@@ -608,9 +514,11 @@ export default function ReplayPage() {
                       <button
                         onClick={() => {
                           // Convert back to new format for ReplayViewer
-                          const replay = replays.find(r => r.id === game.id);
+                          const replay = currentFilteredReplays.find(r => r.id === game.id) || replays.find(r => r.id === game.id);
                           if (replay) {
                             setSelectedReplay(replay);
+                            // Save current filter state for later
+                            saveFilterMemory();
                           }
                         }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-400/20
@@ -625,9 +533,10 @@ export default function ReplayPage() {
                         <button
                           onClick={() => {
                             // Convert back to new format for analysis
-                            const replay = replays.find(r => r.id === game.id);
+                            const replay = currentFilteredReplays.find(r => r.id === game.id) || replays.find(r => r.id === game.id);
                             if (replay) {
                               setSelectedReplay(replay);
+                              saveFilterMemory();
                             }
                             console.log('AI 분석 시작:', game.aiAnalysis);
                             alert(`🤖 AI 분석\n\n${game.aiAnalysis?.[0]?.comment || '이 게임에 대한 분석을 시작합니다!'}\n\n평가: ${game.aiAnalysis?.[0]?.evaluation || 0}점\n카테고리: ${game.aiAnalysis?.[0]?.category || '분석중'}`);

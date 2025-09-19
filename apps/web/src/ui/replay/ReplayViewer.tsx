@@ -206,59 +206,59 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 p-4 bg-black/80 backdrop-blur-sm flex items-center justify-center"
+      className="fixed inset-0 z-50 p-2 sm:p-4 bg-black/80 backdrop-blur-sm flex items-center justify-center"
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-6xl h-[90vh] bg-black/40 backdrop-blur-md border border-white/20 rounded-3xl
+      <div className="w-full max-w-5xl h-[95vh] bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl sm:rounded-3xl
                       flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={onClose}
               className="w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl
-                       flex items-center justify-center hover:bg-white/20 transition-all"
+                       flex items-center justify-center hover:bg-white/20 transition-all flex-shrink-0"
             >
               <ChevronLeft size={20} className="text-white/90" />
             </button>
-            <div>
-              <h2 className="text-xl font-display font-bold text-white tracking-wider">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-display font-bold text-white tracking-wider truncate">
                 🎮 게임 리플레이
               </h2>
-              <p className="text-sm text-white/60 font-display">
+              <p className="text-xs sm:text-sm text-white/60 font-display truncate">
                 vs {gameReplay.playerBlack.name === '우주의 오델로 수호자' ? gameReplay.playerWhite.name : gameReplay.playerBlack.name}
                 {' '}• {gameReplay.result.finalScore.black}-{gameReplay.result.finalScore.white}
               </p>
             </div>
           </div>
-          <div className="text-white/60 font-display text-sm">
-            수순 {currentMoveNumber} / {moves.length}
+          <div className="text-white/60 font-display text-xs sm:text-sm flex-shrink-0">
+            {currentMoveNumber}/{moves.length}
           </div>
         </div>
 
         {/* Main */}
-        <div className="flex-1 min-h-0 flex overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
           {/* Game Board */}
-          <div className="flex-1 min-h-0 p-4 sm:p-6 flex items-center justify-center overflow-auto">
-            <div className="relative">
+          <div className="flex-1 min-h-0 p-2 sm:p-4 lg:p-6 flex items-center justify-center overflow-auto">
+            <div className="relative w-full max-w-sm lg:max-w-md">
               {/* Board */}
-              <div className="grid grid-cols-8 gap-[3px] sm:gap-1 p-2 sm:p-4
+              <div className="grid grid-cols-8 gap-1 p-3 sm:p-4
                               bg-gradient-to-br from-green-800/20 to-green-600/20
-                              rounded-2xl border border-white/10">
+                              rounded-xl sm:rounded-2xl border border-white/10 aspect-square">
                 {board && board.length > 0 ? board.map((row, y) =>
                   row.map((disc, x) => {
                     const isLastMove = !!currentMove && currentMove.position.x === x && currentMove.position.y === y;
                     return (
                       <div
                         key={`${x}-${y}`}
-                        className={`w-9 h-9 sm:w-12 sm:h-12 bg-green-600/30 border border-green-400/20 rounded-lg
+                        className={`aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
                                     flex items-center justify-center transition-all duration-300
                                     ${isLastMove ? 'ring-2 ring-yellow-400 ring-opacity-80' : ''}`}
                       >
                         {disc !== 0 && (
                           <div
-                            className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 transition-all duration-500
+                            className={`w-[70%] h-[70%] rounded-full border-2 transition-all duration-500
                                         ${disc === 1 ? 'bg-black border-white/30 shadow-lg' : 'bg-white border-gray-300 shadow-lg'}
                                         ${isLastMove ? 'scale-110 shadow-yellow-400/50' : ''}`}
                           />
@@ -272,7 +272,7 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
                     Array.from({ length: 8 }).map((_, x) => (
                       <div
                         key={`${x}-${y}`}
-                        className="w-9 h-9 sm:w-12 sm:h-12 bg-green-600/30 border border-green-400/20 rounded-lg
+                        className="aspect-square bg-green-600/30 border border-green-400/20 rounded-md sm:rounded-lg
                                   flex items-center justify-center transition-all duration-300"
                       />
                     ))
@@ -282,9 +282,9 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
 
               {/* Move indicator */}
               {currentMove && (
-                <div className="absolute bottom-2 sm:-bottom-4 left-1/2 -translate-x-1/2">
-                  <div className="px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-                    <span className="text-xs text-white/80 font-display">
+                <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 -translate-x-1/2">
+                  <div className="px-2 sm:px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
+                    <span className="text-xs text-white/80 font-display whitespace-nowrap">
                       {currentMove.player === 1 ? '⚫ 흑돌' : '⚪ 백돌'}
                       ({String.fromCharCode(65 + currentMove.position.x)}{currentMove.position.y + 1})
                     </span>
@@ -296,7 +296,7 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
 
           {/* Analysis Panel */}
           {currentAnalysis && (
-            <aside className="w-80 shrink-0 border-l border-white/10 p-4 sm:p-6 overflow-y-auto min-h-0">
+            <aside className="w-full lg:w-80 shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 p-3 sm:p-4 lg:p-6 overflow-y-auto min-h-0 max-h-48 lg:max-h-none">
               <div className="space-y-4">
                 <h3 className="text-lg font-display font-bold text-white tracking-wider flex items-center gap-2">
                   <Brain size={20} className="text-purple-400" />
@@ -382,10 +382,10 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
         </div>
 
         {/* Controls */}
-        <div className="border-t border-white/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between">
+        <div className="border-t border-white/10 p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:justify-between">
             {/* Playback Controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={handleGoToStart}
                 className="w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl
@@ -446,7 +446,7 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
             </div>
 
             {/* Progress Bar */}
-            <div className="flex-1 mx-6">
+            <div className="flex-1 mx-3 sm:mx-6 w-full sm:w-auto">
               <div className="bg-white/10 rounded-full h-2">
                 <div
                   className="bg-purple-400 h-2 rounded-full transition-all duration-300"
@@ -456,12 +456,12 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
             </div>
 
             {/* Speed Control */}
-            <div className="flex items-center gap-2">
-              <FastForward size={16} className="text-white/60" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <FastForward size={14} className="text-white/60" />
               <select
                 value={playbackSpeed}
                 onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1 text-white/90 font-display text-sm"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-2 sm:px-3 py-1 text-white/90 font-display text-xs sm:text-sm"
                 aria-label="playback-speed"
                 title="재생 속도"
               >

@@ -365,5 +365,53 @@
   .animate-gentle-float {
     animation: gentle-float 4s ease-in-out infinite;
   }
+
+  /* Range slider styling for replay filters */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-track {
+    background: rgba(0, 0, 0, 0.3);
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #facc15; /* yellow-400 */
+    border: 2px solid #fde047; /* yellow-300 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: #fde047;
+    transform: scale(1.1);
+  }
+
+  input[type="range"]::-moz-range-track {
+    background: rgba(0, 0, 0, 0.3);
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #facc15;
+    border: 2px solid #fde047;
+    cursor: pointer;
+    border: none;
+  }
 }
 
