@@ -27,7 +27,7 @@ export default function BattlePage() {
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 flex items-center justify-center">
                 <Swords size={16} className="text-yellow-400/80" />
               </div>
-              <h3 className="text-lg font-display font-bold text-white/90 tracking-wide">
+              <h3 className="text-base font-display font-medium text-white/90 tracking-wide">
                 {player.name}님의 전투 기록
               </h3>
             </div>
@@ -35,7 +35,7 @@ export default function BattlePage() {
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="relative group">
                 <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-xl font-display font-bold text-green-400 mb-1">{player.wins}</div>
+                  <div className="text-lg font-display font-bold text-green-400 mb-1">{player.wins}</div>
                   <div className="text-xs text-white/60 font-display">승리</div>
                 </div>
                 <div className="absolute -inset-1 bg-green-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -43,7 +43,7 @@ export default function BattlePage() {
 
               <div className="relative group">
                 <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-xl font-display font-bold text-red-400 mb-1">{player.losses}</div>
+                  <div className="text-lg font-display font-bold text-red-400 mb-1">{player.losses}</div>
                   <div className="text-xs text-white/60 font-display">패배</div>
                 </div>
                 <div className="absolute -inset-1 bg-red-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -51,7 +51,7 @@ export default function BattlePage() {
 
               <div className="relative group">
                 <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-xl font-display font-bold text-orange-400 mb-1">{player.winStreak}</div>
+                  <div className="text-lg font-display font-bold text-orange-400 mb-1">{player.winStreak}</div>
                   <div className="text-xs text-white/60 font-display">연승</div>
                 </div>
                 <div className="absolute -inset-1 bg-orange-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -67,7 +67,7 @@ export default function BattlePage() {
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-500/20 flex items-center justify-center">
               <Trophy size={16} className="text-blue-400/80" />
             </div>
-            <h3 className="text-lg font-display font-bold text-white/90 tracking-wide">전투 모드</h3>
+            <h3 className="text-base font-display font-medium text-white/90 tracking-wide">전투 모드</h3>
           </div>
 
           <div className="space-y-3">
@@ -84,7 +84,7 @@ export default function BattlePage() {
                   <Swords size={22} className="text-blue-400/80" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-display font-bold text-white/90 text-lg mb-1">빠른 매치</h4>
+                  <h4 className="font-display font-medium text-white/90 text-base mb-1">빠른 매치</h4>
                   <p className="text-sm text-white/60 font-display">비슷한 전력의 상대와 즉시 매칭</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function BattlePage() {
                   <Crown size={22} className="text-purple-400/80" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-display font-bold text-white/90 text-lg mb-1">랭크 게임</h4>
+                  <h4 className="font-display font-medium text-white/90 text-base mb-1">랭크 게임</h4>
                   <p className="text-sm text-white/60 font-display">RP를 획득하고 등급을 올려보세요</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function BattlePage() {
                   <Trophy size={22} className="text-orange-400/80" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-display font-bold text-white/90 text-lg mb-1">토너먼트</h4>
+                  <h4 className="font-display font-medium text-white/90 text-base mb-1">토너먼트</h4>
                   <p className="text-sm text-white/60 font-display">정예 전사들과 경쟁하는 이벤트 모드</p>
                 </div>
                 <div className="flex items-center gap-2">
