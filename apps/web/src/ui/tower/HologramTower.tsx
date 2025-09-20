@@ -145,7 +145,7 @@ export function HologramTower({ currentFloor, maxFloor, className = '' }: Hologr
         /* 기단부 */
         .tower-base {
           position: absolute;
-          bottom: -3px;
+          bottom: 2px;
           left: 50%;
           width: 68px;
           height: 5px;
@@ -321,10 +321,10 @@ export function HologramTower({ currentFloor, maxFloor, className = '' }: Hologr
         /* 탑 꼭대기 성소 */
         .tower-sanctuary {
           position: absolute;
-          top: -12px;
+          top: -8px;
           left: 50%;
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           transform: translateX(-50%);
         }
 
@@ -410,7 +410,7 @@ export function HologramTower({ currentFloor, maxFloor, className = '' }: Hologr
         /* 홀로그램 프레임 */
         .holo-frame {
           position: absolute;
-          inset: -10px;
+          inset: -5px;
           pointer-events: none;
         }
 
