@@ -246,20 +246,76 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
   ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.6})`;
   ctx.lineWidth = 1;
   
-  // 수직 그리드
-  for (let x = centerX - width/2; x <= centerX + width/2; x += width/6) {
+  // 수직 그리드 + 전기 흐름
+  for (let gridIndex = 0; gridIndex <= 6; gridIndex++) {
+    const x = centerX - width/2 + (gridIndex * width/6);
+    
+    // 기본 그리드 선
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.lineTo(x, y + height);
     ctx.stroke();
+    
+    // 전기 흐름 효과 (활성화된 층만)
+    if (isActive && glowIntensity > 0.4) {
+      const flowProgress = (time / 1000 + gridIndex * 0.3 + index * 0.1) % 1;
+      const flowY = y + flowProgress * height;
+      
+      // 전기 점
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time / 200 + gridIndex) * 0.5 + 0.5})`;
+      ctx.beginPath();
+      ctx.arc(x, flowY, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 전기 꼬리
+      const tailLength = 8;
+      const gradient = ctx.createLinearGradient(x, flowY - tailLength, x, flowY);
+      gradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0)`);
+      gradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0.8)`);
+      
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, flowY - tailLength);
+      ctx.lineTo(x, flowY);
+      ctx.stroke();
+    }
   }
   
-  // 수평 그리드
-  for (let gridY = y; gridY <= y + height; gridY += height/3) {
+  // 수평 그리드 + 전기 흐름
+  for (let gridIndex = 0; gridIndex <= 3; gridIndex++) {
+    const gridY = y + (gridIndex * height/3);
+    
+    // 기본 그리드 선
     ctx.beginPath();
     ctx.moveTo(centerX - width/2, gridY);
     ctx.lineTo(centerX + width/2, gridY);
     ctx.stroke();
+    
+    // 수평 전기 흐름 (활성화된 층만)
+    if (isActive && glowIntensity > 0.4) {
+      const flowProgress = (time / 1500 + gridIndex * 0.4 + index * 0.15) % 1;
+      const flowX = centerX - width/2 + flowProgress * width;
+      
+      // 전기 점
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time / 250 + gridIndex) * 0.4 + 0.4})`;
+      ctx.beginPath();
+      ctx.arc(flowX, gridY, 1, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 전기 꼬리
+      const tailLength = 6;
+      const gradient = ctx.createLinearGradient(flowX - tailLength, gridY, flowX, gridY);
+      gradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0)`);
+      gradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0.6)`);
+      
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(flowX - tailLength, gridY);
+      ctx.lineTo(flowX, gridY);
+      ctx.stroke();
+    }
   }
 
   // 에너지 코어 및 아크 (제거됨)
@@ -404,17 +460,6 @@ function updateAndDrawParticles(ctx: CanvasRenderingContext2D, particles: Partic
 
 // 홀로그램 노이즈 효과
 function drawHologramNoise(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
-  // 랜덤 노이즈 라인들
-  for (let i = 0; i < 5; i++) {
-    if (Math.random() < 0.1) { // 10% 확률로 노이즈
-      const noiseY = Math.random() * height;
-      const noiseAlpha = Math.random() * 0.3;
-      
-      ctx.fillStyle = `rgba(0, 255, 255, ${noiseAlpha})`;
-      ctx.fillRect(0, noiseY, width, 1);
-    }
-  }
-
   // 스캔라인
   const scanY = (Math.sin(time / 3000) * 0.5 + 0.5) * height;
   ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
