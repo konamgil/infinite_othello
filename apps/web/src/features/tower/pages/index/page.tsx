@@ -40,7 +40,8 @@ function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
 export default function TowerPage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
-  const currentFloor = player.towerProgress;
+  const currentFloor = 200; // 테스트용으로 50층 설정
+  // player.towerProgress
   const maxFloor = 300;
 
   // 탑의 기운 시스템 상태

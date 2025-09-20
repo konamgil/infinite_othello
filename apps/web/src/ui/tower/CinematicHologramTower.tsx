@@ -186,7 +186,7 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
     }
 
     // 3D 섹션 그리기
-    drawTowerSection(ctx, centerX, sectionY, baseWidth, sectionHeight, primaryColor, secondaryColor, glowIntensity, time, i);
+    drawTowerSection(ctx, centerX, sectionY, baseWidth, sectionHeight, primaryColor, secondaryColor, glowIntensity, time, i, isActive);
 
     // 홀로그램 데이터 링크
     if (isActive && i > 0) {
@@ -195,7 +195,7 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
 
     // 층수 홀로그램 라벨
     if (isActive) {
-      const floorNumber = Math.floor(((i + 1) / sections) * maxFloor);
+      const floorNumber = Math.floor(((i + 1) / sections) * 300); // maxFloor 대신 300 직접 사용
       drawFloorLabel(ctx, centerX + baseWidth/2 + 20, sectionY + sectionHeight/2, floorNumber, primaryColor, time);
     }
   }
@@ -208,7 +208,7 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
 
 // 3D 타워 섹션 그리기
 function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: number, width: number, height: number, 
-                        primaryColor: number[], secondaryColor: number[], glowIntensity: number, time: number, index: number) {
+                        primaryColor: number[], secondaryColor: number[], glowIntensity: number, time: number, index: number, isActive: boolean) {
   
   // 3D 원근감을 위한 기울기
   const skew = width * 0.1;
@@ -256,30 +256,6 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
     ctx.lineTo(x, y + height);
     ctx.stroke();
     
-    // 전기 흐름 효과 (활성화된 층만)
-    if (isActive && glowIntensity > 0.4) {
-      const flowProgress = (time / 1000 + gridIndex * 0.3 + index * 0.1) % 1;
-      const flowY = y + flowProgress * height;
-      
-      // 전기 점
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time / 200 + gridIndex) * 0.5 + 0.5})`;
-      ctx.beginPath();
-      ctx.arc(x, flowY, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // 전기 꼬리
-      const tailLength = 8;
-      const gradient = ctx.createLinearGradient(x, flowY - tailLength, x, flowY);
-      gradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0)`);
-      gradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0.8)`);
-      
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, flowY - tailLength);
-      ctx.lineTo(x, flowY);
-      ctx.stroke();
-    }
   }
   
   // 수평 그리드 + 전기 흐름
@@ -292,30 +268,6 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
     ctx.lineTo(centerX + width/2, gridY);
     ctx.stroke();
     
-    // 수평 전기 흐름 (활성화된 층만)
-    if (isActive && glowIntensity > 0.4) {
-      const flowProgress = (time / 1500 + gridIndex * 0.4 + index * 0.15) % 1;
-      const flowX = centerX - width/2 + flowProgress * width;
-      
-      // 전기 점
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.sin(time / 250 + gridIndex) * 0.4 + 0.4})`;
-      ctx.beginPath();
-      ctx.arc(flowX, gridY, 1, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // 전기 꼬리
-      const tailLength = 6;
-      const gradient = ctx.createLinearGradient(flowX - tailLength, gridY, flowX, gridY);
-      gradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0)`);
-      gradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0.6)`);
-      
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(flowX - tailLength, gridY);
-      ctx.lineTo(flowX, gridY);
-      ctx.stroke();
-    }
   }
 
   // 에너지 코어 및 아크 (제거됨)
@@ -465,3 +417,4 @@ function drawHologramNoise(ctx: CanvasRenderingContext2D, width: number, height:
   ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
   ctx.fillRect(0, scanY - 1, width, 3);
 }
+
