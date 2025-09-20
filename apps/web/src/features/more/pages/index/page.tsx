@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreStarCanvas } from '../../../../ui/more/MoreStarCanvas';
-import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock } from 'lucide-react';
+import { useGameStore } from '../../../../store/gameStore';
+import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock, Star, Crown, Zap } from 'lucide-react';
 
 export default function MorePage() {
   const navigate = useNavigate();
+  const player = useGameStore((state) => state.player);
 
   return (
     <div className="h-full w-full overflow-hidden relative">
@@ -13,9 +15,51 @@ export default function MorePage() {
         <MoreStarCanvas className="w-full h-full" />
       </div>
 
+      {/* Stats Display - 우측 상단 */}
+      <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+        {/* Tower Progress Display */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
+          <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
+            <Crown size={6} className="text-white" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white/70 font-display text-[10px]">탑</span>
+            <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
+              {player.towerProgress}층 • {Math.round((player.towerProgress / 300) * 100)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Rank Display */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
+          <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
+            <Crown size={6} className="text-white" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white/70 font-display text-[10px]">랭크</span>
+            <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
+              {player.rank}
+            </span>
+          </div>
+        </div>
+
+        {/* RP Display */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
+          <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+            <Star size={6} className="text-white" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white/70 font-display text-[10px]">RP</span>
+            <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
+              {player.rp.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* 오버레이 콘텐츠 */}
       <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
-        <div className="px-3 py-4 pb-28 space-y-3">
+        <div className="px-3 py-4 pb-28 space-y-3 mt-16">
         {/* 사용자 프로필 섹션 */}
         <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           <div className="flex items-center">
@@ -24,8 +68,7 @@ export default function MorePage() {
             </div>
             <div className="flex-1">
               <h3 className="font-display font-bold text-white/90">우주의 오델로 수호자</h3>
-              <p className="text-sm text-white/70 font-display">Bronze III • 1,487 RP</p>
-              <p className="text-xs text-white/60 font-display">탑 진행도: 1층</p>
+              <p className="text-sm text-white/70 font-display">설정과 정보를 관리하세요</p>
             </div>
           </div>
         </div>

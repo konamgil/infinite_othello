@@ -1,5 +1,8 @@
 import React, { ReactNode } from 'react';
 import { StellaCanvas } from '../../../ui/stella/StellaCanvas';
+import { useGameStore } from '../../../store/gameStore';
+import { DAILY_MISSIONS } from '../constants';
+import { Star, Target } from 'lucide-react';
 
 type StellaLayoutProps = {
   children: ReactNode;
@@ -7,6 +10,10 @@ type StellaLayoutProps = {
 };
 
 export function StellaLayout({ children, detail = false }: StellaLayoutProps) {
+  const player = useGameStore((state) => state.player);
+  const completedMissions = DAILY_MISSIONS.filter(m => m.completed).length;
+  const totalMissions = DAILY_MISSIONS.length;
+
   const rootClasses = detail
     ? 'min-h-screen w-full overflow-hidden relative flex flex-col'
     : 'h-full w-full overflow-hidden relative';
@@ -24,6 +31,36 @@ export function StellaLayout({ children, detail = false }: StellaLayoutProps) {
       <div className="absolute inset-0">
         <StellaCanvas className="w-full h-full" />
       </div>
+
+      {/* Stats Display - 우측 상단 */}
+      <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+        {/* Daily Missions Display */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-green-400/20 rounded-full">
+          <div className="w-3 h-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+            <Target size={6} className="text-white" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white/70 font-display text-[10px]">미션</span>
+            <span className="text-green-400 font-display font-medium text-xs tracking-wide">
+              {completedMissions}/{totalMissions}
+            </span>
+          </div>
+        </div>
+
+        {/* RP Display */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
+          <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+            <Star size={6} className="text-white" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white/70 font-display text-[10px]">RP</span>
+            <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
+              {player.rp.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className={overlayClasses}>
         <div className={contentClasses}>{children}</div>
       </div>

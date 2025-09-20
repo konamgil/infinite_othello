@@ -32,7 +32,7 @@ export default function StellaHome() {
 
   return (
     <StellaLayout>
-      <div className="space-y-3">
+      <div className="space-y-3 mt-12">
         {/* 스텔라의 우주적 지혜 */}
         <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           <div className="flex items-start gap-4">
@@ -76,9 +76,6 @@ export default function StellaHome() {
             <div className="flex items-center gap-2">
               <Calendar size={14} className="text-green-400" />
               <h3 className="font-display font-medium text-white/90">오늘의 미션</h3>
-            </div>
-            <div className="text-xs text-green-400/70 font-display">
-              {DAILY_MISSIONS.filter(m => m.completed).length}/{DAILY_MISSIONS.length} 완료
             </div>
           </div>
 

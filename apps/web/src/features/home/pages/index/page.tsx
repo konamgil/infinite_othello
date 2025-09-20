@@ -106,8 +106,35 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* RP Display - 우측 상단 */}
-          <div className="absolute top-6 right-4 z-20">
+          {/* Stats Display - 우측 상단 */}
+          <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+            {/* Tower Progress Display */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
+              <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
+                <Crown size={6} className="text-white" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-white/70 font-display text-[10px]">탑</span>
+                <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
+                  {player.towerProgress}층
+                </span>
+              </div>
+            </div>
+
+            {/* Online Users Display */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-green-400/20 rounded-full">
+              <div className="w-3 h-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                <Users size={6} className="text-white" />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-white/70 font-display text-[10px]">온라인</span>
+                <span className="text-green-400 font-display font-medium text-xs tracking-wide">
+                  2,847
+                </span>
+              </div>
+            </div>
+
+            {/* RP Display */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
               <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                 <Star size={6} className="text-white" />
@@ -122,7 +149,7 @@ export default function HomePage() {
           </div>
 
           {/* 메인 콘텐츠 */}
-          <div className="relative z-10 px-4 pt-20 pb-12 text-center">
+          <div className="relative z-10 px-4 pt-32 pb-12 text-center">
             {/* 게임 로고/타이틀 - RP와 거리 확보 */}
             <div className="mb-8">
               <div className="relative inline-block">
@@ -133,26 +160,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 신비로운 상태 표시 - 미니멀하고 우아하게 */}
-            <div className="flex justify-center items-center gap-6 mb-10">
-              {/* 현재 층수 - 별빛 스타일 */}
-              <div className="relative group">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-yellow-400/90 tracking-wider">{player.towerProgress}층</span>
-                </div>
-                <div className="absolute -inset-1 bg-yellow-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-              </div>
-
-              {/* 온라인 상태 - 별빛 스타일 */}
-              <div className="relative group">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-green-400/90 tracking-wider">온라인 2,847</span>
-                </div>
-                <div className="absolute -inset-1 bg-green-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-              </div>
-            </div>
           </div>
         </div>
 

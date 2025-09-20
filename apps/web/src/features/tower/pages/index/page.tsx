@@ -224,8 +224,22 @@ export default function TowerPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
-        {/* RP Display - 우측 상단 작게 */}
-        <div className="absolute top-6 right-4 z-20">
+        {/* Stats Display - 우측 상단 */}
+        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
+          {/* Tower Progress Display */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
+            <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
+              <Crown size={6} className="text-white" />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-white/70 font-display text-[10px]">탑</span>
+              <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
+                {currentFloor}층 • {Math.round((currentFloor / maxFloor) * 100)}%
+              </span>
+            </div>
+          </div>
+
+          {/* RP Display */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
             <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
               <Star size={6} className="text-white" />
@@ -258,18 +272,6 @@ export default function TowerPage() {
             <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent tracking-wider">THE TOWER</h1>
           </div>
 
-          {/* 현재 층수와 진행률 */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-              <span className="font-display font-bold text-lg text-yellow-400">{currentFloor}층</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              <span className="font-display text-sm text-blue-400">{Math.round((currentFloor / maxFloor) * 100)}%</span>
-            </div>
-          </div>
         </div>
       </div>
 

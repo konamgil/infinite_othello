@@ -21,7 +21,7 @@ export default function BattlePage() {
     <BattleLayout>
       <div>
         {/* 플레이어 전투 기록 - 별빛 스타일 */}
-        <div className="mb-6 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
+        <div className="mb-6 mt-12 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 flex items-center justify-center">
@@ -58,14 +58,6 @@ export default function BattlePage() {
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-500/20 border border-yellow-400/30">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                <Crown size={12} className="text-white" />
-              </div>
-              <span className="text-white/90 font-display font-bold tracking-wider">
-                {player.rank} · {player.rp} RP
-              </span>
-            </div>
           </div>
         </div>
 
