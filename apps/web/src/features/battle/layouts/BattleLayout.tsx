@@ -16,8 +16,8 @@ export function BattleLayout({ children, detail = false }: BattleLayoutProps) {
     : 'relative z-10 h-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain';
 
   const contentClasses = detail
-    ? 'content-padding pt-12 pb-12 flex flex-col gap-8 min-h-[calc(100vh-6rem)]'
-    : 'content-padding section-spacing pb-32';
+    ? 'px-4 pt-12 pb-12 flex flex-col gap-8 min-h-[calc(100vh-6rem)]'
+    : 'px-4 py-6 pb-32';
 
   return (
     <div className={rootClasses}>

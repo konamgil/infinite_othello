@@ -32,9 +32,9 @@ export default function StellaHome() {
 
   return (
     <StellaLayout>
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* 스텔라의 우주적 지혜 */}
-        <div className="p-5 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+        <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           <div className="flex items-start gap-4">
             {/* 스텔라 아바타 */}
             <button
@@ -51,14 +51,14 @@ export default function StellaHome() {
             </button>
 
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Sparkles size={14} className="text-purple-400" />
                 <h4 className="font-display font-medium text-purple-300 text-sm">
                   스텔라의 우주적 지혜
                 </h4>
               </div>
 
-              <div className="h-16 flex items-center text-white/90 font-smooth text-sm leading-relaxed">
+              <div className="h-14 flex items-center text-white/90 font-smooth text-sm leading-relaxed">
                 <TypewriterText
                   messages={STELLA_WISDOMS}
                   typingSpeed={50}
@@ -71,8 +71,8 @@ export default function StellaHome() {
         </div>
 
         {/* 오늘의 미션 */}
-        <div className="p-5 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Calendar size={14} className="text-green-400" />
               <h3 className="font-display font-medium text-white/90">오늘의 미션</h3>
@@ -87,7 +87,7 @@ export default function StellaHome() {
               <button
                 key={mission.id}
                 onClick={() => handleNavigation('/stella/missions', [25, 15, 25])}
-                className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-white/5
                          hover:bg-white/10 active:scale-95 transition-all duration-200"
               >
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
@@ -127,13 +127,13 @@ export default function StellaHome() {
 
         {/* 스텔라의 학습 메뉴 */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <Star size={14} className="text-blue-400" />
             <h3 className="font-display font-medium text-white/90">스텔라의 학습 메뉴</h3>
           </div>
 
           {/* 전략 학습 */}
-          <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+          <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                           hover:bg-black/30 active:scale-95 transition-all duration-200
                           cursor-pointer"
                onClick={() => handleNavigation('/stella/strategy', [30, 20, 30])}>
@@ -157,7 +157,7 @@ export default function StellaHome() {
           </div>
 
           {/* 연습 시나리오 */}
-          <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+          <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                           hover:bg-black/30 active:scale-95 transition-all duration-200
                           cursor-pointer"
                onClick={() => handleNavigation('/stella/practice', [20, 15, 25])}>

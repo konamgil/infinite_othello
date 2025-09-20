@@ -100,7 +100,8 @@ export function GameBoard({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const boardSize = canvas.getBoundingClientRect().width;
+    const containerRect = canvas.parentElement?.getBoundingClientRect();
+    const boardSize = containerRect ? Math.min(containerRect.width, containerRect.height) : canvas.getBoundingClientRect().width;
     if (boardSize === 0) return;
     const cellSize = boardSize / 8;
     const ctx = setupHiDPICanvas(canvas, boardSize);
@@ -216,7 +217,7 @@ export function GameBoard({
     <div className="relative w-full aspect-square touch-manipulation">
       <canvas
         ref={canvasRef}
-        className="w-full h-full rounded-2xl shadow-2xl cursor-pointer
+        className="absolute inset-0 w-full h-full rounded-2xl shadow-2xl cursor-pointer
                    ring-1 ring-emerald-400/20 hover:ring-emerald-400/40
                    transition-all duration-300 bg-black/10 backdrop-blur-md
                    shadow-emerald-500/10"
@@ -231,7 +232,8 @@ export function GameBoard({
       {showValidMoves && (
         <div className="absolute inset-0 pointer-events-none">
           {boardState.validMoves.map((move, index) => {
-            const boardSize = canvasRef.current?.getBoundingClientRect().width || 0;
+            const containerRect = canvasRef.current?.parentElement?.getBoundingClientRect();
+            const boardSize = containerRect ? Math.min(containerRect.width, containerRect.height) : (canvasRef.current?.getBoundingClientRect().width || 0);
             if (boardSize === 0) return null;
             const cellSize = boardSize / 8;
             return (

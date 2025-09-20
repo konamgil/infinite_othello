@@ -134,8 +134,8 @@ export function ThemeSelector({ type, onClose }: ThemeSelectorProps) {
   };
 
   return (
-    <div className="space-y-2 min-h-full animate-in fade-in-0 duration-700">
-      <div className="space-y-2">
+    <div className="w-full min-h-full animate-in fade-in-0 duration-700">
+      <div className="space-y-2 w-full">
         {themes.map((themeOption, index) => (
           <div
             key={themeOption.id}

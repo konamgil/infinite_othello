@@ -9,8 +9,8 @@ export default function StellaMissions() {
 
   return (
     <StellaLayout detail>
-      <div className="flex flex-col gap-8 pb-10 flex-1">
-        <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-6 pb-10 flex-1">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400/30 to-green-600/30 flex items-center justify-center backdrop-blur-sm border border-green-400/20">
               <Target size={18} className="text-green-300" />
@@ -19,18 +19,18 @@ export default function StellaMissions() {
           </div>
           <button
             onClick={() => navigate('/stella')}
-            className="px-4 py-2 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 text-white/80 font-display tracking-wider hover:bg-black/30 hover:border-white/20 hover:text-white active:scale-95 transition-all duration-300"
+            className="px-3 py-1.5 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 text-white/80 font-display tracking-wider hover:bg-black/30 hover:border-white/20 hover:text-white active:scale-95 transition-all duration-300"
           >
             돌아가기
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {DAILY_MISSIONS.map((mission) => (
-            <div key={mission.id} className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/25 hover:border-white/15 transition-all duration-300">
-              <div className="flex items-start justify-between mb-4">
+            <div key={mission.id} className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/25 hover:border-white/15 transition-all duration-300">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 backdrop-blur-sm ${
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 backdrop-blur-sm ${
                     mission.completed ? 'bg-green-400/20 border border-green-400/30' : 'bg-white/10 border border-white/20'
                   }`}>
                     {mission.completed ? (
@@ -55,7 +55,7 @@ export default function StellaMissions() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex-1 mr-6">
+                <div className="flex-1 mr-4">
                   <div className="bg-white/10 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-green-400 to-green-500 h-2 rounded-full transition-all duration-500"
@@ -69,7 +69,7 @@ export default function StellaMissions() {
                 {mission.completed ? (
                   <span className="text-green-300 text-sm font-display font-semibold tracking-wider">모든 보상 획득!</span>
                 ) : (
-                  <button className="px-6 py-2 rounded-xl bg-green-400/20 text-green-300 font-display font-semibold tracking-wider hover:bg-green-400/30 hover:text-green-200 active:scale-95 transition-all duration-300">
+                  <button className="px-4 py-1.5 rounded-xl bg-green-400/20 text-green-300 font-display font-semibold tracking-wider hover:bg-green-400/30 hover:text-green-200 active:scale-95 transition-all duration-300">
                     진행하기
                   </button>
                 )}

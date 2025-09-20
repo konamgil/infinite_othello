@@ -199,7 +199,7 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
       </div>
 
       {/* 컴팩한 상단 헤더 */}
-      <div className="relative z-20 flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm">
+      <div className="relative z-20 flex items-center justify-between p-3 bg-black/30 backdrop-blur-sm">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm
@@ -226,9 +226,9 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
       </div>
 
       {/* 메인 게임 영역 */}
-      <div className="relative z-10 flex flex-col items-center justify-center flex-1 p-4">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-1 py-2">
         {/* 컴팩한 게임 정보 - 상단에 한 줄로 */}
-        <div className="w-full max-w-md flex items-center justify-between mb-4 px-6 py-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+        <div className="w-full flex items-center justify-between mb-2 px-4 py-2 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           {/* 흑돌 점수 */}
           <div className="flex items-center gap-2">
             <div className={`w-6 h-6 bg-gray-800 rounded-full transition-all duration-300 ${
@@ -255,7 +255,7 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
         </div>
 
         {/* 게임 보드 - 화면에 거의 근접하게 */}
-        <div className="w-full max-w-lg mb-4">
+        <div className="w-full mb-2">
           <GameBoard
             boardState={gameState}
             onCellClick={handleCellClick}
@@ -265,21 +265,21 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
         </div>
 
         {/* 컴팩한 게임 컨트롤 */}
-        <div className="w-full max-w-md">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="w-full">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={resetGame}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+              className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
                        bg-white/10 backdrop-blur-sm border border-white/20
-                       text-white/80 font-smooth hover:bg-white/20 hover:text-white
+                       text-white/80 font-smooth text-sm hover:bg-white/20 hover:text-white
                        active:scale-95 transition-all duration-300"
             >
-              <RotateCcw size={16} />
+              <RotateCcw size={14} />
               다시 시작
             </button>
 
-            <button className="py-3 px-4 rounded-xl bg-red-500/20 backdrop-blur-sm border border-red-500/30
-                             text-red-300 font-smooth hover:bg-red-500/30 hover:text-red-200
+            <button className="py-2.5 px-3 rounded-xl bg-red-500/20 backdrop-blur-sm border border-red-500/30
+                             text-red-300 font-smooth text-sm hover:bg-red-500/30 hover:text-red-200
                              active:scale-95 transition-all duration-300">
               항복하기
             </button>

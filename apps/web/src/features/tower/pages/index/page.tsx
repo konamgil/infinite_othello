@@ -225,7 +225,7 @@ export default function TowerPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
         {/* RP Display - 우측 상단 작게 */}
-        <div className="absolute top-8 right-6 z-20">
+        <div className="absolute top-6 right-4 z-20">
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
             <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
               <Star size={6} className="text-white" />
@@ -274,11 +274,11 @@ export default function TowerPage() {
       </div>
 
       {/* Main Content Area - 호흡하는 레이아웃 */}
-      <div className="flex-1 flex flex-col px-6 py-6 space-y-8 justify-center">
+      <div className="flex-1 flex flex-col px-4 py-4 space-y-6 justify-center">
 
         {/* 1. Guardian Dialogue - 넉넉한 공간 */}
-        <div className="w-full max-w-md mx-auto bg-black/20 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center gap-5">
+        <div className="w-full max-w-md mx-auto bg-black/20 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+          <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex-shrink-0">
               <CosmicGuardian className="w-full h-full" />
             </div>
@@ -294,7 +294,7 @@ export default function TowerPage() {
         </div>
 
         {/* 2. Energy Status - 여유로운 에너지 시스템 */}
-        <div className="w-full max-w-md mx-auto py-4">
+        <div className="w-full max-w-md mx-auto py-3">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Battery
@@ -348,7 +348,7 @@ export default function TowerPage() {
           </div>
 
           {/* 코스믹 에너지 바 */}
-          <div className="relative mb-6">
+          <div className="relative mb-4">
             {/* 외부 글로우 효과 */}
             {isEnergyFull && (
               <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400/20 via-blue-500/30 to-purple-500/20 rounded-full blur animate-pulse" />
@@ -408,9 +408,9 @@ export default function TowerPage() {
         </div>
 
         {/* 3. Challenge Button - 임팩트 있는 메인 버튼 */}
-        <div className="w-full max-w-md mx-auto py-6 mt-4">
+        <div className="w-full max-w-md mx-auto py-4 mt-2">
           {/* 진행 상황 간단 표시 */}
-          <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center justify-between mb-4 px-2">
             <div className="flex items-center gap-2">
               <Target size={14} className="text-yellow-400" />
               <span className="text-xs text-yellow-400/80 font-display">다음 목표: {currentFloor + 1}층</span>
@@ -426,7 +426,7 @@ export default function TowerPage() {
             <button
               id="challenge-start-btn"
               onClick={handleChallengeStart}
-              className="relative w-full py-6 px-8 rounded-2xl
+              className="relative w-full py-4 px-6 rounded-2xl
                        bg-gradient-to-r from-yellow-400/20 via-orange-500/30 to-yellow-400/20
                        border-2 border-yellow-400/60
                        hover:border-yellow-400/80 hover:from-yellow-400/30 hover:via-orange-500/40 hover:to-yellow-400/30

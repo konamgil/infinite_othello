@@ -107,7 +107,7 @@ export default function HomePage() {
           </div>
 
           {/* RP Display - 우측 상단 */}
-          <div className="absolute top-8 right-6 z-20">
+          <div className="absolute top-6 right-4 z-20">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
               <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                 <Star size={6} className="text-white" />
@@ -122,7 +122,7 @@ export default function HomePage() {
           </div>
 
           {/* 메인 콘텐츠 */}
-          <div className="relative z-10 px-6 pt-24 pb-16 text-center">
+          <div className="relative z-10 px-4 pt-20 pb-12 text-center">
             {/* 게임 로고/타이틀 - RP와 거리 확보 */}
             <div className="mb-8">
               <div className="relative inline-block">
@@ -134,7 +134,7 @@ export default function HomePage() {
             </div>
 
             {/* 신비로운 상태 표시 - 미니멀하고 우아하게 */}
-            <div className="flex justify-center items-center gap-8 mb-12">
+            <div className="flex justify-center items-center gap-6 mb-10">
               {/* 현재 층수 - 별빛 스타일 */}
               <div className="relative group">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
@@ -157,7 +157,7 @@ export default function HomePage() {
         </div>
 
         {/* 신비로운 입장 버튼 - 별빛에 조화 */}
-        <div className="px-8 mb-12">
+        <div className="px-4 mb-8">
           <button
             onClick={handleTowerChallenge}
             className="group relative w-full py-4 px-8 rounded-full
@@ -182,8 +182,8 @@ export default function HomePage() {
         </div>
 
         {/* 신비로운 상태 정보 - 별빛 스타일 */}
-        <div className="px-8 mt-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="px-4 mt-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* 랭크 */}
             <div className="relative group">
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
@@ -217,7 +217,7 @@ export default function HomePage() {
         </div>
 
         {/* 신비로운 액션 메뉴 */}
-        <div className="px-8 mt-8" ref={gameLayerRef}>
+        <div className="px-4 mt-6" ref={gameLayerRef}>
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
               <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
@@ -281,7 +281,7 @@ export default function HomePage() {
         </div>
 
         {/* 오늘의 미션 */}
-        <div className="px-8 mt-6">
+        <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
               <Target size={20} className="text-green-400" />
@@ -352,7 +352,7 @@ export default function HomePage() {
         </div>
 
         {/* 최근 대국 */}
-        <div className="px-8 mt-6 pb-24">
+        <div className="px-4 mt-6 pb-20">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
               <Users size={20} className="text-blue-400" />

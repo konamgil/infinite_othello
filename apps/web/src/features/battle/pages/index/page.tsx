@@ -2,9 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { BattleLayout } from '../../layouts/BattleLayout';
-import { RECENT_BATTLES, TOURNAMENTS } from '../../constants';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { Swords, Trophy, Users, Clock, Star, Crown } from 'lucide-react';
+import { Swords, Trophy, Crown } from 'lucide-react';
 
 export default function BattlePage() {
   const player = useGameStore((state) => state.player);
@@ -22,9 +21,9 @@ export default function BattlePage() {
     <BattleLayout>
       <div>
         {/* 플레이어 전투 기록 - 별빛 스타일 */}
-        <div className="mb-8 p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
+        <div className="mb-6 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="flex items-center justify-center gap-2 mb-4">
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 flex items-center justify-center">
                 <Swords size={16} className="text-yellow-400/80" />
               </div>
@@ -33,26 +32,26 @@ export default function BattlePage() {
               </h3>
             </div>
             
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="relative group">
-                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-2xl font-display font-bold text-green-400 mb-1">{player.wins}</div>
+                <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="text-xl font-display font-bold text-green-400 mb-1">{player.wins}</div>
                   <div className="text-xs text-white/60 font-display">승리</div>
                 </div>
                 <div className="absolute -inset-1 bg-green-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
-              
+
               <div className="relative group">
-                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-2xl font-display font-bold text-red-400 mb-1">{player.losses}</div>
+                <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="text-xl font-display font-bold text-red-400 mb-1">{player.losses}</div>
                   <div className="text-xs text-white/60 font-display">패배</div>
                 </div>
                 <div className="absolute -inset-1 bg-red-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
               </div>
-              
+
               <div className="relative group">
-                <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-2xl font-display font-bold text-orange-400 mb-1">{player.winStreak}</div>
+                <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <div className="text-xl font-display font-bold text-orange-400 mb-1">{player.winStreak}</div>
                   <div className="text-xs text-white/60 font-display">연승</div>
                 </div>
                 <div className="absolute -inset-1 bg-orange-400/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -71,20 +70,20 @@ export default function BattlePage() {
         </div>
 
         {/* 전투 모드 선택 - 별빛 스타일 */}
-        <div className="space-y-4 mb-8">
-          <div className="flex items-center gap-2 mb-6">
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 mb-4">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-500/20 flex items-center justify-center">
               <Trophy size={16} className="text-blue-400/80" />
             </div>
             <h3 className="text-lg font-display font-bold text-white/90 tracking-wide">전투 모드</h3>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* 빠른 매치 */}
             <div
-              className="group relative p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 
-                       hover:bg-white/10 hover:border-white/20 
-                       active:scale-90 active:brightness-110 transition-all duration-150 
+              className="group relative p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10
+                       hover:bg-white/10 hover:border-white/20
+                       active:scale-90 active:brightness-110 transition-all duration-150
                        cursor-pointer touch-manipulation select-none"
               onClick={() => handleBattleModeClick('quick')}
             >
@@ -106,9 +105,9 @@ export default function BattlePage() {
 
             {/* 랭크 게임 */}
             <div
-              className="group relative p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 
-                       hover:bg-white/10 hover:border-white/20 
-                       active:scale-90 active:brightness-110 transition-all duration-150 
+              className="group relative p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10
+                       hover:bg-white/10 hover:border-white/20
+                       active:scale-90 active:brightness-110 transition-all duration-150
                        cursor-pointer touch-manipulation select-none"
               onClick={() => handleBattleModeClick('ranked')}
             >
@@ -130,9 +129,9 @@ export default function BattlePage() {
 
             {/* 토너먼트 */}
             <div
-              className="group relative p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 
-                       hover:bg-white/10 hover:border-white/20 
-                       active:scale-90 active:brightness-110 transition-all duration-150 
+              className="group relative p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10
+                       hover:bg-white/10 hover:border-white/20
+                       active:scale-90 active:brightness-110 transition-all duration-150
                        cursor-pointer touch-manipulation select-none"
               onClick={() => handleBattleModeClick('tournament')}
             >
@@ -154,46 +153,6 @@ export default function BattlePage() {
           </div>
         </div>
 
-        {/* 최근 전투 기록 - 별빛 스타일 */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400/20 to-blue-500/20 flex items-center justify-center">
-              <Star size={16} className="text-green-400/80" />
-            </div>
-            <h3 className="text-lg font-display font-bold text-white/90 tracking-wide">최근 전투 기록</h3>
-          </div>
-          
-          <div className="space-y-3">
-            {RECENT_BATTLES.map((battle) => (
-              <div key={battle.opponent} className="group relative p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-between hover:bg-white/10 transition-all duration-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400/20 to-purple-400/20 flex items-center justify-center border border-blue-400/30">
-                    <Star size={18} className="text-blue-400/80" />
-                  </div>
-                  <div>
-                    <div className="font-display font-bold text-white/90">{battle.opponent}</div>
-                    <div className="text-xs text-white/60 font-display">
-                      {battle.rank} · {battle.timeAgo}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-sm font-display font-bold ${
-                    battle.result === 'victory' ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {battle.result === 'victory' ? '승리' : '패배'}
-                  </div>
-                  <div className="text-xs text-white/60 font-display">{battle.score}</div>
-                </div>
-                
-                {/* 호버 시 글로우 효과 */}
-                <div className={`absolute -inset-1 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-500 ${
-                  battle.result === 'victory' ? 'bg-green-400/10' : 'bg-red-400/10'
-                }`}></div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </BattleLayout>
   );
