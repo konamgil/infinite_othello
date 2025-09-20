@@ -2,11 +2,37 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreStarCanvas } from '../../../../ui/more/MoreStarCanvas';
 import { useGameStore } from '../../../../store/gameStore';
+import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock, Star, Crown, Zap } from 'lucide-react';
 
 export default function MorePage() {
   const navigate = useNavigate();
   const player = useGameStore((state) => state.player);
+
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'tower',
+      label: '탑',
+      value: `${player.towerProgress}층`,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'rank',
+      label: '랭크',
+      value: player.rank,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: player.rp,
+      icon: Star,
+      color: 'yellow'
+    }
+  ];
 
   return (
     <div className="h-full w-full overflow-hidden relative">
@@ -16,46 +42,7 @@ export default function MorePage() {
       </div>
 
       {/* Stats Display - 우측 상단 */}
-      <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
-        {/* Tower Progress Display */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
-          <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-            <Crown size={6} className="text-white" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-white/70 font-display text-[10px]">탑</span>
-            <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
-              {player.towerProgress}층 • {Math.round((player.towerProgress / 300) * 100)}%
-            </span>
-          </div>
-        </div>
-
-        {/* Rank Display */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
-          <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-            <Crown size={6} className="text-white" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-white/70 font-display text-[10px]">랭크</span>
-            <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
-              {player.rank}
-            </span>
-          </div>
-        </div>
-
-        {/* RP Display */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-          <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-            <Star size={6} className="text-white" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-white/70 font-display text-[10px]">RP</span>
-            <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-              {player.rp.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
+      <StatsDisplay stats={statsData} />
 
       {/* 오버레이 콘텐츠 */}
       <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">

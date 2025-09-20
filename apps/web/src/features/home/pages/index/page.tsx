@@ -5,8 +5,8 @@ import { ParticleSystem } from '../../../../ui/effects/ParticleSystem';
 import { OthelloStarCanvas } from '../../../../ui/game/OthelloStarCanvas';
 import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../../../ui/fx/FXHooks';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { testSupabaseConnection } from '../../../services/supabase';
 import { DAILY_MISSIONS } from '../../../stella/constants';
+import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import {
   Zap,
   Crown,
@@ -80,6 +80,31 @@ export default function HomePage() {
     // 시각 효과 제거 - 데이터 업데이트만 수행
   };
 
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'tower',
+      label: '탑',
+      value: `${player.towerProgress}층`,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'online',
+      label: '온라인',
+      value: '2,847',
+      icon: Users,
+      color: 'green'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: player.rp,
+      icon: Star,
+      color: 'yellow'
+    }
+  ];
+
   return (
     <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
         {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
@@ -107,46 +132,7 @@ export default function HomePage() {
           </div>
 
           {/* Stats Display - 우측 상단 */}
-          <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
-            {/* Tower Progress Display */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-                <Crown size={6} className="text-white" />
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-white/70 font-display text-[10px]">탑</span>
-                <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
-                  {player.towerProgress}층
-                </span>
-              </div>
-            </div>
-
-            {/* Online Users Display */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-green-400/20 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                <Users size={6} className="text-white" />
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-white/70 font-display text-[10px]">온라인</span>
-                <span className="text-green-400 font-display font-medium text-xs tracking-wide">
-                  2,847
-                </span>
-              </div>
-            </div>
-
-            {/* RP Display */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Star size={6} className="text-white" />
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-white/70 font-display text-[10px]">RP</span>
-                <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-                  {player.rp.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
+          <StatsDisplay stats={statsData} />
 
           {/* 메인 콘텐츠 */}
           <div className="relative z-10 px-4 pt-32 pb-12 text-center">
@@ -154,8 +140,11 @@ export default function HomePage() {
             <div className="mb-8">
               <div className="relative inline-block">
                 <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent mb-3 tracking-wider">
-                  OTHELLO KNIGHT
+                  OTHELLO
                 </h1>
+                <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent tracking-wider">
+                  KNIGHT
+                </h2>
                 <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400/20 to-blue-400/20 rounded-lg blur-lg"></div>
               </div>
             </div>

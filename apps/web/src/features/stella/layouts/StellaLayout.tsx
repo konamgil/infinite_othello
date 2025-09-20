@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { StellaCanvas } from '../../../ui/stella/StellaCanvas';
 import { useGameStore } from '../../../store/gameStore';
 import { DAILY_MISSIONS } from '../constants';
+import { StatsDisplay, type StatItem } from '../../../ui/stats';
 import { Star, Target } from 'lucide-react';
 
 type StellaLayoutProps = {
@@ -26,6 +27,24 @@ export function StellaLayout({ children, detail = false }: StellaLayoutProps) {
     ? 'px-4 pt-12 pb-12 flex flex-col gap-8 min-h-[calc(100vh-6rem)]'
     : 'px-4 py-6 pb-32';
 
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'missions',
+      label: '미션',
+      value: `${completedMissions}/${totalMissions}`,
+      icon: Target,
+      color: 'green'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: player.rp,
+      icon: Star,
+      color: 'yellow'
+    }
+  ];
+
   return (
     <div className={rootClasses}>
       <div className="absolute inset-0">
@@ -33,33 +52,7 @@ export function StellaLayout({ children, detail = false }: StellaLayoutProps) {
       </div>
 
       {/* Stats Display - 우측 상단 */}
-      <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
-        {/* Daily Missions Display */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-green-400/20 rounded-full">
-          <div className="w-3 h-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-            <Target size={6} className="text-white" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-white/70 font-display text-[10px]">미션</span>
-            <span className="text-green-400 font-display font-medium text-xs tracking-wide">
-              {completedMissions}/{totalMissions}
-            </span>
-          </div>
-        </div>
-
-        {/* RP Display */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-          <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-            <Star size={6} className="text-white" />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-white/70 font-display text-[10px]">RP</span>
-            <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-              {player.rp.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
+      <StatsDisplay stats={statsData} />
 
       <div className={overlayClasses}>
         <div className={contentClasses}>{children}</div>

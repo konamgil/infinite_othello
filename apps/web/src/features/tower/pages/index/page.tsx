@@ -6,6 +6,7 @@ import { GuardianTypewriter } from '../../../../ui/tower/GuardianTypewriter';
 import { CosmicTowerCanvas } from '../../../../ui/tower/CosmicTowerCanvas';
 import { CosmicGuardian } from '../../../../ui/tower/CosmicGuardian';
 import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
+import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, TrendingUp, Target, Star, Battery } from 'lucide-react';
 
 function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
@@ -60,17 +61,17 @@ export default function TowerPage() {
     setEnergyProgress(100);
     setIsEnergyFull(true);
     setLastEnergyTime(Date.now());
-    
+
     // 실제 구현시 아래 코드 사용:
     /*
     const savedEnergyTime = localStorage.getItem('towerEnergyTime');
     const savedProgress = localStorage.getItem('towerEnergyProgress');
-    
+
     if (savedEnergyTime && savedProgress) {
       const lastTime = parseInt(savedEnergyTime);
       const currentTime = Date.now();
       const timeDiff = (currentTime - lastTime) / 1000; // 초 단위
-      
+
       // 1시간(3600초)당 100% 충전
       const newProgress = Math.min(100, parseFloat(savedProgress) + (timeDiff / 36));
       setEnergyProgress(newProgress);
@@ -90,12 +91,12 @@ export default function TowerPage() {
     const interval = setInterval(() => {
       const currentTime = Date.now();
       const timeDiff = (currentTime - lastEnergyTime) / 1000;
-      
+
       // 1시간(3600초)당 100% 충전
       const newProgress = Math.min(100, energyProgress + (timeDiff / 36));
       setEnergyProgress(newProgress);
       setIsEnergyFull(newProgress >= 100);
-      
+
       // localStorage 업데이트
       localStorage.setItem('towerEnergyTime', currentTime.toString());
       localStorage.setItem('towerEnergyProgress', newProgress.toString());
@@ -213,6 +214,33 @@ export default function TowerPage() {
 
   const guardianMessages = getGuardianSpeech(currentFloor, isEnergyFull);
 
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'tower',
+      label: '탑',
+      value: `${currentFloor}층 • ${Math.round((currentFloor / maxFloor) * 100)}%`,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: animatingRp,
+      icon: Star,
+      color: 'yellow',
+      animation: showRpGain && (
+        <div className="absolute -top-5 right-0 pointer-events-none">
+          <div className="flex items-center gap-0.5 animate-bounce">
+            <span className="text-yellow-400 font-display font-bold text-xs">+{energyBonus}</span>
+            <div className="w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping" />
+            <div className="w-0.5 h-0.5 bg-orange-400 rounded-full animate-ping delay-100" />
+          </div>
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="h-full w-full flex flex-col overflow-hidden bg-black relative">
       {/* Hero Section - 별빛 스타일 + RP 우측 상단 */}
@@ -225,44 +253,7 @@ export default function TowerPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
         {/* Stats Display - 우측 상단 */}
-        <div className="absolute top-6 right-4 z-20 flex items-center gap-2">
-          {/* Tower Progress Display */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-blue-400/20 rounded-full">
-            <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-              <Crown size={6} className="text-white" />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-white/70 font-display text-[10px]">탑</span>
-              <span className="text-blue-400 font-display font-medium text-xs tracking-wide">
-                {currentFloor}층 • {Math.round((currentFloor / maxFloor) * 100)}%
-              </span>
-            </div>
-          </div>
-
-          {/* RP Display */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-            <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <Star size={6} className="text-white" />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-white/70 font-display text-[10px]">RP</span>
-              <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-                {animatingRp.toLocaleString()}
-              </span>
-            </div>
-
-            {/* RP 증가 애니메이션 */}
-            {showRpGain && (
-              <div className="absolute -top-5 right-0 pointer-events-none">
-                <div className="flex items-center gap-0.5 animate-bounce">
-                  <span className="text-yellow-400 font-display font-bold text-xs">+{energyBonus}</span>
-                  <div className="w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping" />
-                  <div className="w-0.5 h-0.5 bg-orange-400 rounded-full animate-ping delay-100" />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <StatsDisplay stats={statsData} className="top-6 right-4" />
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full pt-16 text-center text-white">
           <div className="flex items-center gap-2 mb-4">
@@ -484,7 +475,7 @@ export default function TowerPage() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes flyToRp {
           0% {
             left: 50%;
