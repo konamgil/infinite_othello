@@ -21,6 +21,17 @@ interface ParticleSystemProps {
   trigger?: boolean;
 }
 
+/**
+ * A versatile particle system component rendered on an HTML5 Canvas.
+ *
+ * This component can render several types of particle effects ('floating', 'burst', 'trail', 'energy')
+ * with configurable intensity and colors. It uses `requestAnimationFrame` for smooth animations
+ * and an `IntersectionObserver` to ensure it only runs when visible, optimizing performance.
+ * The 'burst' effect can be triggered via a `trigger` prop.
+ *
+ * @param {ParticleSystemProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element for the particle system.
+ */
 export function ParticleSystem({
   type,
   intensity = 50,

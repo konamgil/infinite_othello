@@ -4,6 +4,20 @@ interface ProfileStarCanvasProps {
   className?: string;
 }
 
+/**
+ * A React component that renders a dynamic, animated canvas background for the user profile screen.
+ *
+ * This component creates a theme of glory and achievement, featuring:
+ * - A regal, purple and gold gradient background.
+ * - "Constellations" of stars representing achievements.
+ * - Floating, rotating trophies symbolizing major accomplishments.
+ * - Gently drifting particles to add to the atmosphere.
+ *
+ * It uses `requestAnimationFrame` for a continuous animation loop.
+ *
+ * @param {ProfileStarCanvasProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element.
+ */
 export function ProfileStarCanvas({ className = '' }: ProfileStarCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();

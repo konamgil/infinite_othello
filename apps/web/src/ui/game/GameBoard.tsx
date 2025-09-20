@@ -28,6 +28,15 @@ interface GameBoardProps {
 
 const ANIMATION_DURATION = 400; // ms
 
+/**
+ * Sets up a canvas for high-resolution (HiDPI) displays.
+ * It scales the canvas backing store to match the device's pixel ratio,
+ * ensuring crisp rendering on retina screens.
+ *
+ * @param {HTMLCanvasElement} canvas - The canvas element to set up.
+ * @param {number} logicalSize - The desired logical size (width and height) of the canvas.
+ * @returns {CanvasRenderingContext2D} The 2D rendering context of the canvas.
+ */
 function setupHiDPICanvas(canvas: HTMLCanvasElement, logicalSize: number): CanvasRenderingContext2D {
   const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
   canvas.style.width = `${logicalSize}px`;
@@ -68,6 +77,16 @@ function getLastMoverColor(
   return oppositeColor(boardState.currentPlayer);
 }
 
+/**
+ * A highly optimized component for rendering the Othello game board and handling user interactions.
+ *
+ * This component uses the HTML5 Canvas API for rendering to ensure high performance,
+ * especially during animations. It manages its own animation loop using `requestAnimationFrame`
+ * and handles complex logic for drawing the board, pieces, valid moves, and various effects.
+ *
+ * @param {GameBoardProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element representing the game board.
+ */
 export function GameBoard({
   boardState,
   onCellClick,
@@ -150,6 +169,7 @@ export function GameBoard({
     pressedCell    // 의존성 보강
   ]);
 
+  /** Converts mouse/touch client coordinates to grid coordinates. */
   const getGridCoordinates = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -163,12 +183,15 @@ export function GameBoard({
     return (x >= 0 && x < 8 && y >= 0 && y < 8) ? { x, y } : null;
   };
 
+  /** Handles mouse movement over the canvas to show hover effects. */
   const handleMouseMove = (event: React.MouseEvent) => {
     if (disabled) return;
     setHoveredCell(getGridCoordinates(event.clientX, event.clientY));
   };
+  /** Clears the hover effect when the mouse leaves the canvas. */
   const handleMouseLeave = () => setHoveredCell(null);
 
+  /** Checks if a move is valid and calls the onCellClick callback if it is. */
   const placeIfValid = (x: number, y: number) => {
     if (!onCellClick) return;
     const isValidMove = boardState.validMoves.some(m => m.x === x && m.y === y);
@@ -180,13 +203,15 @@ export function GameBoard({
     }
   };
 
+  /** Handles mouse clicks on the canvas. */
   const handleClick = (e: React.MouseEvent) => {
     if (disabled) return;
     const c = getGridCoordinates(e.clientX, e.clientY);
     if (c) placeIfValid(c.x, c.y);
   };
 
-  // 터치 이벤트
+  // Touch event handlers for mobile support
+  /** Handles the start of a touch event, showing a press effect. */
   const handleTouchStart = (event: React.TouchEvent) => {
     if (disabled) return;
     event.preventDefault();
@@ -200,6 +225,7 @@ export function GameBoard({
       }
     }
   };
+  /** Handles the end of a touch event, placing a disc if the touch ends on the same valid cell. */
   const handleTouchEnd = (event: React.TouchEvent) => {
     if (disabled) return;
     event.preventDefault();
@@ -210,6 +236,7 @@ export function GameBoard({
     }
     setPressedCell(null);
   };
+  /** Clears the press effect if the touch is canceled. */
   const handleTouchCancel = () => setPressedCell(null);
 
   return (
@@ -253,6 +280,9 @@ export function GameBoard({
   );
 }
 
+/**
+ * The main drawing function for the canvas. It orchestrates all other drawing helpers.
+ */
 function drawBoard(
   ctx: CanvasRenderingContext2D,
   boardState: BoardState,
@@ -321,6 +351,9 @@ function drawBoard(
   drawCornerMarkers(ctx, cellSize);
 }
 
+/**
+ * Draws a single disc on the canvas, with optional animation.
+ */
 function drawDisc(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -356,8 +389,9 @@ function drawDisc(
   ctx.restore();
 }
 
-/* --- 보드/디스크 데코 --- */
-
+/**
+ * Draws the background of the game board.
+ */
 function drawBoardBackground(ctx: CanvasRenderingContext2D, theme: any, boardSize: number, cellSize: number) {
   const g = ctx.createLinearGradient(0, 0, boardSize, boardSize);
   g.addColorStop(0, '#064e3b');
@@ -375,6 +409,9 @@ function drawBoardBackground(ctx: CanvasRenderingContext2D, theme: any, boardSiz
   }
 }
 
+/**
+ * Draws the grid lines on the board.
+ */
 function drawGrid(ctx: CanvasRenderingContext2D, boardSize: number, cellSize: number) {
   ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
   ctx.lineWidth = 0.8;
@@ -394,6 +431,9 @@ function drawGrid(ctx: CanvasRenderingContext2D, boardSize: number, cellSize: nu
   ctx.shadowBlur = 0;
 }
 
+/**
+ * Draws a disc with a classic, skeuomorphic style.
+ */
 function drawClassicDisc(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: 'black' | 'white') {
   ctx.save();
 
@@ -419,6 +459,9 @@ function drawClassicDisc(ctx: CanvasRenderingContext2D, x: number, y: number, ra
   ctx.restore();
 }
 
+/**
+ * Draws a hover effect on a valid move cell.
+ */
 function drawHoverEffect(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number, currentPlayer: 'black' | 'white') {
   const cx = x * cellSize + cellSize / 2;
   const cy = y * cellSize + cellSize / 2;
@@ -435,6 +478,9 @@ function drawHoverEffect(ctx: CanvasRenderingContext2D, x: number, y: number, ce
   ctx.restore();
 }
 
+/**
+ * Draws a press/touch effect on a valid move cell.
+ */
 function drawPressEffect(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number, currentPlayer: 'black' | 'white') {
   const cx = x * cellSize + cellSize / 2;
   const cy = y * cellSize + cellSize / 2;
@@ -451,6 +497,9 @@ function drawPressEffect(ctx: CanvasRenderingContext2D, x: number, y: number, ce
   ctx.restore();
 }
 
+/**
+ * Draws an indicator around the last move made.
+ */
 function drawLastMoveIndicator(ctx: CanvasRenderingContext2D, x: number, y: number, cellSize: number) {
   const cx = x * cellSize + cellSize / 2;
   const cy = y * cellSize + cellSize / 2;
@@ -464,6 +513,9 @@ function drawLastMoveIndicator(ctx: CanvasRenderingContext2D, x: number, y: numb
   ctx.restore();
 }
 
+/**
+ * Draws decorative markers on the four corners of the board.
+ */
 function drawCornerMarkers(ctx: CanvasRenderingContext2D, cellSize: number) {
   const corners = [[0, 0], [0, 7], [7, 0], [7, 7]];
   ctx.strokeStyle = 'rgba(252, 211, 77, 0.6)';

@@ -1,7 +1,13 @@
 import { supabase } from './supabase';
 import type { Profile } from '../types/supabase';
 
-// 세션 관리 시스템
+/**
+ * A class to manage user sessions and prevent concurrent logins.
+ *
+ * This manager handles the lifecycle of a user session, from starting a new session
+ * and checking for conflicts to sending regular "heartbeats" to keep the session alive.
+ * It also includes logic to handle session hijacking and cleanup on browser exit.
+ */
 export class SessionManager {
   private static readonly SESSION_HEARTBEAT_INTERVAL = 30000; // 30초
   private static readonly SESSION_TIMEOUT = 120000; // 2분
@@ -41,7 +47,16 @@ export class SessionManager {
     }
   }
 
-  // 세션 시작
+  /**
+   * Starts a new user session.
+   *
+   * Before starting, it checks for an existing active session for the same user.
+   * If a conflict is found, it returns an error. Otherwise, it updates the user's
+   * profile with the new session information and starts a heartbeat to keep the session alive.
+   *
+   * @param {string} userId - The ID of the user starting the session.
+   * @returns {Promise<{ success: boolean; error?: string; conflictInfo?: any }>} The result of the session start attempt.
+   */
   static async startSession(userId: string): Promise<{ success: boolean; error?: string; conflictInfo?: any }> {
     try {
       const sessionId = crypto.randomUUID();
@@ -140,7 +155,14 @@ export class SessionManager {
     }
   }
 
-  // 기존 세션 강제 종료 (사용자 선택)
+  /**
+   * Forcibly ends a user's existing session from the database.
+   * This is typically called when a user chooses to log in on a new device
+   * and end the session on the old one.
+   *
+   * @param {string} userId - The ID of the user whose session should be ended.
+   * @returns {Promise<{ success: boolean; error?: string }>} The result of the operation.
+   */
   static async forceEndSession(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
       await this.clearSession(userId);
@@ -151,7 +173,12 @@ export class SessionManager {
     }
   }
 
-  // 세션 종료
+  /**
+   * Ends the current local session.
+   *
+   * This stops the heartbeat, clears the session information from the database,
+   * and resets the local session state.
+   */
   static async endSession(): Promise<void> {
     if (!this.currentSession) return;
 
@@ -290,12 +317,20 @@ export class SessionManager {
     });
   }
 
-  // 세션 정보 조회
+  /**
+   * Gets the current local session information.
+   * @returns The current session object, or null if no session is active.
+   */
   static getCurrentSession() {
     return this.currentSession;
   }
 
-  // 다른 활성 세션들 조회 (관리자용)
+  /**
+   * Retrieves active session information for a user from the database.
+   * This might be used for admin purposes or to display session info to the user.
+   * @param {string} userId - The ID of the user.
+   * @returns {Promise<object | null>} The user's active session data.
+   */
   static async getActiveSessions(userId: string) {
     try {
       const { data } = await supabase
@@ -311,7 +346,11 @@ export class SessionManager {
     }
   }
 
-  // 세션 타임아웃 확인
+  /**
+   * Checks if a session has timed out based on the last seen timestamp.
+   * @param {string} lastSeen - The ISO string of the last activity time.
+   * @returns {boolean} True if the session has timed out.
+   */
   static isSessionTimedOut(lastSeen: string): boolean {
     const lastSeenTime = new Date(lastSeen).getTime();
     const now = Date.now();
@@ -319,20 +358,31 @@ export class SessionManager {
   }
 }
 
-// 세션 충돌 정보 타입
+/**
+ * Describes the information about a conflicting session.
+ */
 export interface SessionConflictInfo {
+  /** A string identifying the device of the conflicting session. */
   deviceInfo: string;
+  /** The ISO string timestamp when the conflicting session started. */
   startedAt: string;
+  /** The ISO string timestamp when the conflicting session was last active. */
   lastSeen: string;
 }
 
-// 세션 이벤트 타입
+/**
+ * A union type representing different kinds of session-related events.
+ */
 export type SessionEvent =
   | { type: 'conflict'; data: SessionConflictInfo }
   | { type: 'timeout'; data: { reason: string } }
   | { type: 'ended'; data: { reason: string } };
 
-// 세션 관리 유틸리티
+/**
+ * A utility object that exports key methods from the SessionManager.
+ * This provides a clean, simplified interface for other parts of the application
+ * that need to interact with the session state.
+ */
 export const sessionUtils = {
   start: SessionManager.startSession,
   end: SessionManager.endSession,

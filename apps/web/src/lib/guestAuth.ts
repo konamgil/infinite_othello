@@ -1,13 +1,22 @@
 import { supabase } from './supabase';
 import type { Profile } from '../types/supabase';
 
-// 게스트 계정 유틸리티
+/**
+ * A utility class for managing guest user accounts.
+ *
+ * This class provides a set of static methods to handle the entire lifecycle of a guest account,
+ * from creation and local storage to expiration and cleanup. It interacts with both the
+ * browser's localStorage and the Supabase backend.
+ */
 export class GuestAuthManager {
   private static readonly GUEST_STORAGE_KEY = 'infinity-othello-guest';
   private static readonly GUEST_CODE_PREFIX = 'G';
   private static readonly GUEST_EXPIRY_DAYS = 30;
 
-  // 유니크한 게스트 코드 생성
+  /**
+   * Generates a unique, human-readable code for a guest account.
+   * @returns {string} A unique guest code.
+   */
   static generateGuestCode(): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 8);
@@ -16,7 +25,14 @@ export class GuestAuthManager {
     return `${this.GUEST_CODE_PREFIX}${timestamp}${random}${hash}`.toUpperCase().slice(0, 12);
   }
 
-  // 게스트 계정 생성
+  /**
+   * Creates a new guest account profile.
+   *
+   * The profile is first saved to the Supabase backend. If that fails, it falls back
+   * to saving the profile only in the browser's localStorage.
+   *
+   * @returns {Promise<Profile>} A promise that resolves with the newly created guest profile.
+   */
   static async createGuestAccount(): Promise<Profile> {
     const guestCode = this.generateGuestCode();
     const guestId = crypto.randomUUID();
@@ -75,7 +91,10 @@ export class GuestAuthManager {
     }
   }
 
-  // 로컬 스토리지에 게스트 정보 저장
+  /**
+   * Saves the guest profile to the browser's localStorage.
+   * @param {Profile} profile - The guest profile to save.
+   */
   private static saveGuestToLocal(profile: Profile) {
     try {
       localStorage.setItem(this.GUEST_STORAGE_KEY, JSON.stringify({
@@ -87,7 +106,12 @@ export class GuestAuthManager {
     }
   }
 
-  // 로컬에서 게스트 정보 불러오기
+  /**
+   * Retrieves the guest profile from localStorage.
+   * It also checks if the stored guest profile has expired.
+   *
+   * @returns {Profile | null} The guest profile, or null if not found or expired.
+   */
   static getGuestFromLocal(): Profile | null {
     try {
       const stored = localStorage.getItem(this.GUEST_STORAGE_KEY);
@@ -108,7 +132,9 @@ export class GuestAuthManager {
     }
   }
 
-  // 로컬에서 게스트 정보 제거
+  /**
+   * Removes the guest profile from localStorage.
+   */
   static clearGuestFromLocal() {
     try {
       localStorage.removeItem(this.GUEST_STORAGE_KEY);
@@ -117,7 +143,11 @@ export class GuestAuthManager {
     }
   }
 
-  // 게스트 코드로 계정 조회
+  /**
+   * Finds a guest account in the database using a guest code.
+   * @param {string} guestCode - The guest code to search for.
+   * @returns {Promise<Profile | null>} The guest profile, or null if not found or expired.
+   */
   static async getGuestByCode(guestCode: string): Promise<Profile | null> {
     try {
       const { data, error } = await supabase
@@ -136,13 +166,20 @@ export class GuestAuthManager {
     }
   }
 
-  // 게스트 계정 만료 확인
+  /**
+   * Checks if a guest profile has expired.
+   * @param {Profile} profile - The guest profile to check.
+   * @returns {boolean} True if the profile is expired, false otherwise.
+   */
   static isGuestExpired(profile: Profile): boolean {
     if (!profile.expires_at) return false;
     return new Date(profile.expires_at) < new Date();
   }
 
-  // 게스트 계정 갱신 (활동 시 만료일 연장)
+  /**
+   * Renews a guest account's expiration date upon activity.
+   * @param {string} guestId - The ID of the guest account to renew.
+   */
   static async renewGuestAccount(guestId: string): Promise<void> {
     const newExpiryDate = new Date();
     newExpiryDate.setDate(newExpiryDate.getDate() + this.GUEST_EXPIRY_DAYS);
@@ -160,7 +197,11 @@ export class GuestAuthManager {
     }
   }
 
-  // 게스트 게임 기록 업데이트
+  /**
+   * Updates a guest's game statistics after a match.
+   * @param {string} guestId - The ID of the guest account.
+   * @param {'win' | 'loss' | 'draw'} result - The result of the game.
+   */
   static async updateGuestStats(guestId: string, result: 'win' | 'loss' | 'draw'): Promise<void> {
     try {
       const { data: currentProfile } = await supabase
@@ -195,7 +236,10 @@ export class GuestAuthManager {
     }
   }
 
-  // 게스트 기능 제한 확인
+  /**
+   * Returns an object describing the limitations of a guest account.
+   * @returns An object detailing what a guest user can and cannot do.
+   */
   static getGuestLimitations() {
     return {
       canPlayRanked: false,
@@ -208,7 +252,12 @@ export class GuestAuthManager {
     };
   }
 
-  // 연동 유도 조건 확인
+  /**
+   * Determines whether to prompt a guest user to link their account based on their activity.
+   * @param {Profile} profile - The guest's profile.
+   * @param {string} context - The context in which the check is being made (e.g., 'ranked_attempt').
+   * @returns {boolean} True if the user should be prompted to link their account.
+   */
   static shouldPromptLinking(profile: Profile, context: string): boolean {
     const triggers = {
       'ranked_attempt': () => true, // 랭크 게임 시도 시 항상 유도
@@ -227,7 +276,12 @@ export class GuestAuthManager {
     return trigger ? trigger() : false;
   }
 
-  // 게스트 데이터 내보내기 (연동 전 백업용)
+  /**
+   * Exports a guest's data, including their profile and recent games.
+   * This can be used for backup purposes before linking to a permanent account.
+   * @param {string} guestId - The ID of the guest account to export.
+   * @returns {Promise<object | null>} An object containing the guest's data, or null on failure.
+   */
   static async exportGuestData(guestId: string) {
     try {
       // 프로필 정보
@@ -256,7 +310,9 @@ export class GuestAuthManager {
     }
   }
 
-  // 게스트 계정 정리 (만료된 계정들)
+  /**
+   * A maintenance function to delete expired guest accounts from the database.
+   */
   static async cleanupExpiredGuests(): Promise<void> {
     try {
       const now = new Date().toISOString();
@@ -275,16 +331,26 @@ export class GuestAuthManager {
   }
 }
 
-// 게스트 인증 상태 타입
+/**
+ * Represents the authentication state for a guest user.
+ */
 export interface GuestAuthState {
+  /** The guest user's profile data, or null if not logged in. */
   profile: Profile | null;
+  /** True if the current user is a guest. */
   isGuest: boolean;
+  /** True if the guest account has expired. */
   isExpired: boolean;
+  /** True if the guest is eligible to link their account to a permanent one. */
   canLink: boolean;
+  /** An object detailing the limitations of the guest account. */
   limitations: ReturnType<typeof GuestAuthManager.getGuestLimitations>;
 }
 
-// 게스트 인증 훅용 유틸리티
+/**
+ * A utility object that exports key methods from the GuestAuthManager.
+ * This is likely used to provide a clean interface for a custom hook (e.g., `useGuestAuth`).
+ */
 export const guestAuthUtils = {
   createGuest: GuestAuthManager.createGuestAccount,
   getLocalGuest: GuestAuthManager.getGuestFromLocal,

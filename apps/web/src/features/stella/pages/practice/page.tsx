@@ -4,6 +4,15 @@ import { StellaLayout } from '../../layouts/StellaLayout';
 import { PRACTICE_SCENARIOS } from '../../constants';
 import { RotateCcw } from 'lucide-react';
 
+/**
+ * The practice scenarios page.
+ *
+ * This component displays a list of available practice scenarios that allow
+ * users to hone their skills in specific game situations. Each scenario shows
+ * its title, description, difficulty, and how many times it has been played.
+ *
+ * @returns {React.ReactElement} The rendered practice scenarios page.
+ */
 export default function StellaPractice() {
   const navigate = useNavigate();
 

@@ -7,80 +7,104 @@ import { sessionUtils, type SessionConflictInfo } from '../lib/sessionManager';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 import type { Profile } from '../types/supabase';
 
-// 인증 상태 타입 정의
+/**
+ * Defines the shape of the authentication state.
+ */
 export interface AuthState {
-  // 사용자 정보
+  /** The currently authenticated Supabase user object. */
   user: User | null;
+  /** The current Supabase session object. */
   session: Session | null;
+  /** The application-specific user profile from the 'profiles' table. */
   profile: Profile | null;
 
-  // 게스트 상태
+  /** The profile for the current guest user, if any. */
   guestProfile: Profile | null;
+  /** A flag indicating if the current user is a guest. */
   isGuest: boolean;
 
-  // 인증 상태
+  /** True while the initial authentication state is being determined. */
   isLoading: boolean;
+  /** True if a user (guest or authenticated) is currently logged in. */
   isAuthenticated: boolean;
+  /** True once the initial authentication check has completed. */
   isInitialized: boolean;
 
-  // 에러 상태
+  /** Stores any authentication-related error messages. */
   error: string | null;
 
-  // 가입/로그인 상태
+  /** Loading state for the sign-up process. */
   signUpLoading: boolean;
+  /** Loading state for the sign-in process. */
   signInLoading: boolean;
+  /** Loading state for the sign-out process. */
   signOutLoading: boolean;
+  /** Loading state for OAuth operations. */
   oauthLoading: boolean;
 
-  // 연동 상태
+  /** The provider being used for an account linking operation. */
   linkingProvider: SupportedProvider | null;
+  /** A flag to control the visibility of the account linking prompt. */
   showLinkPrompt: boolean;
 
-  // 세션 충돌 상태
+  /** Stores information about a detected session conflict. */
   sessionConflict: SessionConflictInfo | null;
+  /** A flag to control the visibility of the session conflict modal. */
   showSessionConflict: boolean;
 }
 
-// 액션 타입 정의
+/**
+ * Defines the actions that can be performed on the authentication state.
+ */
 export interface AuthActions {
-  // 초기화
+  /** Initializes the auth store, checks for an existing session, and sets up auth state listeners. */
   initialize: () => Promise<void>;
 
-  // 게스트 계정
+  /** Creates a new guest account. */
   createGuestAccount: () => Promise<{ success: boolean; profile?: Profile; error?: string }>;
+  /** Loads a guest account from local storage, if one exists. */
   loadGuestFromLocal: () => void;
 
-  // OAuth 로그인
+  /** Initiates the sign-in flow with an OAuth provider. */
   signInWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  /** Handles the callback from the OAuth provider after a successful sign-in. */
   handleOAuthCallback: () => Promise<{ success: boolean; error?: string }>;
 
-  // 계정 연동
+  /** Initiates the flow to link the current guest account to an OAuth provider. */
   linkAccountWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  /** Controls the visibility of the prompt to link a guest account. */
   showLinkingPrompt: (show: boolean, context?: string) => void;
 
-  // 로그아웃
+  /** Signs the current user out. */
   signOut: () => Promise<void>;
 
-  // 프로필 업데이트
+  /** Updates the current user's profile data. */
   updateProfile: (updates: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
 
-  // 세션 관리
+  /** Handles a detected session conflict by updating the state. */
   handleSessionConflict: (conflictInfo: SessionConflictInfo) => void;
+  /** Forcibly ends all other sessions for the current user. */
   forceEndOtherSessions: () => Promise<{ success: boolean; error?: string }>;
+  /** Resolves a session conflict based on the user's choice ('force' or 'cancel'). */
   resolveSessionConflict: (action: 'force' | 'cancel') => Promise<void>;
 
-  // 게스트 유틸리티
+  /** Determines if a guest user should be prompted to link their account. */
   shouldPromptLinking: (context: string) => boolean;
+  /** Gets the limitations for a guest account. */
   getGuestLimitations: () => ReturnType<typeof guestAuthUtils.getLimitations>;
 
-  // 에러 초기화
+  /** Clears any authentication-related errors from the state. */
   clearError: () => void;
 
-  // 내부 상태 업데이트 (인증 리스너용)
+  /** Internal action to set the user and session state, used by the auth listener. */
   setAuth: (user: User | null, session: Session | null) => void;
+  /** Internal action to set the profile state. */
   setProfile: (profile: Profile | null) => void;
+  /** Internal action to set the guest profile state. */
   setGuestProfile: (profile: Profile | null) => void;
+  /** Internal action to set the error state. */
   setError: (error: string | null) => void;
+  /** Internal action to set the loading state. */
   setLoading: (loading: boolean) => void;
 }
 
@@ -107,7 +131,14 @@ const initialState: AuthState = {
   showSessionConflict: false,
 };
 
-// Zustand 스토어 생성
+/**
+ * The main Zustand store for authentication.
+ *
+ * This store encapsulates all state and actions related to user authentication,
+ * including user data, session management, guest accounts, and OAuth flows.
+ * It uses `devtools` for debugging and `persist` middleware to keep the user
+ * logged in across browser sessions.
+ */
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
@@ -523,7 +554,10 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * A convenience hook that provides access to the core authentication state.
+ * This hook is optimized to only re-render components when the selected state changes.
+ */
 export const useAuth = () => useAuthStore((state) => ({
   user: state.user,
   session: state.session,
@@ -536,6 +570,10 @@ export const useAuth = () => useAuthStore((state) => ({
   showSessionConflict: state.showSessionConflict,
 }));
 
+/**
+ * A convenience hook that provides access to the authentication actions.
+ * This hook will not cause a component to re-render when state changes.
+ */
 export const useAuthActions = () => useAuthStore((state) => ({
   initialize: state.initialize,
   signUp: state.signUp,
@@ -549,6 +587,9 @@ export const useAuthActions = () => useAuthStore((state) => ({
   resolveSessionConflict: state.resolveSessionConflict,
 }));
 
+/**
+ * A convenience hook for accessing the various loading states related to authentication.
+ */
 export const useAuthLoading = () => useAuthStore((state) => ({
   signUpLoading: state.signUpLoading,
   signInLoading: state.signInLoading,

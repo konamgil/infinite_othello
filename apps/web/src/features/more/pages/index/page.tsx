@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { MoreStarCanvas } from '../../../../ui/more/MoreStarCanvas';
 import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock } from 'lucide-react';
 
+/**
+ * The main "More" screen of the application.
+ *
+ * This component serves as a menu for various application features and settings,
+ * such as viewing replays, changing themes, and accessing general settings.
+ * It also displays a summary of the user's profile information.
+ *
+ * @returns {React.ReactElement} The rendered "More" menu page.
+ */
 export default function MorePage() {
   const navigate = useNavigate();
 

@@ -25,6 +25,18 @@ interface BattleMatchScreenProps {
   mode: MatchMode;
 }
 
+/**
+ * A matchmaking screen for finding a battle opponent.
+ *
+ * This component is used for both 'quick' and 'ranked' match modes.
+ * It displays a loading animation and information relevant to the selected mode,
+ * such as the player's current rank and the estimated wait time.
+ * The content is customized based on the `mode` prop.
+ *
+ * @param {object} props - The component props.
+ * @param {'quick' | 'ranked'} props.mode - The type of match to find.
+ * @returns {React.ReactElement} The rendered matchmaking screen.
+ */
 export default function BattleMatchPage({ mode }: BattleMatchScreenProps) {
   const navigate = useNavigate();
   const player = useGameStore((state) => state.player);

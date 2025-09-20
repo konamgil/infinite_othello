@@ -17,7 +17,10 @@ export const useStoreContext = () => {
   return context;
 };
 
-// 디바이스 정보 감지 함수
+/**
+ * Detects various properties of the user's device.
+ * @returns An object containing information about the device type, orientation, and online status.
+ */
 const detectDeviceInfo = () => {
   const userAgent = navigator.userAgent;
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
@@ -37,6 +40,20 @@ interface StoreProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * A provider component that initializes and sets up listeners for various stores.
+ *
+ * This component should wrap the entire application. It performs tasks such as:
+ * - Detecting and setting initial device information (mobile, tablet, orientation, etc.).
+ * - Setting up event listeners to update device info on resize or orientation change.
+ * - Setting up event listeners for online/offline status changes.
+ * - Configuring network settings based on the device type.
+ * - Detecting low-performance devices and enabling a performance mode.
+ *
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The child components to be rendered.
+ * @returns {React.ReactElement} The rendered provider component.
+ */
 export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const { updateDevice } = useAppStore();
   const { updateNetworkSettings } = useNetworkStore();

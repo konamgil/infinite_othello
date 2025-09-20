@@ -26,7 +26,15 @@ export interface OptimizedReplayData {
 }
 
 /**
- * Hook for virtual scrolling large move lists
+ * A custom hook for implementing virtual scrolling on a long list of items.
+ *
+ * This hook calculates which items in a list should be visible based on the scroll position,
+ * container height, and item height. It helps to render only the visible items,
+ * significantly improving performance for large lists.
+ *
+ * @param {any[]} items - The full list of items to be virtualized.
+ * @param {VirtualScrollConfig} config - Configuration object for item height, container height, and overscan count.
+ * @returns An object containing the visible items, total height of the list, and scroll handler.
  */
 export function useVirtualScrolling(
   items: any[],
@@ -69,7 +77,13 @@ export function useVirtualScrolling(
 }
 
 /**
- * Hook for optimized move processing and memoization
+ * A custom hook to process and memoize a list of game moves for optimized rendering.
+ *
+ * It pre-calculates values that are frequently used in the UI (like position keys and time differences)
+ * and caches the processed list of moves to avoid redundant calculations on re-renders.
+ *
+ * @param {GameMove[]} moves - The array of game moves.
+ * @returns The processed and memoized list of moves.
  */
 export function useOptimizedMoves(moves: GameMove[]) {
   const moveCache = useRef(new Map<string, any>());
@@ -117,7 +131,12 @@ export function useOptimizedMoves(moves: GameMove[]) {
 }
 
 /**
- * Hook for performance monitoring and optimization suggestions
+ * A custom hook for monitoring the performance of a component.
+ *
+ * It tracks metrics like average render time and frame drops, and can provide
+ * optimization suggestions based on these metrics.
+ *
+ * @returns An object with performance metrics and functions to control timing.
  */
 export function usePerformanceMonitoring() {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -200,7 +219,14 @@ export function usePerformanceMonitoring() {
 }
 
 /**
- * Hook for efficient board state calculations
+ * A custom hook that pre-calculates and caches all board states for a given replay.
+ *
+ * This is a heavy optimization that computes the state of the board after each move
+ * and stores it. This allows for instant seeking to any point in the replay without
+ * having to recalculate from the beginning.
+ *
+ * @param {GameReplay} replay - The game replay object.
+ * @returns {OptimizedReplayData} The optimized data including all board states.
  */
 export function useOptimizedBoardStates(replay: GameReplay) {
   const boardStatesCache = useRef(new Map<string, OptimizedReplayData>());
@@ -273,7 +299,14 @@ export function useOptimizedBoardStates(replay: GameReplay) {
 }
 
 /**
- * Hook for debounced state updates to prevent excessive re-renders
+ * A custom hook that debounces a value.
+ *
+ * It returns a new value only after a specified delay has passed without the original
+ * value changing. This is useful for preventing excessive re-renders from rapidly changing state.
+ *
+ * @param {T} value - The value to debounce.
+ * @param {number} delay - The debounce delay in milliseconds.
+ * @returns {T} The debounced value.
  */
 export function useDebouncedValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -292,7 +325,15 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 }
 
 /**
- * Hook for optimized animation frames
+ * A custom hook for running animations using `requestAnimationFrame`.
+ *
+ * This ensures that animations are smooth and efficient by syncing them with the
+ * browser's rendering cycle.
+ *
+ * @param {() => void} callback - The animation callback function to be executed on each frame.
+ * @param {React.DependencyList} deps - Dependencies for the callback.
+ * @param {boolean} [enabled=true] - Whether the animation is currently enabled.
+ * @returns An object with a function to stop the animation.
  */
 export function useOptimizedAnimation(
   callback: () => void,
@@ -336,7 +377,14 @@ export function useOptimizedAnimation(
 }
 
 /**
- * Hook for managing large datasets with pagination
+ * A custom hook for managing pagination over a large dataset.
+ *
+ * It provides the currently visible data and functions to load and preload pages,
+ * which can be useful for infinite scrolling implementations.
+ *
+ * @param {T[]} data - The full dataset.
+ * @param {number} [pageSize=50] - The number of items per page.
+ * @returns An object with paginated data and control functions.
  */
 export function usePaginatedData<T>(
   data: T[],
@@ -396,7 +444,12 @@ function calculateMoveQuality(move: GameMove): number {
 }
 
 /**
- * Hook for memory cleanup and garbage collection optimization
+ * A custom hook for managing cleanup callbacks.
+ *
+ * It allows components to register cleanup functions that will be called when the
+ * component unmounts. This can be useful for preventing memory leaks.
+ *
+ * @returns An object with functions to add and execute cleanup callbacks.
  */
 export function useMemoryCleanup() {
   const cleanupCallbacks = useRef<(() => void)[]>([]);
@@ -424,7 +477,14 @@ export function useMemoryCleanup() {
 }
 
 /**
- * Combined optimization hook that provides all optimizations
+ * A comprehensive hook that combines all other optimization hooks in this file.
+ *
+ * This is the main entry point for applying performance optimizations to the replay viewer.
+ * It conditionally applies various hooks based on the provided options.
+ *
+ * @param {GameReplay} replay - The game replay to be optimized.
+ * @param {object} [options] - Options to enable/disable specific optimizations.
+ * @returns An object containing all the optimization data and tools.
  */
 export function useReplayOptimizations(replay: GameReplay, options?: {
   enableVirtualScrolling?: boolean;

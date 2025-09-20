@@ -9,7 +9,10 @@ interface GameControllerProps {
   difficulty?: 'easy' | 'medium' | 'hard' | 'nightmare';
 }
 
-// 초기 오델로 보드 상태 생성
+/**
+ * Creates and returns the initial state for an Othello game board.
+ * @returns {BoardState} The initial board state.
+ */
 function createInitialBoard(): BoardState {
   const board = Array(8).fill(null).map(() => Array(8).fill(0));
 
@@ -31,7 +34,14 @@ function createInitialBoard(): BoardState {
   };
 }
 
-// 유효한 수인지 확인
+/**
+ * Checks if a given move is valid for the specified player.
+ * @param {number[][]} board - The current board state.
+ * @param {number} x - The x-coordinate of the move.
+ * @param {number} y - The y-coordinate of the move.
+ * @param {'black' | 'white'} player - The player making the move.
+ * @returns {boolean} True if the move is valid.
+ */
 function isValidMove(board: number[][], x: number, y: number, player: 'black' | 'white'): boolean {
   if (board[y][x] !== 0) return false;
 
@@ -68,7 +78,12 @@ function isValidMove(board: number[][], x: number, y: number, player: 'black' | 
   return false;
 }
 
-// 유효한 수들 찾기
+/**
+ * Calculates all valid moves for a given player on the current board.
+ * @param {number[][]} board - The current board state.
+ * @param {'black' | 'white'} player - The player to calculate moves for.
+ * @returns An array of valid move coordinates.
+ */
 function getValidMoves(board: number[][], player: 'black' | 'white'): Array<{ x: number; y: number }> {
   const moves = [];
   for (let y = 0; y < 8; y++) {
@@ -81,7 +96,14 @@ function getValidMoves(board: number[][], player: 'black' | 'white'): Array<{ x:
   return moves;
 }
 
-// 수를 두고 돌 뒤집기
+/**
+ * Executes a move for a player, returning the new board state and a list of flipped discs.
+ * @param {number[][]} board - The current board state.
+ * @param {number} x - The x-coordinate of the move.
+ * @param {number} y - The y-coordinate of the move.
+ * @param {'black' | 'white'} player - The player making the move.
+ * @returns An object containing the new board state and the coordinates of the flipped discs.
+ */
 function makeMove(board: number[][], x: number, y: number, player: 'black' | 'white'): { newBoard: number[][], flipped: Array<{x: number, y: number}> } {
   const newBoard = board.map(row => [...row]);
   const playerValue = player === 'black' ? 1 : -1;
@@ -124,6 +146,17 @@ function makeMove(board: number[][], x: number, y: number, player: 'black' | 'wh
   return { newBoard, flipped: allFlipped };
 }
 
+/**
+ * The main controller component for an Othello game.
+ *
+ * This component encapsulates the entire game screen, including the board,
+ * game information display (score, turn), and game controls (reset, pause).
+ * It manages the game state and contains the core Othello logic for validating
+ * and making moves.
+ *
+ * @param {GameControllerProps} props - The component props.
+ * @returns {React.ReactElement} The rendered game screen.
+ */
 export function GameController({ title = "게임", opponent = 'ai', difficulty = 'medium' }: GameControllerProps) {
   const [gameState, setGameState] = useState<BoardState>(() => createInitialBoard());
   const [gameStatus, setGameStatus] = useState<'playing' | 'paused' | 'finished'>('playing');

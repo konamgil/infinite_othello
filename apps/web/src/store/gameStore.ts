@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-// 게임 상태 타입 정의
+/**
+ * Defines the shape of the game's UI and user preference state.
+ */
 export interface GameState {
-  // 현재 활성 탭
+  /** The currently active main tab in the bottom navigation. */
   activeTab: 'home' | 'tower' | 'battle' | 'stella' | 'more';
 
   // 플레이어 정보
@@ -33,17 +35,27 @@ export interface GameState {
   };
 }
 
-// 액션 타입 정의
+/**
+ * Defines the actions that can be performed on the game state.
+ */
 export interface GameActions {
+  /** Sets the currently active tab. */
   setActiveTab: (tab: GameState['activeTab']) => void;
+  /** Updates one or more properties of the player's profile. */
   updatePlayer: (player: Partial<GameState['player']>) => void;
+  /** Updates the visual theme settings. */
   setTheme: (theme: Partial<GameState['theme']>) => void;
+  /** Updates the general UI settings. */
   updateUISettings: (settings: Partial<GameState['ui']>) => void;
 }
 
 export type GameStore = GameState & GameActions;
 
-// URL 기반 초기 탭 계산
+/**
+ * Calculates the initial active tab based on the current URL path.
+ * This ensures the correct tab is highlighted when the app loads on a specific page.
+ * @returns {GameState['activeTab']} The initial tab to be activated.
+ */
 const getInitialTab = (): GameState['activeTab'] => {
   if (typeof window === 'undefined') return 'home';
 
@@ -81,7 +93,13 @@ const initialState: GameState = {
   },
 };
 
-// Zustand 스토어 생성
+/**
+ * The Zustand store for managing general game UI state and user preferences.
+ *
+ * This store holds information about the active UI tab, player stats,
+ * and visual/audio settings. It does not manage the core Othello game logic,
+ * which is handled by `othelloStore`.
+ */
 export const useGameStore = create<GameStore>()(
   devtools(
     (set, get) => ({
@@ -123,7 +141,9 @@ export const useGameStore = create<GameStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * Convenience hooks for accessing specific parts of the GameStore.
+ */
 export const useActiveTab = () => useGameStore((state) => state.activeTab);
 export const usePlayer = () => useGameStore((state) => state.player);
 export const useTheme = () => useGameStore((state) => state.theme);

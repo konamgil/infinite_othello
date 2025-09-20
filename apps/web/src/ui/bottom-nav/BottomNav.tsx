@@ -4,6 +4,9 @@ import type { LucideIcon } from 'lucide-react';
 
 import { NavItem } from './NavItem';
 
+/**
+ * Defines the properties for a single item in the bottom navigation bar.
+ */
 export type BottomNavItem = {
   path: string;
   label: string;
@@ -11,8 +14,17 @@ export type BottomNavItem = {
   badge?: number;
 };
 
+/**
+ * Normalizes a URL path by removing any trailing slashes.
+ * If the path is empty after normalization, it returns '/'.
+ * @private
+ */
 const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
 
+/**
+ * Extracts the root segment from a URL path (e.g., '/battle' from '/battle/ranked').
+ * @private
+ */
 const getRootSegment = (path: string) => {
   if (path === '/') return '/';
   const [, first = ''] = path.split('/');
@@ -24,6 +36,16 @@ interface BottomNavProps {
   activePath?: string;
 }
 
+/**
+ * The main bottom navigation component for the application.
+ *
+ * This component renders a list of navigation items and determines which item is
+ * currently active based on the current URL path. It uses a particle animation
+ * for a decorative background effect.
+ *
+ * @param {BottomNavProps} props - The component props.
+ * @returns {React.ReactElement} The rendered bottom navigation bar.
+ */
 export function BottomNav({ items, activePath }: BottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();

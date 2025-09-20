@@ -1,3 +1,10 @@
+/**
+ * A list of available tournaments.
+ *
+ * This constant provides static data for different tournaments that users can join.
+ * Each tournament object includes details like its ID, name, rank requirements, rewards, etc.
+ * This data is likely used to display a list of tournaments in the UI.
+ */
 export const TOURNAMENTS = [
   {
     id: 'rookie',
@@ -19,6 +26,14 @@ export const TOURNAMENTS = [
   }
 ];
 
+/**
+ * A list of recent battles for display.
+ *
+ * This constant holds mock or sample data for a user's recent battle history.
+ * Each object represents a single battle and contains information about the opponent,
+ * result, score, and when the battle took place.
+ * This is likely used for UI mockups or as placeholder data.
+ */
 export const RECENT_BATTLES = [
   {
     opponent: '드래곤슬레이어',

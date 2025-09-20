@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-// 앱 전체 상태 타입 정의
+/**
+ * Defines the shape of the application's global state.
+ */
 export interface AppState {
-  // 로딩 상태
+  /** Manages different types of loading indicators across the app. */
   loading: {
     global: boolean;
     page: string | null;
@@ -45,27 +47,35 @@ export interface AppState {
   };
 }
 
-// 액션 타입 정의
+/**
+ * Defines the actions that can be performed on the application's global state.
+ */
 export interface AppActions {
-  // 로딩 관리
+  /** Sets the state for a specific type of loading indicator. */
   setLoading: (type: keyof AppState['loading'], value: boolean | string) => void;
+  /** Resets all loading indicators to their initial state. */
   clearLoading: () => void;
 
-  // 에러 관리
+  /** Sets an error for a specific domain. */
   setError: (type: keyof AppState['error'], error: Error | null) => void;
+  /** Clears all errors. */
   clearErrors: () => void;
+  /** Clears a specific error by its type. */
   clearError: (type: keyof AppState['error']) => void;
 
-  // 알림 관리
+  /** Adds a new notification to be displayed to the user. */
   addNotification: (notification: Omit<AppState['notifications'][0], 'id' | 'timestamp' | 'read'>) => void;
+  /** Removes a notification by its ID. */
   removeNotification: (id: string) => void;
+  /** Marks a specific notification as read. */
   markNotificationRead: (id: string) => void;
+  /** Clears all notifications. */
   clearNotifications: () => void;
 
-  // 설정 관리
+  /** Updates one or more application settings. */
   updateSettings: (settings: Partial<AppState['settings']>) => void;
 
-  // 디바이스 정보 업데이트
+  /** Updates device-specific information, like orientation or online status. */
   updateDevice: (device: Partial<AppState['device']>) => void;
 }
 
@@ -99,7 +109,13 @@ const initialState: AppState = {
   },
 };
 
-// Zustand 스토어 생성
+/**
+ * The main Zustand store for global application state.
+ *
+ * This store manages application-wide concerns such as loading states, error handling,
+ * notifications, and device information. It uses `devtools` for debugging and `persist`
+ * middleware to save user settings to localStorage.
+ */
 export const useAppStore = create<AppStore>()(
   devtools(
     persist(
@@ -235,14 +251,22 @@ export const useAppStore = create<AppStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * Convenience hooks for accessing specific parts of the AppStore.
+ * These allow components to subscribe to only the state they need, preventing
+ * unnecessary re-renders.
+ */
 export const useLoading = () => useAppStore((state) => state.loading);
 export const useError = () => useAppStore((state) => state.error);
 export const useNotifications = () => useAppStore((state) => state.notifications);
 export const useAppSettings = () => useAppStore((state) => state.settings);
 export const useDevice = () => useAppStore((state) => state.device);
 
-// 액션 훅들
+/**
+ * A hook that provides access to all the action functions of the AppStore.
+ * This is useful for components that need to dispatch actions but don't need to
+ * subscribe to any state changes, as it won't cause re-renders when state changes.
+ */
 export const useAppActions = () => useAppStore((state) => ({
   setLoading: state.setLoading,
   clearLoading: state.clearLoading,

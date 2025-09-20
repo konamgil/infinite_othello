@@ -21,6 +21,22 @@ import {
   CheckCircle
 } from 'lucide-react';
 
+/**
+ * The main home page of the application.
+ *
+ * This component serves as the central hub for the user, displaying a variety of information
+ * and providing navigation to key features. It includes:
+ * - A dynamic hero section with a star canvas background.
+ * - Player statistics such as RP, tower progress, rank, and win rate.
+ * - Call-to-action buttons for major features like the Tower Challenge and Quick Battle.
+ * - A summary of the user's daily missions.
+ * - A list of recent games.
+ *
+ * The component uses various custom hooks for effects and animations (`useFX...`)
+ * and manages its own state for things like the responsive canvas size.
+ *
+ * @returns {React.ReactElement} The rendered home page.
+ */
 export default function HomePage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
@@ -59,6 +75,11 @@ export default function HomePage() {
     }, 100);
   }, [effects]);
 
+  /**
+   * Handles the click event for the "Tower Challenge" button.
+   *
+   * It provides haptic feedback and navigates the user to the tower feature.
+   */
   const handleTowerChallenge = () => {
     // 햅틱 피드백만 유지 - 고요한 기본 원칙
     haptic.buttonTap();
@@ -67,6 +88,11 @@ export default function HomePage() {
     navigate('/tower');
   };
 
+  /**
+   * Handles the click event for the "Quick Battle" button.
+   *
+   * It provides haptic feedback and navigates the user to the battle feature.
+   */
   const handleQuickBattle = () => {
     // 햅틱 피드백만 유지 - 고요한 기본 원칙
     haptic.buttonTap();
@@ -75,6 +101,11 @@ export default function HomePage() {
     navigate('/battle');
   };
 
+  /**
+   * Updates the player's rating points (RP) in the game state.
+   *
+   * @param {number} newRating - The new RP value for the player.
+   */
   const handleRatingChange = (newRating: number) => {
     updatePlayer({ rp: newRating });
     // 시각 효과 제거 - 데이터 업데이트만 수행

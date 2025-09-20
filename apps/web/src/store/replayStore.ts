@@ -9,7 +9,10 @@ import {
   ReplayStatistics
 } from '../types/replay';
 
-// Mock data generator for replays
+/**
+ * Generates a list of mock `GameReplay` objects for development and testing.
+ * @returns {GameReplay[]} An array of 50 mock game replays.
+ */
 const generateMockReplays = (): GameReplay[] => {
   const gameModes = ['tower', 'battle', 'casual', 'ai'] as const;
   const aiLevels = ['easy', 'medium', 'hard', 'expert'] as const;
@@ -139,29 +142,55 @@ const generateMockReplays = (): GameReplay[] => {
   return replays.sort((a, b) => b.gameInfo.startTime - a.gameInfo.startTime);
 };
 
+/**
+ * Defines the shape of the replay feature's state.
+ */
 interface ReplayState {
+  /** The complete, unfiltered list of all loaded replays. */
   replays: GameReplay[];
+  /** The list of replays after filtering and sorting have been applied. */
   filteredReplays: GameReplay[];
+  /** The state of the user interface, including filters, sorting, and player controls. */
   uiState: ReplayUIState;
+  /** True if replays are currently being loaded. */
   isLoading: boolean;
+  /** Stores any error messages related to loading or processing replays. */
   error: string | null;
+  /** A snapshot of the filters to be restored later. */
   filterMemory: ReplayFilters | null;
 }
 
+/**
+ * Defines the actions that can be performed on the replay state.
+ */
 interface ReplayActions {
+  /** Loads the initial list of replays. */
   loadReplays: () => void;
+  /** Sets the view mode of the replay list (e.g., 'list' or 'grid'). */
   setViewMode: (mode: ReplayUIState['viewMode']) => void;
+  /** Sets the currently selected replay for viewing. */
   setSelectedReplay: (replay: GameReplay | null) => void;
+  /** Updates the filters and re-applies them to the replay list. */
   updateFilters: (filters: Partial<ReplayFilters>) => void;
+  /** Updates the sorting options and re-sorts the replay list. */
   updateSortOptions: (sort: ReplaySortOptions) => void;
+  /** Updates the controls for the replay player. */
   updatePlayerControls: (controls: Partial<ReplayPlayerControls>) => void;
+  /** Sets the search query and re-filters the list. */
   setSearchQuery: (query: string) => void;
+  /** Toggles the visibility of the statistics panel. */
   toggleStatistics: () => void;
+  /** Resets all filters to their initial state. */
   clearFilters: () => void;
+  /** Calculates and returns statistics based on the currently filtered replays. */
   getStatistics: () => ReplayStatistics;
+  /** Returns the current list of filtered and sorted replays. */
   getFilteredReplays: () => GameReplay[];
+  /** Applies a pre-defined set of filters. */
   applyQuickFilter: (type: 'recentWins' | 'challengingGames' | 'aiMatches' | 'longGames') => void;
+  /** Saves the current filter state to memory/localStorage. */
   saveFilterMemory: () => void;
+  /** Loads the filter state from memory/localStorage. */
   loadFilterMemory: () => void;
 }
 
@@ -207,7 +236,14 @@ const initialUIState: ReplayUIState = {
   searchQuery: ''
 };
 
-// Performance optimization: memoized filter functions
+/**
+ * Applies a set of filters and a search query to a list of replays.
+ * This function is memoized for performance.
+ * @param {GameReplay[]} replays - The original array of replays.
+ * @param {ReplayFilters} filters - The filter criteria.
+ * @param {string} searchQuery - The user's search query.
+ * @returns {GameReplay[]} The filtered array of replays.
+ */
 const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, searchQuery: string): GameReplay[] => {
   return replays.filter(replay => {
     // Search filter
@@ -288,6 +324,12 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
   });
 };
 
+/**
+ * Sorts an array of replays based on the provided sort options.
+ * @param {GameReplay[]} replays - The array of replays to sort.
+ * @param {ReplaySortOptions} sortOptions - The sorting criteria.
+ * @returns {GameReplay[]} The sorted array of replays.
+ */
 const sortReplays = (replays: GameReplay[], sortOptions: ReplaySortOptions): GameReplay[] => {
   return [...replays].sort((a, b) => {
     const { field, direction } = sortOptions;
@@ -321,6 +363,12 @@ const sortReplays = (replays: GameReplay[], sortOptions: ReplaySortOptions): Gam
   });
 };
 
+/**
+ * The Zustand store for managing the state of the game replay feature.
+ *
+ * This store handles loading, filtering, sorting, and viewing game replays.
+ * It uses mock data for now but is structured to work with a real API.
+ */
 export const useReplayStore = create<ReplayStore>()(
   devtools(
     (set, get) => ({

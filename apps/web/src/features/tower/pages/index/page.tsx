@@ -8,6 +8,13 @@ import { CosmicGuardian } from '../../../../ui/tower/CosmicGuardian';
 import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
 import { Zap, Crown, TrendingUp, Target, Star, Battery } from 'lucide-react';
 
+/**
+ * Generates a set of speech lines for the Tower Guardian based on the player's progress.
+ *
+ * @param {number} floor - The player's current tower floor.
+ * @param {boolean} isEnergyFull - Whether the player's tower energy is full.
+ * @returns {string[]} An array of speech lines for the guardian to say.
+ */
 function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
   if (floor >= 300) {
     return ['마침내 정상에 도달했군요. 당신의 실력은 이제 전설이 되었습니다.'];
@@ -35,6 +42,20 @@ function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
   ];
 }
 
+/**
+ * The main page for the Tower feature.
+ *
+ * This component serves as the hub for the Tower challenge. It includes:
+ * - A 3D representation of the tower (`CosmicTowerCanvas`).
+ * - A dialogue box with the Tower Guardian, who provides context-sensitive messages.
+ * - An "energy" system that recharges over time and can be collected for rewards.
+ * - The main button to start a challenge on the current tower floor.
+ *
+ * The component manages several pieces of local state for animations and the energy system,
+ * and interacts with the global `useGameStore` for player data.
+ *
+ * @returns {React.ReactElement} The rendered Tower home page.
+ */
 export default function TowerPage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
@@ -54,7 +75,9 @@ export default function TowerPage() {
   const [previousRp, setPreviousRp] = useState(player.rp);
   const [showFlyingRp, setShowFlyingRp] = useState(false);
 
-  // 탑의 기운 시스템 초기화 (테스트용: 즉시 100% 충전)
+  // --- State and Effects ---
+
+  // Effect to initialize the tower energy system from localStorage or set default values.
   useEffect(() => {
     // 테스트용: 즉시 100% 충전
     setEnergyProgress(100);
@@ -85,7 +108,7 @@ export default function TowerPage() {
     */
   }, []);
 
-  // 탑의 기운 충전 타이머
+  // Effect to handle the continuous charging of tower energy over time.
   useEffect(() => {
     const interval = setInterval(() => {
       const currentTime = Date.now();
@@ -105,7 +128,7 @@ export default function TowerPage() {
     return () => clearInterval(interval);
   }, [energyProgress, lastEnergyTime]);
 
-  // RP 카운터 애니메이션
+  /** Animates the RP counter from a previous value to a new target value. */
   const animateRpCounter = (targetRp: number) => {
     const startRp = previousRp;
     const difference = targetRp - startRp;
@@ -126,6 +149,7 @@ export default function TowerPage() {
     }, duration / steps);
   };
 
+  /** Handles the collection of tower energy, triggering animations and awarding RP. */
   const handleEnergyCollect = () => {
     console.log('수집 버튼 클릭됨!', { isEnergyFull, isCollecting });
 
@@ -192,6 +216,7 @@ export default function TowerPage() {
     }, 2500);
   };
 
+  /** Handles the start of a new tower challenge, navigating to the game screen. */
   const handleChallengeStart = () => {
     if (currentFloor > maxFloor) {
       haptic.gameWin();

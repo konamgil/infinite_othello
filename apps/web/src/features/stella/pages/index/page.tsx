@@ -6,12 +6,27 @@ import { TypewriterText } from '../../../../ui/stella/TypewriterText';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { Target, Brain, RotateCcw, ChevronRight, Sparkles, Calendar, CheckCircle, BookOpen, Swords, Star, Zap } from 'lucide-react';
 
+/**
+ * The main home page for the Stella AI mentor feature.
+ *
+ * This component acts as a central hub for all of Stella's features. It displays:
+ * - "Stella's Wisdom": A rotating quote from the AI mentor.
+ * - A summary of the user's daily missions.
+ * - Navigation links to the Strategy and Practice sections.
+ *
+ * It also includes a small easter egg where touching Stella's avatar triggers a haptic effect.
+ *
+ * @returns {React.ReactElement} The rendered Stella home page.
+ */
 export default function StellaHome() {
   const navigate = useNavigate();
   const [stellaTouched, setStellaTouched] = useState(false);
   const [wisdomIndex, setWisdomIndex] = useState(0);
 
-  // 스텔라 터치 인터랙션 (숨겨진 이스터에그)
+  /**
+   * Handles the touch/click event on Stella's avatar.
+   * This is a small easter egg that provides a unique haptic feedback pattern.
+   */
   const handleStellaTouch = () => {
     haptic.buttonTap();
     if (navigator.vibrate) {
@@ -21,7 +36,12 @@ export default function StellaHome() {
     setTimeout(() => setStellaTouched(false), 2000);
   };
 
-  // 메뉴 네비게이션 햅틱
+  /**
+   * A wrapper for the `navigate` function that adds haptic feedback.
+   *
+   * @param {string} path - The path to navigate to.
+   * @param {number[]} vibrationPattern - The haptic feedback pattern to use.
+   */
   const handleNavigation = (path: string, vibrationPattern: number[]) => {
     haptic.buttonTap();
     if (navigator.vibrate) {

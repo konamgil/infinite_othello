@@ -12,7 +12,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Supabase 클라이언트 생성
+/**
+ * The main Supabase client instance for the application.
+ *
+ * This client is configured with the project's URL and anon key from environment variables.
+ * It includes settings for authentication, real-time subscriptions, and global headers.
+ */
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     // 자동 새로고침 설정
@@ -36,18 +41,30 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// 타입 안전한 Supabase 클라이언트 export
+/** A type alias for the Supabase client, providing type safety. */
 export type SupabaseClient = typeof supabase;
 
-// 자주 사용되는 테이블 타입들
+/** Generic helper types for Supabase table rows, inserts, and updates. */
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
-// 실시간 구독 관리를 위한 헬퍼
+/**
+ * A helper class for managing Supabase real-time subscriptions.
+ *
+ * This class allows for easy tracking, unsubscribing, and cleanup of multiple
+ * real-time subscriptions, preventing memory leaks.
+ */
 export class SupabaseSubscriptionManager {
   private subscriptions = new Map<string, any>();
 
+  /**
+   * Adds a new subscription to the manager.
+   * If a subscription with the same key already exists, it is unsubscribed first.
+   * @param {string} key - A unique key for the subscription.
+   * @param {any} subscription - The subscription object returned from Supabase.
+   * @returns The subscription object.
+   */
   subscribe(key: string, subscription: any) {
     // 기존 구독이 있으면 제거
     this.unsubscribe(key);
@@ -55,6 +72,10 @@ export class SupabaseSubscriptionManager {
     return subscription;
   }
 
+  /**
+   * Removes and unsubscribes a specific subscription by its key.
+   * @param {string} key - The key of the subscription to remove.
+   */
   unsubscribe(key: string) {
     const subscription = this.subscriptions.get(key);
     if (subscription) {
@@ -63,6 +84,9 @@ export class SupabaseSubscriptionManager {
     }
   }
 
+  /**
+   * Unsubscribes from all currently managed subscriptions.
+   */
   unsubscribeAll() {
     this.subscriptions.forEach((subscription) => {
       subscription.unsubscribe();
@@ -71,15 +95,23 @@ export class SupabaseSubscriptionManager {
   }
 }
 
-// 글로벌 구독 관리자
+/** A global instance of the subscription manager. */
 export const subscriptionManager = new SupabaseSubscriptionManager();
 
-// 호환성을 위한 getSupabase 함수
+/**
+ * A simple getter function for the Supabase client.
+ * This might be used for compatibility or to abstract away the direct export.
+ * @returns The Supabase client instance.
+ */
 export function getSupabase() {
   return supabase;
 }
 
-// 연결 테스트 함수
+/**
+ * A utility function to test the connection to the Supabase backend.
+ * It performs a simple query and returns a success or error status.
+ * @returns {Promise<{ success: boolean; message?: string; error?: any }>} The result of the connection test.
+ */
 export async function testSupabaseConnection() {
   try {
     const { data, error } = await supabase.from('profiles').select('count').limit(1);
@@ -90,15 +122,17 @@ export async function testSupabaseConnection() {
   }
 }
 
-// 유틸리티 함수들
+/**
+ * A collection of miscellaneous utility functions for common Supabase operations.
+ */
 export const supabaseUtils = {
-  // 현재 사용자 ID 가져오기
+  /** Gets the ID of the currently authenticated user. */
   getCurrentUserId: () => supabase.auth.getUser().then(({ data }) => data.user?.id),
 
-  // 현재 세션 가져오기
+  /** Gets the current session data. */
   getCurrentSession: () => supabase.auth.getSession().then(({ data }) => data.session),
 
-  // 에러 메시지 변환 (한국어)
+  /** Translates common Supabase error messages into Korean. */
   translateError: (error: any): string => {
     if (!error) return '알 수 없는 오류가 발생했습니다.';
 
@@ -114,13 +148,13 @@ export const supabaseUtils = {
     return errorMap[error.message] || error.message || '알 수 없는 오류가 발생했습니다.';
   },
 
-  // 업로드 파일 URL 생성
+  /** Generates a public URL for a file in Supabase storage. */
   getPublicUrl: (bucket: string, path: string) => {
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
   },
 
-  // 파일 업로드
+  /** Uploads a file to a specified Supabase storage bucket. */
   uploadFile: async (bucket: string, path: string, file: File) => {
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -132,7 +166,7 @@ export const supabaseUtils = {
     return data;
   },
 
-  // RLS 정책 우회 (관리자 전용)
+  /** Creates a Supabase client with the service role key for admin operations that bypass RLS. */
   createServiceClient: () => {
     const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceKey) {
@@ -148,7 +182,10 @@ export const supabaseUtils = {
   },
 };
 
-// React Query와 함께 사용할 때 유용한 키 팩토리
+/**
+ * A factory object for generating consistent query keys for use with React Query.
+ * This helps to avoid typos and ensures consistency when fetching and caching Supabase data.
+ */
 export const supabaseQueryKeys = {
   auth: ['auth'] as const,
   user: (userId?: string) => ['user', userId] as const,

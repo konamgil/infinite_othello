@@ -4,18 +4,33 @@ import { Palette, Volume2, VolumeX, Smartphone, ArrowLeft, RotateCcw } from 'luc
 import { useGameStore } from '../../../../../store/gameStore';
 import { MoreLayout } from '../../../layouts/MoreLayout';
 
+/**
+ * The main settings page of the application.
+ *
+ * This component provides a user interface for configuring various application-wide settings.
+ * Users can toggle sound and animations, adjust the font size, and manage other game-related preferences.
+ * The settings are persisted using the `useGameStore`.
+ *
+ * @returns {React.ReactElement} The rendered settings page.
+ */
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { ui, updateUISettings } = useGameStore();
 
+  /** Toggles the sound effects on or off. */
   const toggleSound = () => {
     updateUISettings({ soundEnabled: !ui.soundEnabled });
   };
 
+  /** Toggles UI animations on or off. */
   const toggleAnimations = () => {
     updateUISettings({ animations: !ui.animations });
   };
 
+  /**
+   * Sets the global font size for the application UI.
+   * @param {'small' | 'medium' | 'large'} size - The desired font size.
+   */
   const setFontSize = (size: 'small' | 'medium' | 'large') => {
     updateUISettings({ fontSize: size });
   };

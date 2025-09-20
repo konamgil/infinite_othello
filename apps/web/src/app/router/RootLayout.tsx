@@ -6,16 +6,53 @@ import { BottomNav } from '../../ui/bottom-nav/BottomNav';
 import type { RouteHandle, RouteMeta, RootRouteMeta } from './meta';
 import { rootNavItems } from './rootRoutes';
 
+/**
+ * Normalizes a URL path by removing any trailing slashes.
+ * If the path is empty after normalization, it returns '/'.
+ *
+ * @param {string} path - The URL path to normalize.
+ * @returns {string} The normalized path.
+ * @example
+ * normalizePath('/home/') // returns '/home'
+ * normalizePath('/') // returns '/'
+ * normalizePath('') // returns '/'
+ */
 const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
 
+/**
+ * Extracts the root segment from a URL path.
+ * The root segment is the part of the path after the initial slash.
+ *
+ * @param {string} path - The URL path.
+ * @returns {string} The root segment of the path (e.g., '/home'). Returns '/' for the root path itself.
+ * @example
+ * getRootSegment('/home/user') // returns '/home'
+ * getRootSegment('/') // returns '/'
+ * getRootSegment('/about') // returns '/about'
+ */
 const getRootSegment = (path: string) => {
   if (path === '/') return '/';
   const [, first = ''] = path.split('/');
   return first ? `/${first}` : '/';
 };
 
+/**
+ * Extracts the 'meta' property from a route handle object.
+ * Route handles are used by `react-router-dom` to attach custom data to routes.
+ *
+ * @param {RouteHandle | undefined} handle - The route handle object, which may be undefined.
+ * @returns {RouteMeta | undefined} The metadata object if it exists, otherwise undefined.
+ */
 const pickMeta = (handle?: RouteHandle): RouteMeta | undefined => handle?.meta;
 
+/**
+ * A loading overlay component that indicates a loading state.
+ * It can be displayed as a full-screen overlay or as an inline element.
+ *
+ * @param {object} props - The component props.
+ * @param {boolean} [props.inline=false] - If true, the loading indicator is displayed inline. Otherwise, it's a full-screen overlay.
+ * @returns {React.ReactElement} The rendered loading overlay.
+ */
 const LoadingOverlay: React.FC<{ inline?: boolean }> = ({ inline = false }) => (
   <div
     className={
@@ -31,6 +68,21 @@ const LoadingOverlay: React.FC<{ inline?: boolean }> = ({ inline = false }) => (
   </div>
 );
 
+/**
+ * The root layout component for the entire application.
+ *
+ * This component orchestrates the main structure of the app, including:
+ * - A consistent app shell (`AppShell`).
+ * - A bottom navigation bar (`BottomNav`) that is conditionally displayed based on the current route.
+ * - A loading indicator that shows during route transitions.
+ * - Dynamic document title updates based on the active route's metadata.
+ * - A suspense boundary for lazily loaded route components.
+ *
+ * It uses `react-router-dom` hooks (`useMatches`, `useLocation`, `useNavigation`) to adapt the layout
+ * to the current routing state.
+ *
+ * @returns {React.ReactElement} The rendered root layout of the application.
+ */
 export function RootLayout() {
   const matches = useMatches();
   const location = useLocation();

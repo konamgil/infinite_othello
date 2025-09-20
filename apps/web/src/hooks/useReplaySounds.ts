@@ -5,9 +5,25 @@ export interface SoundConfig {
   volume: number; // 0-1
 }
 
+/**
+ * A custom hook for managing and playing sound effects within the replay viewer.
+ *
+ * This hook uses the Web Audio API to generate tones for various events, such as
+ * move playback, critical move detection, and UI interactions. It takes a configuration
+ * object to enable/disable sounds and set the volume.
+ *
+ * @param {SoundConfig} config - The configuration for the sound effects.
+ * @returns An object containing the sound-playing functions, a cleanup function, and the enabled status.
+ */
 export function useReplaySounds(config: SoundConfig) {
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  /**
+   * Initializes the Web Audio API AudioContext.
+   * It ensures that the AudioContext is created only once and only if sounds are enabled.
+   *
+   * @returns {AudioContext | null} The initialized AudioContext, or null if not supported or disabled.
+   */
   const initAudioContext = useCallback(() => {
     if (!audioContextRef.current && config.enabled) {
       try {
@@ -19,6 +35,14 @@ export function useReplaySounds(config: SoundConfig) {
     return audioContextRef.current;
   }, [config.enabled]);
 
+  /**
+   * Plays a tone with a specified frequency, duration, and waveform.
+   * This is the core function for generating all sound effects.
+   *
+   * @param {number} frequency - The frequency of the tone in Hertz.
+   * @param {number} duration - The duration of the tone in seconds.
+   * @param {OscillatorType} [type='sine'] - The waveform of the oscillator.
+   */
   const playTone = useCallback((frequency: number, duration: number, type: OscillatorType = 'sine') => {
     if (!config.enabled) return;
 
@@ -46,7 +70,7 @@ export function useReplaySounds(config: SoundConfig) {
     }
   }, [config.enabled, config.volume, initAudioContext]);
 
-  // Sound effects for different events
+  // A collection of specific sound effects for different replay events.
   const sounds = {
     // Move playback sounds
     playMove: useCallback(() => {

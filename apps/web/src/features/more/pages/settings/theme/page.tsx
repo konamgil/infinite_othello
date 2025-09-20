@@ -4,6 +4,16 @@ import { ArrowLeft, Palette } from 'lucide-react';
 import { ThemeSelector } from '../../../../../ui/theme/ThemeSelector';
 import { MoreLayout } from '../../../layouts/MoreLayout';
 
+/**
+ * The theme settings page.
+ *
+ * This component allows users to customize the visual theme of the game.
+ * It features a tabbed interface to switch between customizing the 'board'
+ * and the 'stone' (disc). The `ThemeSelector` component is used to display
+ * the available options for the active tab.
+ *
+ * @returns {React.ReactElement} The rendered theme settings page.
+ */
 export default function ThemeSettingsPage() {
   const navigate = useNavigate();
 

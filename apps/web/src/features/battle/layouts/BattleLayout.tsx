@@ -6,6 +6,19 @@ type BattleLayoutProps = {
   detail?: boolean;
 };
 
+/**
+ * A layout component for the battle feature.
+ *
+ * This component provides a consistent layout for all pages within the battle feature.
+ * It includes a star canvas background (`BattleStarCanvas`) and structures the content area.
+ * The layout can be adapted for "detail" pages, which have a slightly different
+ * structure (e.g., full screen height).
+ *
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The content to be rendered within the layout.
+ * @param {boolean} [props.detail=false] - If true, applies a layout variant for detail pages.
+ * @returns {React.ReactElement} The rendered layout component.
+ */
 export function BattleLayout({ children, detail = false }: BattleLayoutProps) {
   const rootClasses = detail
     ? 'min-h-screen w-full overflow-hidden relative flex flex-col'

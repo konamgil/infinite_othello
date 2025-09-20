@@ -4,6 +4,19 @@ import { useGameStore } from '../../../../store/gameStore';
 import { ProfileStarCanvas } from '../../../../ui/profile/ProfileStarCanvas';
 import { ArrowLeft, Trophy, Star } from 'lucide-react';
 
+/**
+ * The user profile page.
+ *
+ * This component displays detailed information about the current player, including:
+ * - Player name, rank, and RP.
+ * - Win/loss record.
+ * - Current and highest tower floor reached.
+ * - A summary of key records.
+ *
+ * It retrieves player data from the `useGameStore`.
+ *
+ * @returns {React.ReactElement} The rendered profile page.
+ */
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { player } = useGameStore();

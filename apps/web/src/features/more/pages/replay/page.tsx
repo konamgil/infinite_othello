@@ -27,7 +27,13 @@ import {
   Brain
 } from 'lucide-react';
 
-// Convert GameReplay to legacy format for UI compatibility
+/**
+ * Converts a `GameReplay` object from the new data format to the legacy `LegacyGameRecord` format.
+ * This is used for backward compatibility with UI components that expect the older data structure.
+ *
+ * @param {GameReplay} replay - The replay object in the new format.
+ * @returns {LegacyGameRecord} The replay object converted to the legacy format.
+ */
 const convertReplayToLegacyFormat = (replay: GameReplay): LegacyGameRecord => ({
   id: replay.id,
   date: new Date(replay.gameInfo.startTime),
@@ -232,6 +238,21 @@ interface LegacyGameRecord {
   tags?: string[];
 }
 
+/**
+ * The main page for browsing and viewing game replays.
+ *
+ * This component provides a rich interface for users to interact with their game history.
+ * Key features include:
+ * - Loading and displaying a list of all past games.
+ * - A statistics dashboard summarizing the player's performance.
+ * - Advanced filtering, sorting, and searching capabilities for the replay list.
+ * - Launching a `ReplayViewer` modal to watch a selected game.
+ * - Compatibility with both new and legacy replay data formats.
+ *
+ * It uses a dedicated `useReplayStore` to manage its complex state.
+ *
+ * @returns {React.ReactElement} The rendered replay browser page.
+ */
 export default function ReplayPage() {
   const navigate = useNavigate();
   const {
@@ -273,12 +294,24 @@ export default function ReplayPage() {
     [currentFilteredReplays]
   );
 
+  // --- Helper Functions ---
+
+  /**
+   * Formats a duration in seconds into a "M분 S초" string.
+   * @param {number} seconds - The duration in seconds.
+   * @returns {string} The formatted duration string.
+   */
   const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}분 ${remainingSeconds}초`;
   };
 
+  /**
+   * Formats a date object into a "time ago" string (e.g., "5분 전", "2시간 전").
+   * @param {Date} date - The date to format.
+   * @returns {string} The formatted time ago string.
+   */
   const formatTimeAgo = (date: Date): string => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -291,6 +324,11 @@ export default function ReplayPage() {
     return `${diffDays}일 전`;
   };
 
+  /**
+   * Returns an icon component based on the game mode string.
+   * @param {string} mode - The game mode (e.g., 'tower', 'ranked').
+   * @returns {React.ReactElement} The corresponding icon.
+   */
   const getModeIcon = (mode: string) => {
     switch (mode) {
       case 'tower': return <Crown size={16} className="text-yellow-400" />;
@@ -300,6 +338,11 @@ export default function ReplayPage() {
     }
   };
 
+  /**
+   * Returns a set of Tailwind CSS classes for the background color based on the game mode.
+   * @param {string} mode - The game mode.
+   * @returns {string} The Tailwind CSS classes for the background.
+   */
   const getModeColor = (mode: string) => {
     switch (mode) {
       case 'tower': return 'from-yellow-400/20 to-orange-500/20 border-yellow-400/30';
@@ -309,6 +352,11 @@ export default function ReplayPage() {
     }
   };
 
+  /**
+   * Returns display information (text, color, icon) based on the game result.
+   * @param {LegacyGameRecord} game - The game record.
+   * @returns {{text: string, color: string, bgColor: string, icon: string}} An object with display properties.
+   */
   const getResultInfo = (game: LegacyGameRecord) => {
     const isWin = game.result.winner === game.player.color;
     const isDraw = game.result.winner === 'draw';

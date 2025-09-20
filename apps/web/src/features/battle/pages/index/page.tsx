@@ -6,10 +6,30 @@ import { RECENT_BATTLES, TOURNAMENTS } from '../../constants';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { Swords, Trophy, Users, Clock, Star, Crown } from 'lucide-react';
 
+/**
+ * The main page for the battle feature.
+ *
+ * This component serves as the hub for all battle-related activities. It displays:
+ * - The player's current battle statistics (wins, losses, rank).
+ * - A selection of battle modes (Quick Match, Ranked Game, Tournament).
+ * - A list of the player's recent battle history.
+ *
+ * It uses the `useGameStore` to get player data and `useNavigate` for routing.
+ *
+ * @returns {React.ReactElement} The rendered battle home page.
+ */
 export default function BattlePage() {
   const player = useGameStore((state) => state.player);
   const navigate = useNavigate();
 
+  /**
+   * Handles the click event for a battle mode selection.
+   *
+   * This function triggers haptic feedback and navigates the user to the
+   * corresponding battle mode page (e.g., '/battle/quick').
+   *
+   * @param {string} mode - The selected battle mode (e.g., 'quick', 'ranked').
+   */
   const handleBattleModeClick = (mode: string) => {
     haptic.buttonTap();
     if (navigator.vibrate) {

@@ -16,14 +16,32 @@ import {
   Star
 } from 'lucide-react';
 
+/**
+ * @interface ReplayStatisticsProps
+ * `ReplayStatistics` 컴포넌트의 props를 정의합니다.
+ */
 interface ReplayStatisticsProps {
+  /** @property {GameReplay[]} replays - 통계 계산에 사용될 리플레이 데이터 배열. (현재는 `useReplayStore`를 통해 데이터를 가져오므로 직접 사용되지 않을 수 있음) */
   replays: GameReplay[];
 }
 
+/**
+ * 여러 게임 리플레이에 대한 종합 통계를 시각화하는 대시보드 컴포넌트입니다.
+ * `useReplayStore` (Zustand 스토어)를 통해 집계된 통계 데이터를 가져와 표시합니다.
+ * @param {ReplayStatisticsProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 통계 대시보드 UI.
+ */
 export function ReplayStatistics({ replays }: ReplayStatisticsProps) {
+  // Zustand 스토어에서 통계 계산 함수를 가져옵니다.
   const { getStatistics } = useReplayStore();
+  // 스토어의 데이터를 기반으로 통계를 계산합니다.
   const stats = getStatistics();
 
+  /**
+   * 초 단위 시간을 "X시간 Y분" 또는 "Y분" 형식의 문자열로 변환합니다.
+   * @param {number} seconds - 변환할 시간 (초).
+   * @returns {string} 포맷된 시간 문자열.
+   */
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -35,6 +53,18 @@ export function ReplayStatistics({ replays }: ReplayStatisticsProps) {
     }
   };
 
+  /**
+   * 개별 통계 항목을 표시하기 위한 재사용 가능한 카드 컴포넌트입니다.
+   * @param {object} props - StatCard 컴포넌트의 props.
+   * @param {string} props.title - 통계 항목의 제목.
+   * @param {string | number} props.value - 표시할 통계 값.
+   * @param {string} [props.subtitle] - 부가적인 설명.
+   * @param {React.ElementType} props.icon - 표시할 아이콘.
+   * @param {string} [props.color='text-white'] - 아이콘 색상 클래스.
+   * @param {'up' | 'down'} [props.trend] - 상승 또는 하락 추세.
+   * @param {string} [props.trendValue] - 추세 값.
+   * @returns {JSX.Element} 통계 카드 UI.
+   */
   const StatCard = ({
     title,
     value,

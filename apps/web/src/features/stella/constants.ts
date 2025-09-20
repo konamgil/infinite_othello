@@ -1,3 +1,7 @@
+/**
+ * A collection of wise quotes from Stella, the AI mentor.
+ * These are likely displayed to the user to provide tips and encouragement.
+ */
 export const STELLA_WISDOMS = [
   '안녕하세요, 오늘도 스텔라의 별빛 지혜를 나눠 드릴게요.',
   '코너를 차지하는 것은 중요하지만, 과정에서 선택권을 잃지 않도록 주의하세요.',
@@ -9,6 +13,10 @@ export const STELLA_WISDOMS = [
   '현재의 한 수가 미래의 판세를 결정합니다. 깊이 있게 바라보세요.'
 ];
 
+/**
+ * A list of daily missions for the user to complete.
+ * Each mission has a title, description, rewards, and progress tracking.
+ */
 export const DAILY_MISSIONS = [
   {
     id: 1,
@@ -42,6 +50,11 @@ export const DAILY_MISSIONS = [
   }
 ];
 
+/**
+ * A list of available strategy lessons.
+ * These lessons are structured to teach the user various aspects of Othello strategy,
+ * categorized by difficulty.
+ */
 export const STRATEGY_LESSONS = [
   {
     id: 1,
@@ -77,6 +90,10 @@ export const STRATEGY_LESSONS = [
   }
 ];
 
+/**
+ * A list of practice scenarios.
+ * These allow the user to practice specific game situations and tactics.
+ */
 export const PRACTICE_SCENARIOS = [
   {
     id: 1,
