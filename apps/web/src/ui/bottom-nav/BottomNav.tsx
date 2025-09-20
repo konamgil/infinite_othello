@@ -38,24 +38,63 @@ export function BottomNav({ items, activePath }: BottomNavProps) {
 
   return (
     <nav
-      className="relative px-4 py-3 bg-gradient-to-t from-slate-800/50 via-purple-900/20 to-black/40 backdrop-blur-2xl"
+      className="relative px-4 py-3 bg-gradient-to-t from-slate-800/60 via-purple-900/25 to-transparent backdrop-blur-3xl
+                 before:absolute before:top-0 before:inset-x-0 before:h-px
+                 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
       role="navigation"
       aria-label="주요 메뉴"
     >
-      <div className="absolute inset-0 opacity-30">
-        {Array.from({ length: 5 }, (_, i) => (
+      <div className="absolute inset-0 opacity-40 overflow-hidden">
+        {/* 떠다니는 별빛 파티클들 */}
+        {Array.from({ length: 8 }, (_, i) => (
           <div
             key={i}
-            className="absolute w-0.5 h-0.5 bg-white/40 rounded-full animate-pulse"
+            className="absolute rounded-full animate-pulse"
             style={{
-              left: `${10 + i * 20}%`,
-              top: `${20 + (i % 2) * 40}%`,
-              animationDelay: `${i * 0.8}s`,
-              animationDuration: `${2 + i * 0.3}s`
+              width: `${0.5 + (i % 3) * 0.3}rem`,
+              height: `${0.5 + (i % 3) * 0.3}rem`,
+              left: `${5 + i * 11}%`,
+              top: `${10 + (i % 3) * 30}%`,
+              background: `radial-gradient(circle, ${
+                i % 4 === 0 ? 'rgba(147, 197, 253, 0.6)' :
+                i % 4 === 1 ? 'rgba(196, 181, 253, 0.6)' :
+                i % 4 === 2 ? 'rgba(253, 186, 116, 0.6)' :
+                'rgba(255, 255, 255, 0.6)'
+              }, transparent 70%)`,
+              animationDelay: `${i * 0.6}s`,
+              animationDuration: `${2.5 + i * 0.4}s`,
+              transform: 'translateZ(0)', // GPU 가속
+            }}
+          />
+        ))}
+
+        {/* 미묘하게 움직이는 배경 별들 */}
+        {Array.from({ length: 12 }, (_, i) => (
+          <div
+            key={`bg-${i}`}
+            className="absolute w-px h-px bg-white/20 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationName: 'float',
+              animationDuration: `${8 + i * 0.5}s`,
+              animationIterationCount: 'infinite',
+              animationTimingFunction: 'ease-in-out',
+              animationDelay: `${i * 0.3}s`,
+              transform: 'translateZ(0)',
             }}
           />
         ))}
       </div>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.2; }
+          25% { transform: translateY(-4px) translateX(2px); opacity: 0.6; }
+          50% { transform: translateY(-2px) translateX(-1px); opacity: 0.8; }
+          75% { transform: translateY(-6px) translateX(3px); opacity: 0.4; }
+        }
+      `}</style>
 
       <div className="relative flex justify-around items-center">
         {items.map((item) => {
