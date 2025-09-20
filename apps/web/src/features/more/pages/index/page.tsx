@@ -49,7 +49,24 @@ export default function MorePage() {
             <span className="text-white/50 text-sm font-display">대국 기록</span>
           </button>
 
-          {/* 기본 설정 */}
+          {/* 테마 설정 */}
+          <button
+            className="w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+                       hover:bg-black/30 active:scale-95 transition-all duration-200
+                       flex items-center justify-between"
+            onClick={() => navigate('/more/settings/theme')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-xl
+                            flex items-center justify-center border border-purple-400/30">
+                <Palette size={16} className="text-purple-300" />
+              </div>
+              <span className="text-white/90 font-display font-medium">테마 설정</span>
+            </div>
+            <span className="text-white/50 text-sm font-display">보드 & 디스크</span>
+          </button>
+
+          {/* 환경설정 */}
           <button
             className="w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                        hover:bg-black/30 active:scale-95 transition-all duration-200
@@ -57,24 +74,13 @@ export default function MorePage() {
             onClick={() => navigate('/more/settings')}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-xl
-                            flex items-center justify-center border border-yellow-400/30">
-                <Palette size={16} className="text-yellow-300" />
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-400/20 to-slate-500/20 rounded-xl
+                            flex items-center justify-center border border-slate-400/30">
+                <Settings size={16} className="text-slate-300" />
               </div>
-              <span className="text-white/90 font-display font-medium">기본 설정</span>
+              <span className="text-white/90 font-display font-medium">환경 설정</span>
             </div>
-            <span className="text-white/50 text-sm font-display">테마 & 보드</span>
-          </button>
-
-          {/* 환경설정 */}
-          <button className="w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
-                           hover:bg-black/30 active:scale-95 transition-all duration-200
-                           flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-slate-400/20 to-slate-500/20 rounded-xl
-                          flex items-center justify-center border border-slate-400/30">
-              <Settings size={16} className="text-slate-300" />
-            </div>
-            <span className="text-white/90 font-display font-medium">환경설정</span>
+            <span className="text-white/50 text-sm font-display">사운드 & 시스템</span>
           </button>
 
           {/* 도움말 */}

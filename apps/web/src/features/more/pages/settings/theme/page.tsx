@@ -13,7 +13,7 @@ export default function ThemeSettingsPage() {
     <MoreLayout detail>
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/more/settings')}
+          onClick={() => navigate('/more')}
           className="w-10 h-10 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center mr-4 hover:bg-black/30 active:scale-95 transition-all"
         >
           <ArrowLeft size={20} className="text-white/90" />

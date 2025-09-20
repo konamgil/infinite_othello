@@ -463,7 +463,8 @@ export default function ReplayPage() {
                   <div
                     key={game.id}
                     className="group p-5 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
-                             hover:bg-black/30 hover:border-white/20 transition-all duration-300"
+                             hover:bg-black/30 hover:border-white/20 transition-all duration-300
+                             opacity-0 translate-y-5"
                     style={{
                       animationDelay: `${index * 50}ms`,
                       animation: 'slideInUp 0.6s ease-out forwards'
@@ -581,14 +582,20 @@ export default function ReplayPage() {
       {/* 애니메이션 키프레임 추가 */}
       <style>{`
         @keyframes slideInUp {
-          from {
+          0% {
             opacity: 0;
             transform: translateY(20px);
           }
-          to {
+          100% {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        /* 애니메이션 시작 전 초기 상태 보장 */
+        .game-card-enter {
+          opacity: 0;
+          transform: translateY(20px);
         }
       `}</style>
     </div>

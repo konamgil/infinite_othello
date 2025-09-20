@@ -29,24 +29,10 @@ export default function SettingsPage() {
         >
           <ArrowLeft size={20} className="text-white/90" />
         </button>
-        <h1 className="text-xl font-bold text-white/90 font-smooth">기본 설정</h1>
+        <h1 className="text-xl font-bold text-white/90 font-smooth">환경 설정</h1>
       </div>
 
       <div className="space-y-4">
-        <button
-          className="group w-full p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/30 hover:border-white/20 active:scale-[0.99] transition-all duration-300 flex items-center justify-between"
-          onClick={() => navigate('/more/settings/theme')}
-        >
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-400/30 to-pink-500/30 rounded-xl flex items-center justify-center mr-4 backdrop-blur-sm border border-purple-400/20">
-              <Palette size={18} className="text-purple-300" />
-            </div>
-            <div className="text-left">
-              <span className="text-white/90 font-smooth font-medium block">테마 설정</span>
-              <span className="text-white/60 text-sm font-smooth">보드와 돌 테마를 바꿔보세요</span>
-            </div>
-          </div>
-        </button>
 
         <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           <div className="flex items-center justify-between">
