@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { GuardianTypewriter } from '../../../../ui/tower/GuardianTypewriter';
 import { CosmicTowerCanvas } from '../../../../ui/tower/CosmicTowerCanvas';
-import { CosmicGuardian } from '../../../../ui/tower/CosmicGuardian';
 import { CinematicHologramTower } from '../../../../ui/tower/CinematicHologramTower';
 import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
@@ -44,12 +42,6 @@ export default function TowerPage() {
   // player.towerProgress
   const maxFloor = 300;
 
-  // 탑의 기운 시스템 상태
-  const [energyProgress, setEnergyProgress] = useState(0);
-  const [isEnergyFull, setIsEnergyFull] = useState(false);
-  const [lastEnergyTime, setLastEnergyTime] = useState(0);
-  const [isCollecting, setIsCollecting] = useState(false);
-  const [energyBonus, setEnergyBonus] = useState(50);
 
   // RP 애니메이션 상태
   const [showRpGain, setShowRpGain] = useState(false);
@@ -57,56 +49,6 @@ export default function TowerPage() {
   const [previousRp, setPreviousRp] = useState(player.rp);
   const [showFlyingRp, setShowFlyingRp] = useState(false);
 
-  // 탑의 기운 시스템 초기화 (테스트용: 즉시 100% 충전)
-  useEffect(() => {
-    // 테스트용: 즉시 100% 충전
-    setEnergyProgress(100);
-    setIsEnergyFull(true);
-    setLastEnergyTime(Date.now());
-
-    // 실제 구현시 아래 코드 사용:
-    /*
-    const savedEnergyTime = localStorage.getItem('towerEnergyTime');
-    const savedProgress = localStorage.getItem('towerEnergyProgress');
-
-    if (savedEnergyTime && savedProgress) {
-      const lastTime = parseInt(savedEnergyTime);
-      const currentTime = Date.now();
-      const timeDiff = (currentTime - lastTime) / 1000; // 초 단위
-
-      // 1시간(3600초)당 100% 충전
-      const newProgress = Math.min(100, parseFloat(savedProgress) + (timeDiff / 36));
-      setEnergyProgress(newProgress);
-      setIsEnergyFull(newProgress >= 100);
-      setLastEnergyTime(lastTime);
-    } else {
-      // 처음 방문 시
-      setLastEnergyTime(Date.now());
-      localStorage.setItem('towerEnergyTime', Date.now().toString());
-      localStorage.setItem('towerEnergyProgress', '0');
-    }
-    */
-  }, []);
-
-  // 탑의 기운 충전 타이머
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const currentTime = Date.now();
-      const timeDiff = (currentTime - lastEnergyTime) / 1000;
-
-      // 1시간(3600초)당 100% 충전
-      const newProgress = Math.min(100, energyProgress + (timeDiff / 36));
-      setEnergyProgress(newProgress);
-      setIsEnergyFull(newProgress >= 100);
-
-      // localStorage 업데이트
-      localStorage.setItem('towerEnergyTime', currentTime.toString());
-      localStorage.setItem('towerEnergyProgress', newProgress.toString());
-      setLastEnergyTime(currentTime);
-    }, 1000); // 1초마다 업데이트
-
-    return () => clearInterval(interval);
-  }, [energyProgress, lastEnergyTime]);
 
   // RP 카운터 애니메이션
   const animateRpCounter = (targetRp: number) => {
@@ -264,125 +206,6 @@ export default function TowerPage() {
       {/* Main Content Area - 가디언 + 홀로그램 타워 */}
       <div className="flex-1 flex flex-col items-center justify-between px-4 pt-4 pb-0 relative">
         
-        {/* Guardian - 상단 */}
-        <div className="relative z-10 w-full">
-          <div className="w-full max-w-md mx-auto bg-black/40 backdrop-blur-md rounded-2xl p-3 relative overflow-hidden">
-            {/* 가디언 에너지 보더 시스템 */}
-            <div className="absolute inset-0 rounded-2xl">
-              {/* 기본 보더 */}
-              <div className="absolute inset-0 rounded-2xl border border-white/10" />
-              
-              {/* 에너지 보더 (진행률에 따라) */}
-              <div 
-                className="absolute inset-0 rounded-2xl border-2 transition-all duration-1000"
-                style={{
-                  borderColor: isEnergyFull 
-                    ? 'rgba(6, 182, 212, 0.8)' 
-                    : `rgba(6, 182, 212, ${energyProgress * 0.006})`,
-                  boxShadow: isEnergyFull 
-                    ? '0 0 20px rgba(6, 182, 212, 0.6), inset 0 0 20px rgba(6, 182, 212, 0.1)'
-                    : `0 0 ${energyProgress * 0.2}px rgba(6, 182, 212, 0.4)`
-                }}
-              />
-
-              {/* 에너지 충전 진행 오버레이 */}
-              <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                <div 
-                  className={`absolute top-0 left-0 h-full transition-all duration-1000 ${
-                    isEnergyFull 
-                      ? 'bg-gradient-to-r from-cyan-400/10 via-blue-500/15 to-purple-500/10'
-                      : 'bg-gradient-to-r from-cyan-600/5 to-blue-600/5'
-                  }`}
-                  style={{ width: `${energyProgress}%` }}
-                />
-              </div>
-
-              {/* 완충 시 펄스 효과 */}
-              {isEnergyFull && (
-                <>
-                  <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400/60 animate-pulse" />
-                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-400/20 via-blue-500/30 to-purple-500/20 blur animate-pulse" />
-                  
-                  {/* 코스믹 파티클 */}
-                  <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-                    <div className="absolute top-2 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-ping" />
-                    <div className="absolute top-6 right-8 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping delay-300" />
-                    <div className="absolute bottom-4 left-8 w-1 h-1 bg-purple-400 rounded-full animate-ping delay-700" />
-                    <div className="absolute bottom-2 right-4 w-1.5 h-1.5 bg-white rounded-full animate-ping delay-1000" />
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* 클릭 가능한 가디언 영역 */}
-            <div 
-              className={`flex items-center gap-3 relative z-10 ${
-                isEnergyFull ? 'cursor-pointer' : 'cursor-default'
-              } transition-all duration-300 ${
-                isEnergyFull ? 'hover:scale-[1.02] active:scale-[0.98]' : ''
-              }`}
-              onClick={isEnergyFull ? handleEnergyCollect : undefined}
-            >
-              <div className="w-16 h-16 flex-shrink-0 relative">
-                <CosmicGuardian className="w-full h-full" />
-                
-                {/* 가디언 주변 에너지 링 */}
-                {isEnergyFull && (
-                  <div className="absolute inset-0 rounded-full">
-                    <div className="absolute inset-0 rounded-full border-2 border-cyan-400/40 animate-spin" style={{ animationDuration: '3s' }} />
-                    <div className="absolute inset-1 rounded-full border border-blue-400/30 animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
-                  </div>
-                )}
-
-                {/* 수집 중 상태 표시 */}
-                {isCollecting && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                    <div className="text-xs text-cyan-400 animate-pulse">⚡</div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-grow min-h-[4rem] flex flex-col justify-center">
-                <GuardianTypewriter
-                  messages={guardianMessages}
-                  typingSpeed={80}
-                  pauseDuration={4000}
-                  className="text-white/90 text-left text-sm leading-relaxed font-smooth mb-2"
-                />
-                
-                {/* 에너지 상태 텍스트 */}
-                <div className="text-xs font-display transition-colors">
-                  {isEnergyFull ? (
-                    <span className="text-cyan-400 animate-pulse flex items-center gap-1">
-                      <span>⚡ 충전 완료</span>
-                      <span className="text-cyan-300">• +{energyBonus} RP</span>
-                      <span className="text-white/60">• 탭하여 수집</span>
-                    </span>
-                  ) : (
-                    <span className="text-cyan-600/80 flex items-center gap-1">
-                      <span className="flex items-center gap-0.5">
-                        <span className="animate-bounce delay-0">.</span>
-                        <span className="animate-bounce delay-100">.</span>
-                        <span className="animate-bounce delay-200">.</span>
-                      </span>
-                      <span>충전중 {Math.round(energyProgress)}%</span>
-                      <span className="text-white/40">
-                        • {(() => {
-                          const remainingTime = Math.ceil((100 - energyProgress) * 36);
-                          const minutes = Math.floor(remainingTime / 60);
-                          const seconds = remainingTime % 60;
-                          if (minutes > 0) return `${minutes}분후`;
-                          else if (seconds > 0) return `${seconds}초후`;
-                          else return '완료임박';
-                        })()}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         {/* 영화적 홀로그램 타워 */}
         <div className="relative z-10">
           <CinematicHologramTower
