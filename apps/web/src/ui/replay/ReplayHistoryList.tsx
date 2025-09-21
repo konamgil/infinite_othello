@@ -3,7 +3,7 @@ import {
   GameReplay,
   ReplayFilters,
   ReplaySortOptions
-} from '../../../types/replay';
+} from '../../types/replay';
 import {
   Clock,
   Trophy,

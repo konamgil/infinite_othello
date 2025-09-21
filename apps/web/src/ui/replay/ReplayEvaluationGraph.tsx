@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { GameMove } from '../../../types/replay';
+import { GameMove } from '../../types/replay';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
 /**

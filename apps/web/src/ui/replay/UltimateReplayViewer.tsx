@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
-import { GameReplay, GameMove as ReplayGameMove } from '../../../types/replay';
-import { OthelloEngine } from '../../../utils/othelloEngine';
-import { useReplaySounds } from '../../../hooks/useReplaySounds';
-import { useReplayOptimizations } from '../../../hooks/useReplayOptimizations';
-import { analyzeMoveQuality, generateEvaluationGraph } from '../../../utils/moveAnalysis';
+import { GameReplay, GameMove as ReplayGameMove } from '../../types/replay';
+import { OthelloEngine } from '../../utils/othelloEngine';
+import { useReplaySounds } from '../../hooks/useReplaySounds';
+import { useReplayOptimizations } from '../../hooks/useReplayOptimizations';
+import { analyzeMoveQuality, generateEvaluationGraph } from '../../utils/moveAnalysis';
 import {
   formatDuration,
   formatRelativeTime,
@@ -11,7 +11,7 @@ import {
   getGameModeConfig,
   getMoveQualityColor,
   positionToAlgebraic
-} from '../../../utils/replayUtils';
+} from '../../utils/replayUtils';
 import { ReplayErrorBoundary, SimpleErrorFallback } from './ReplayErrorBoundary';
 import { ReplayControls } from './ReplayControls';
 import { ReplayEvaluationGraph } from './ReplayEvaluationGraph';

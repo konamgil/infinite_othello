@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GameMove } from '../../../types/replay';
+import { GameMove } from '../../types/replay';
 import {
   Brain,
   TrendingUp,

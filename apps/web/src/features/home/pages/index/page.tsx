@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { ParticleSystem } from '../../../../ui/effects/ParticleSystem';
-import { OthelloStarCanvas } from '../../../game/components/OthelloStarCanvas';
+import { OthelloStarCanvas } from '../../../../ui/game/OthelloStarCanvas';
 import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../../../ui/effects/FXHooks';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { DAILY_MISSIONS } from '../../../stella/constants';

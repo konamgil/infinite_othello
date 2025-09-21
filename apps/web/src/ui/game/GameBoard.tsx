@@ -1,7 +1,7 @@
 // components/GameBoard.tsx
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useTheme } from '../../../store/gameStore';
-import { haptic } from '../../../ui/feedback/HapticFeedback';
+import { useTheme } from '../../store/gameStore';
+import { haptic } from '../feedback/HapticFeedback';
 
 
 export interface BoardState {

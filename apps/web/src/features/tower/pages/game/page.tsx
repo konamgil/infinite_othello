@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { GameController } from '../../../game/components/GameController';
+import { GameController } from '../../../../ui/game/GameController';
 import { useGameStore } from '../../../../store/gameStore';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard', 'nightmare'] as const;

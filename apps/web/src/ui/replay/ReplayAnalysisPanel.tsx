@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GameAnalysis, GameMove } from '../../../types/replay';
+import { GameAnalysis, GameMove } from '../../types/replay';
 import {
   TrendingUp,
   TrendingDown,

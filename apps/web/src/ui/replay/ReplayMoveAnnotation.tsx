@@ -1,6 +1,6 @@
 import React from 'react';
-import { GameMove } from '../../../types/replay';
-import { analyzeMoveQuality } from '../../../utils/moveAnalysis';
+import { GameMove } from '../../types/replay';
+import { analyzeMoveQuality } from '../../utils/moveAnalysis';
 import {
   CheckCircle,
   TrendingUp,

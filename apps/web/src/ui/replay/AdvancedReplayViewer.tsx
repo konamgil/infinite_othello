@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { GameReplay, GameMove as ReplayGameMove } from '../../../types/replay';
-import { OthelloEngine } from '../../../utils/othelloEngine';
+import { GameReplay, GameMove as ReplayGameMove } from '../../types/replay';
+import { OthelloEngine } from '../../utils/othelloEngine';
 import { AdvancedAnalysisSystem, AnalysisData } from './AdvancedAnalysisSystem';
 import { BoardOverlaySystem } from './BoardOverlaySystem';
 import {
