@@ -396,9 +396,9 @@ export default function ReplayPage() {
 
       {/* 오버레이 콘텐츠 */}
       <div className="relative z-10 h-full overflow-y-auto overflow-x-hidden">
-        <div className="px-6 py-4 pb-32">
+        <div className="px-3 py-4 pb-28">
           {/* 헤더 */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate('/more')}
@@ -418,19 +418,19 @@ export default function ReplayPage() {
           {(() => {
             const stats = getStatistics();
             return (
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
-                  <div className="text-2xl font-display font-bold text-blue-400">{stats.totalGames}</div>
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
+                  <div className="text-xl font-display font-bold text-blue-400">{stats.totalGames}</div>
                   <div className="text-xs text-white/70 font-display tracking-wider">전체 게임</div>
                 </div>
-                <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
-                  <div className="text-2xl font-display font-bold text-purple-400">
+                <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
+                  <div className="text-xl font-display font-bold text-purple-400">
                     {Math.floor(stats.averageGameDuration / 60)}분
                   </div>
                   <div className="text-xs text-white/70 font-display tracking-wider">평균 게임시간</div>
                 </div>
-                <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
-                  <div className="text-2xl font-display font-bold text-green-400">{stats.winRate.toFixed(1)}%</div>
+                <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
+                  <div className="text-xl font-display font-bold text-green-400">{stats.winRate.toFixed(1)}%</div>
                   <div className="text-xs text-white/70 font-display tracking-wider">승률</div>
                 </div>
               </div>
@@ -438,11 +438,11 @@ export default function ReplayPage() {
           })()}
 
           {/* Enhanced Filters Component */}
-          <div className="mb-6">
+          <div className="mb-5">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
-                       text-white/80 font-display tracking-wide hover:bg-black/30 transition-all mb-4 w-full justify-between"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-black/20 backdrop-blur-md border border-white/10
+                       text-white/80 font-display tracking-wide hover:bg-black/30 transition-all mb-3 w-full justify-between"
             >
               <div className="flex items-center gap-2">
                 <Filter size={16} />
@@ -465,7 +465,7 @@ export default function ReplayPage() {
           </div>
 
           {/* 게임 리스트 */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {isLoading ? (
               <div className="text-center py-12 text-white/60 font-display">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-400 border-t-transparent mx-auto mb-4"></div>
@@ -510,7 +510,7 @@ export default function ReplayPage() {
                 return (
                   <div
                     key={game.id}
-                    className="group p-5 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
+                    className="group p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                              hover:bg-black/30 hover:border-white/20 transition-all duration-300
                              opacity-0 translate-y-5"
                     style={{
@@ -571,11 +571,11 @@ export default function ReplayPage() {
                             saveFilterMemory();
                           }
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-400/20
-                                       text-purple-300 font-display font-semibold tracking-wider
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-400/20
+                                       text-purple-300 font-display font-medium text-sm tracking-wide
                                        hover:bg-purple-400/30 hover:text-purple-200
                                        active:scale-95 transition-all duration-200">
-                        <Play size={14} />
+                        <Play size={12} />
                         재생
                       </button>
 
@@ -588,11 +588,11 @@ export default function ReplayPage() {
                             saveFilterMemory();
                           }
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-400/20
-                                       text-green-300 font-display font-semibold tracking-wider
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-400/20
+                                       text-green-300 font-display font-medium text-sm tracking-wide
                                        hover:bg-green-400/30 hover:text-green-200
                                        active:scale-95 transition-all duration-200">
-                        <Brain size={14} />
+                        <Brain size={12} />
                         AI 분석
                       </button>
 
@@ -603,11 +603,11 @@ export default function ReplayPage() {
                           navigator.clipboard.writeText(gameInfo);
                           alert('📋 게임 정보가 클립보드에 복사되었습니다!');
                         }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10
-                                       text-white/70 font-display font-semibold tracking-wider
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10
+                                       text-white/70 font-display font-medium text-sm tracking-wide
                                        hover:bg-white/15 hover:text-white/80
                                        active:scale-95 transition-all duration-200">
-                        <Share2 size={14} />
+                        <Share2 size={12} />
                         공유
                       </button>
                     </div>

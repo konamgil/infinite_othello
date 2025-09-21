@@ -5,8 +5,8 @@ import { ParticleSystem } from '../../../../ui/effects/ParticleSystem';
 import { OthelloStarCanvas } from '../../../../ui/game/OthelloStarCanvas';
 import { useFXLayer, useFXAnimation, useFXEffects, useFXButton } from '../../../../ui/fx/FXHooks';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { testSupabaseConnection } from '../../../services/supabase';
 import { DAILY_MISSIONS } from '../../../stella/constants';
+import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import {
   Zap,
   Crown,
@@ -111,6 +111,31 @@ export default function HomePage() {
     // 시각 효과 제거 - 데이터 업데이트만 수행
   };
 
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'tower',
+      label: '탑',
+      value: `${player.towerProgress}층`,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'online',
+      label: '온라인',
+      value: '2,847',
+      icon: Users,
+      color: 'green'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: player.rp,
+      icon: Star,
+      color: 'yellow'
+    }
+  ];
+
   return (
     <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
         {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
@@ -137,58 +162,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* RP Display - 우측 상단 */}
-          <div className="absolute top-8 right-6 z-20">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Star size={6} className="text-white" />
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-white/70 font-display text-[10px]">RP</span>
-                <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-                  {player.rp.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Stats Display - 우측 상단 */}
+          <StatsDisplay stats={statsData} />
 
           {/* 메인 콘텐츠 */}
-          <div className="relative z-10 px-6 pt-24 pb-16 text-center">
+          <div className="relative z-10 px-4 pt-32 pb-12 text-center">
             {/* 게임 로고/타이틀 - RP와 거리 확보 */}
             <div className="mb-8">
               <div className="relative inline-block">
                 <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent mb-3 tracking-wider">
-                  OTHELLO KNIGHT
+                  OTHELLO
                 </h1>
+                <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent tracking-wider">
+                  KNIGHT
+                </h2>
                 <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400/20 to-blue-400/20 rounded-lg blur-lg"></div>
               </div>
             </div>
 
-            {/* 신비로운 상태 표시 - 미니멀하고 우아하게 */}
-            <div className="flex justify-center items-center gap-8 mb-12">
-              {/* 현재 층수 - 별빛 스타일 */}
-              <div className="relative group">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-yellow-400/90 tracking-wider">{player.towerProgress}층</span>
-                </div>
-                <div className="absolute -inset-1 bg-yellow-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-              </div>
-
-              {/* 온라인 상태 - 별빛 스타일 */}
-              <div className="relative group">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-display text-green-400/90 tracking-wider">온라인 2,847</span>
-                </div>
-                <div className="absolute -inset-1 bg-green-400/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* 신비로운 입장 버튼 - 별빛에 조화 */}
-        <div className="px-8 mb-12">
+        <div className="px-4 mb-8">
           <button
             onClick={handleTowerChallenge}
             className="group relative w-full py-4 px-8 rounded-full
@@ -213,8 +209,8 @@ export default function HomePage() {
         </div>
 
         {/* 신비로운 상태 정보 - 별빛 스타일 */}
-        <div className="px-8 mt-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="px-4 mt-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* 랭크 */}
             <div className="relative group">
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
@@ -248,7 +244,7 @@ export default function HomePage() {
         </div>
 
         {/* 신비로운 액션 메뉴 */}
-        <div className="px-8 mt-8" ref={gameLayerRef}>
+        <div className="px-4 mt-6" ref={gameLayerRef}>
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
               <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
@@ -312,7 +308,7 @@ export default function HomePage() {
         </div>
 
         {/* 오늘의 미션 */}
-        <div className="px-8 mt-6">
+        <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
               <Target size={20} className="text-green-400" />
@@ -383,7 +379,7 @@ export default function HomePage() {
         </div>
 
         {/* 최근 대국 */}
-        <div className="px-8 mt-6 pb-24">
+        <div className="px-4 mt-6 pb-20">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
               <Users size={20} className="text-blue-400" />

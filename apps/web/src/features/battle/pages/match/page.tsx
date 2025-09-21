@@ -64,13 +64,13 @@ export default function BattleMatchPage({ mode }: BattleMatchScreenProps) {
           </button>
         </div>
 
-        <div className="p-8 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
+        <div className="p-6 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 text-center">
           <div className="mb-8">
             <div className="w-16 h-16 border-4 border-orange-400/60 border-t-orange-400 rounded-full animate-spin mx-auto mb-6" />
             <h3 className="text-lg font-smooth font-bold text-white/90 mb-3">우주에서 상대를 찾는 중...</h3>
             <p className="text-white/70 font-smooth">{content.description}</p>
           </div>
-          <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+          <div className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <div className="text-white/60 font-smooth">현재 등급</div>

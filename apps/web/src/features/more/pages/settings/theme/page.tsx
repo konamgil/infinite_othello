@@ -21,7 +21,8 @@ export default function ThemeSettingsPage() {
 
   return (
     <MoreLayout detail>
-      <div className="flex items-center mb-6">
+      {/* 헤더를 완전히 별도로 처리 */}
+      <div className="flex items-center mb-6 -mx-4 px-4">
         <button
           onClick={() => navigate('/more')}
           className="w-10 h-10 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center mr-4 hover:bg-black/30 active:scale-95 transition-all"
@@ -36,10 +37,10 @@ export default function ThemeSettingsPage() {
         </div>
       </div>
 
-      {/* 세련된 탭 + 테마 리스트 */}
-      <div className="bg-gradient-to-br from-black/20 via-black/15 to-black/10 backdrop-blur-md rounded-2xl overflow-hidden flex-1 flex flex-col min-h-0 border border-white/10 shadow-2xl">
+      {/* 전체 화면 사용 - 완전히 확장 */}
+      <div className="-mb-12 bg-gradient-to-br from-black/20 via-black/15 to-black/10 backdrop-blur-md overflow-hidden flex-1 flex flex-col min-h-0">
         {/* 슬라이더 스타일 탭 */}
-        <div className="relative p-2 flex-shrink-0">
+        <div className="relative px-2 py-4 flex-shrink-0">
           <div className="relative flex bg-black/20 rounded-xl p-1">
             <div
               className={`absolute top-1 bottom-1 w-1/2 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-lg transition-all duration-300 ease-out border border-purple-400/20 shadow-lg ${
@@ -75,11 +76,11 @@ export default function ThemeSettingsPage() {
           </div>
         </div>
 
-        {/* 애니메이션이 있는 테마 리스트 */}
-        <div className="px-4 pb-4 flex-1 min-h-0 relative overflow-hidden">
+        {/* 애니메이션이 있는 테마 리스트 - 전체 화면 사용 */}
+        <div className="px-2 pb-4 flex-1 min-h-0 relative overflow-hidden w-full">
           <div
             key={activeTab}
-            className="animate-in fade-in-0 slide-in-from-right-4 duration-500 ease-out"
+            className="animate-in fade-in-0 slide-in-from-right-4 duration-500 ease-out w-full"
           >
             <ThemeSelector type={activeTab} />
           </div>

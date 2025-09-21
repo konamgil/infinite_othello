@@ -73,9 +73,8 @@ export function ThemeSelector({ type, onClose }: ThemeSelectorProps) {
   };
 
   return (
-    <div className="space-y-2 min-h-full animate-in fade-in-0 duration-700">
-      {/* 테마 아이템 목록 */}
-      <div className="space-y-2">
+    <div className="w-full min-h-full animate-in fade-in-0 duration-700">
+      <div className="space-y-2 w-full">
         {themes.map((themeOption, index) => (
           <div key={themeOption.id} className="animate-in slide-in-from-left-4 fade-in-0 duration-500" style={{ animationDelay: `${index * 100}ms` }}>
             <ThemeItem

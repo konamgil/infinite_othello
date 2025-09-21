@@ -1,5 +1,8 @@
 import React, { ReactNode } from 'react';
 import { BattleStarCanvas } from '../../../ui/battle/BattleStarCanvas';
+import { useGameStore } from '../../../store/gameStore';
+import { StatsDisplay, type StatItem } from '../../../ui/stats';
+import { Star, Crown } from 'lucide-react';
 
 type BattleLayoutProps = {
   children: ReactNode;
@@ -21,6 +24,7 @@ type BattleLayoutProps = {
  */
 export function BattleLayout({ children, detail = false }: BattleLayoutProps) {
   // 'detail' prop에 따라 다른 루트 클래스를 적용하여 기본 레이아웃과 상세 페이지 레이아웃을 구분합니다.
+  const player = useGameStore((state) => state.player);
   const rootClasses = detail
     ? 'min-h-screen w-full overflow-hidden relative flex flex-col' // 상세 페이지: 최소 화면 높이 차지
     : 'h-full w-full overflow-hidden relative'; // 기본: 부모 높이 100%
@@ -32,8 +36,26 @@ export function BattleLayout({ children, detail = false }: BattleLayoutProps) {
 
   // 실제 콘텐츠가 담길 컨테이너의 클래스
   const contentClasses = detail
-    ? 'content-padding pt-12 pb-12 flex flex-col gap-8 min-h-[calc(100vh-6rem)]' // 상세 페이지용 패딩 및 최소 높이
-    : 'content-padding section-spacing pb-32'; // 기본 패딩
+    ? 'px-4 pt-12 pb-12 flex flex-col gap-8 min-h-[calc(100vh-6rem)]'
+    : 'px-4 py-6 pb-32';
+
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'rank',
+      label: '랭크',
+      value: player.rank,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: player.rp,
+      icon: Star,
+      color: 'yellow'
+    }
+  ];
 
   return (
     <div className={rootClasses}>
@@ -42,6 +64,10 @@ export function BattleLayout({ children, detail = false }: BattleLayoutProps) {
         <BattleStarCanvas className="w-full h-full" />
       </div>
       {/* 콘텐츠 오버레이 */}
+
+      {/* Stats Display - 우측 상단 */}
+      <StatsDisplay stats={statsData} />
+
       <div className={overlayClasses}>
         <div className={contentClasses}>{children}</div>
       </div>

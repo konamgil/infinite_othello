@@ -36,8 +36,8 @@ export default function StellaStrategy() {
 
   return (
     <StellaLayout detail>
-      <div className="flex flex-col gap-8 pb-10 flex-1">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 pb-8 flex-1">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400/20 to-purple-600/20 flex items-center justify-center border border-purple-400/30">
               <Brain size={18} className="text-purple-400" />
@@ -52,13 +52,13 @@ export default function StellaStrategy() {
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {STRATEGY_LESSONS.map((lesson) => {
             const style = DIFFICULTY_STYLES[lesson.difficulty] ?? DIFFICULTY_STYLES['초급'];
 
             return (
-              <div key={lesson.id} className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-start gap-3">
+              <div key={lesson.id} className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <div className="flex items-start gap-2.5">
                   <div className={`w-10 h-10 rounded-xl ${style.container} flex items-center justify-center flex-shrink-0`}>
                     {lesson.completed ? (
                       <CheckCircle size={16} className="text-green-400" />
@@ -69,7 +69,7 @@ export default function StellaStrategy() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-white/90 text-sm truncate">{lesson.title}</h3>
-                      <button className={`px-3 py-1.5 rounded-lg text-xs font-medium ml-3 flex-shrink-0 transition-all duration-300 active:scale-95 ${
+                      <button className={`px-2.5 py-1 rounded-lg text-xs font-medium ml-2.5 flex-shrink-0 transition-all duration-300 active:scale-95 ${
                         lesson.completed
                           ? 'bg-white/10 text-white/70 hover:bg-white/15'
                           : 'bg-purple-400/20 text-purple-300 hover:bg-purple-400/30 border border-purple-400/30'
@@ -78,7 +78,7 @@ export default function StellaStrategy() {
                       </button>
                     </div>
                     <p className="text-xs text-white/60 mb-2 line-clamp-2">{lesson.description}</p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${style.container} ${style.text}`}>
                         {lesson.difficulty}
                       </span>

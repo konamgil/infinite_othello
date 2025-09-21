@@ -1,0 +1,1 @@
+export { StatsDisplay, type StatItem } from './StatsDisplay';

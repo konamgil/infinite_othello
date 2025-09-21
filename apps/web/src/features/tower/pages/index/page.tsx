@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { GuardianTypewriter } from '../../../../ui/tower/GuardianTypewriter';
 import { CosmicTowerCanvas } from '../../../../ui/tower/CosmicTowerCanvas';
-import { CosmicGuardian } from '../../../../ui/tower/CosmicGuardian';
+import { CinematicHologramTower } from '../../../../ui/tower/CinematicHologramTower';
 import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
+import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, TrendingUp, Target, Star, Battery } from 'lucide-react';
 
 /**
@@ -59,21 +59,17 @@ function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
 export default function TowerPage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
-  const currentFloor = player.towerProgress;
+  const currentFloor = 200; // 테스트용으로 50층 설정
+  // player.towerProgress
   const maxFloor = 300;
 
-  // 탑의 기운 시스템 상태
-  const [energyProgress, setEnergyProgress] = useState(0);
-  const [isEnergyFull, setIsEnergyFull] = useState(false);
-  const [lastEnergyTime, setLastEnergyTime] = useState(0);
-  const [isCollecting, setIsCollecting] = useState(false);
-  const [energyBonus, setEnergyBonus] = useState(50);
 
   // RP 애니메이션 상태
   const [showRpGain, setShowRpGain] = useState(false);
   const [animatingRp, setAnimatingRp] = useState(player.rp);
   const [previousRp, setPreviousRp] = useState(player.rp);
   const [showFlyingRp, setShowFlyingRp] = useState(false);
+
 
   // --- State and Effects ---
 
@@ -238,204 +234,69 @@ export default function TowerPage() {
 
   const guardianMessages = getGuardianSpeech(currentFloor, isEnergyFull);
 
-  return (
-    <div className="h-full w-full flex flex-col overflow-hidden bg-black relative">
-      {/* Hero Section - 별빛 스타일 + RP 우측 상단 */}
-      <div className="relative flex-[0.4] min-h-0">
-        <CosmicTowerCanvas
-          currentFloor={currentFloor}
-          maxFloor={maxFloor}
-          className="absolute inset-0 w-full h-full"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-
-        {/* RP Display - 우측 상단 작게 */}
-        <div className="absolute top-8 right-6 z-20">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md border border-yellow-400/20 rounded-full">
-            <div className="w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <Star size={6} className="text-white" />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-white/70 font-display text-[10px]">RP</span>
-              <span className="text-yellow-400 font-display font-medium text-xs tracking-wide">
-                {animatingRp.toLocaleString()}
-              </span>
-            </div>
-
-            {/* RP 증가 애니메이션 */}
-            {showRpGain && (
-              <div className="absolute -top-5 right-0 pointer-events-none">
-                <div className="flex items-center gap-0.5 animate-bounce">
-                  <span className="text-yellow-400 font-display font-bold text-xs">+{energyBonus}</span>
-                  <div className="w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping" />
-                  <div className="w-0.5 h-0.5 bg-orange-400 rounded-full animate-ping delay-100" />
-                </div>
-              </div>
-            )}
+  // 상단 통계 데이터 구성
+  const statsData: StatItem[] = [
+    {
+      key: 'tower',
+      label: '탑',
+      value: `${currentFloor}층 • ${Math.round((currentFloor / maxFloor) * 100)}%`,
+      icon: Crown,
+      color: 'blue'
+    },
+    {
+      key: 'rp',
+      label: 'RP',
+      value: animatingRp,
+      icon: Star,
+      color: 'yellow',
+      animation: showRpGain && (
+        <div className="absolute -top-5 right-0 pointer-events-none">
+          <div className="flex items-center gap-0.5 animate-bounce">
+            <span className="text-yellow-400 font-display font-bold text-xs">+{energyBonus}</span>
+            <div className="w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping" />
+            <div className="w-0.5 h-0.5 bg-orange-400 rounded-full animate-ping delay-100" />
           </div>
         </div>
+      )
+    }
+  ];
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-16 text-center text-white">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 flex items-center justify-center">
-              <Crown size={16} className="text-yellow-400/80" />
-            </div>
-            <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-yellow-400 via-white to-blue-400 bg-clip-text text-transparent tracking-wider">THE TOWER</h1>
-          </div>
+  return (
+    <div className="h-full w-full flex flex-col overflow-hidden bg-black relative">
+      {/* 전체 페이지 별빛 배경 */}
+      <CosmicTowerCanvas
+        currentFloor={currentFloor}
+        maxFloor={maxFloor}
+        className="absolute inset-0 w-full h-full"
+      />
+      
+      {/* 전체 페이지 그라디언트 오버레이 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/70 to-black/40" />
+      
+      {/* Hero Section - 상단 영역 (Stats만) */}
+      <div className="relative flex-[0.1] min-h-0">
+        {/* Stats Display - 우측 상단 */}
+        <StatsDisplay stats={statsData} className="top-6 right-4" />
+      </div>
 
-          {/* 현재 층수와 진행률 */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-              <span className="font-display font-bold text-lg text-yellow-400">{currentFloor}층</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              <span className="font-display text-sm text-blue-400">{Math.round((currentFloor / maxFloor) * 100)}%</span>
-            </div>
-          </div>
+      {/* Main Content Area - 가디언 + 홀로그램 타워 */}
+      <div className="flex-1 flex flex-col items-center justify-between px-4 pt-4 pb-0 relative">
+        
+        {/* 영화적 홀로그램 타워 */}
+        <div className="relative z-10">
+          <CinematicHologramTower
+            currentFloor={currentFloor}
+            maxFloor={maxFloor}
+            className="mx-auto"
+          />
         </div>
       </div>
 
-      {/* Main Content Area - 호흡하는 레이아웃 */}
-      <div className="flex-1 flex flex-col px-6 py-6 space-y-8 justify-center">
-
-        {/* 1. Guardian Dialogue - 넉넉한 공간 */}
-        <div className="w-full max-w-md mx-auto bg-black/20 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 flex-shrink-0">
-              <CosmicGuardian className="w-full h-full" />
-            </div>
-            <div className="flex-grow min-h-[4rem] flex items-center">
-              <GuardianTypewriter
-                messages={guardianMessages}
-                typingSpeed={80}
-                pauseDuration={4000}
-                className="text-white/90 text-left text-sm leading-relaxed font-smooth"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Energy Status - 여유로운 에너지 시스템 */}
-        <div className="w-full max-w-md mx-auto py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Battery
-                size={16}
-                className={`${isEnergyFull ? 'text-cyan-400 animate-pulse' : 'text-cyan-600'} transition-colors`}
-              />
-              <span className="text-sm font-display font-medium text-cyan-200">탑의 기운</span>
-            </div>
-            <div className="relative h-7 flex items-center justify-end">
-              <div className={`transition-all duration-500 ${
-                isEnergyFull
-                  ? 'opacity-100 translate-x-0'
-                  : 'opacity-0 translate-x-4 pointer-events-none'
-              }`}>
-                <button
-                  onClick={handleEnergyCollect}
-                  disabled={isCollecting}
-                  className={`px-4 py-1.5 rounded-full text-xs font-display font-medium transition-all duration-300 ${
-                    !isCollecting
-                      ? 'bg-cyan-400/20 border border-cyan-400/60 text-cyan-400 hover:bg-cyan-400/30 active:scale-95'
-                      : 'bg-cyan-400/30 border border-cyan-400/80 text-cyan-400 animate-pulse cursor-not-allowed'
-                  }`}
-                >
-                  {isCollecting ? '수집중...' : '⚡ 수집'}
-                </button>
-              </div>
-
-              <div className={`absolute right-0 transition-all duration-500 ${
-                !isEnergyFull
-                  ? 'opacity-100 translate-x-0'
-                  : 'opacity-0 -translate-x-4 pointer-events-none'
-              }`}>
-                <div className="px-3 py-1.5 text-xs font-display text-cyan-600/50 flex items-center gap-1 whitespace-nowrap">
-                  <div className="w-1.5 h-1.5 bg-cyan-600/30 rounded-full animate-pulse"></div>
-                  {(() => {
-                    const remainingTime = Math.ceil((100 - energyProgress) * 36); // 36초 per 1%
-                    const minutes = Math.floor(remainingTime / 60);
-                    const seconds = remainingTime % 60;
-
-                    if (minutes > 0) {
-                      return `${minutes}분후`;
-                    } else if (seconds > 0) {
-                      return `${seconds}초후`;
-                    } else {
-                      return '완료임박';
-                    }
-                  })()}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 코스믹 에너지 바 */}
-          <div className="relative mb-6">
-            {/* 외부 글로우 효과 */}
-            {isEnergyFull && (
-              <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400/20 via-blue-500/30 to-purple-500/20 rounded-full blur animate-pulse" />
-            )}
-
-            <div className="relative bg-black/30 rounded-full h-3 overflow-hidden border border-cyan-400/20">
-              <div
-                className={`h-3 rounded-full transition-all duration-1000 relative ${
-                  isEnergyFull
-                    ? 'bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500'
-                    : 'bg-gradient-to-r from-cyan-600/50 to-blue-600/50'
-                }`}
-                style={{ width: `${energyProgress}%` }}
-              >
-                {/* 코스믹 플로우 효과 */}
-                {isEnergyFull && (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-cyan-200/60 via-transparent to-purple-200/60 animate-ping" />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* 코스믹 파티클 */}
-              {isEnergyFull && (
-                <div className="absolute -top-1 -bottom-1 left-0 right-0 pointer-events-none">
-                  <div className="absolute top-1 left-1/4 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping" />
-                  <div className="absolute top-0 right-1/3 w-1 h-1 bg-blue-400 rounded-full animate-ping delay-300" />
-                  <div className="absolute top-1 right-1/4 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping delay-700" />
-                  <div className="absolute top-0 left-1/3 w-1 h-1 bg-white rounded-full animate-ping delay-1000" />
-                </div>
-              )}
-            </div>
-
-            <div className="text-center mt-2">
-              <span className={`text-xs font-display transition-colors ${
-                isEnergyFull ? 'text-cyan-400 animate-pulse' : 'text-cyan-600/80'
-              }`}>
-                {isEnergyFull ? (
-                  <>⚡ 충전 완료 • +{energyBonus} RP</>
-                ) : (
-                  <span className="flex items-center justify-center gap-1">
-                    <span className="animate-bounce delay-0">.</span>
-                    <span className="animate-bounce delay-100">.</span>
-                    <span className="animate-bounce delay-200">.</span>
-                    <span className="ml-1">충전중 {Math.round(energyProgress)}%</span>
-                    <span className="animate-bounce delay-0">.</span>
-                    <span className="animate-bounce delay-100">.</span>
-                    <span className="animate-bounce delay-200">.</span>
-                  </span>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Challenge Button - 임팩트 있는 메인 버튼 */}
-        <div className="w-full max-w-md mx-auto py-6 mt-4">
+      {/* Challenge UI - 하단 고정 */}
+      <div className="px-4 pt-0 pb-4 relative">
+        <div className="w-full max-w-md mx-auto">
           {/* 진행 상황 간단 표시 */}
-          <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center justify-between mb-4 px-2">
             <div className="flex items-center gap-2">
               <Target size={14} className="text-yellow-400" />
               <span className="text-xs text-yellow-400/80 font-display">다음 목표: {currentFloor + 1}층</span>
@@ -444,86 +305,81 @@ export default function TowerPage() {
           </div>
 
           {/* 메인 도전 버튼 */}
-          <div className="relative">
-            {/* 황금 글로우 효과 */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/30 via-orange-500/40 to-yellow-400/30 rounded-2xl blur animate-pulse" />
-
-            <button
-              id="challenge-start-btn"
-              onClick={handleChallengeStart}
-              className="relative w-full py-6 px-8 rounded-2xl
-                       bg-gradient-to-r from-yellow-400/20 via-orange-500/30 to-yellow-400/20
-                       border-2 border-yellow-400/60
-                       hover:border-yellow-400/80 hover:from-yellow-400/30 hover:via-orange-500/40 hover:to-yellow-400/30
-                       active:scale-95 transition-all duration-300
-                       flex items-center justify-center gap-4
-                       shadow-xl shadow-yellow-400/20"
-            >
-              {/* 아이콘 */}
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Zap size={18} className="text-white" />
-              </div>
-
-              {/* 텍스트 */}
-              <div className="text-center">
-                <div className="font-display text-yellow-400 font-bold text-xl tracking-wide">
-                  {currentFloor <= maxFloor ? `${currentFloor}층 도전하기` : '탑 정복 완료!'}
+          <button
+            id="challenge-start-btn"
+            onClick={handleChallengeStart}
+            className="w-full py-3 px-6 rounded-2xl
+                     backdrop-blur-md
+                     border-2 border-cyan-400/60
+                     hover:border-cyan-400/80
+                     active:scale-95 transition-all duration-300
+                     group"
+          >
+              <div className="flex items-center justify-center gap-3">
+                {/* 아이콘 */}
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg group-active:scale-90 transition-transform">
+                  <Zap size={20} className="text-white" />
                 </div>
-                <div className="text-yellow-400/70 text-xs font-display mt-1">
-                  영웅의 여정이 기다립니다
+                
+                {/* 텍스트 */}
+                <div className="text-center">
+                  <div className="font-display text-cyan-400 font-bold text-lg tracking-wide group-active:scale-95 transition-transform">
+                    {currentFloor <= maxFloor ? `${currentFloor}층 도전하기` : '탑 정복 완료!'}
+                  </div>
                 </div>
               </div>
 
-              {/* 장식 파티클 */}
+              {/* 에너지 파티클 */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-                <div className="absolute top-2 right-4 w-1 h-1 bg-yellow-400 rounded-full animate-ping delay-100" />
-                <div className="absolute bottom-3 left-6 w-1 h-1 bg-orange-400 rounded-full animate-ping delay-500" />
-                <div className="absolute top-4 left-1/3 w-0.5 h-0.5 bg-white rounded-full animate-ping delay-1000" />
+                <div className="absolute top-2 right-4 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping delay-100" />
+                <div className="absolute bottom-3 left-6 w-1 h-1 bg-blue-400 rounded-full animate-ping delay-500" />
+                <div className="absolute top-4 left-1/4 w-1 h-1 bg-white rounded-full animate-ping delay-1000" />
+                <div className="absolute bottom-2 right-1/3 w-0.5 h-0.5 bg-cyan-300 rounded-full animate-ping delay-700" />
               </div>
-            </button>
-          </div>
+
+          </button>
         </div>
       </div>
 
-      {/* 휘리리 RP 플라잉 애니메이션 */}
+      {/* 휘리리 RP 플라잉 애니메이션 - 가디언에서 시작 */}
       {showFlyingRp && (
         <div className="absolute inset-0 pointer-events-none z-50">
           <div
             className="absolute animate-bounce duration-1000"
             style={{
               left: '50%',
-              top: '60%',
+              top: '35%', // 가디언 위치로 조정 (상단 정보 아래)
               transform: 'translate(-50%, -50%)',
-              animation: 'flyToRp 1s ease-out forwards'
+              animation: 'flyToRpFromGuardian 1s ease-out forwards'
             }}
           >
-            <div className="flex items-center gap-1 bg-yellow-400/20 border border-yellow-400/60 rounded-full px-3 py-1.5 backdrop-blur-md">
-              <Star size={12} className="text-yellow-400" />
-              <span className="text-yellow-400 font-display font-bold text-sm">+{energyBonus}</span>
-              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-ping" />
-              <div className="w-1 h-1 bg-orange-400 rounded-full animate-ping delay-100" />
+            <div className="flex items-center gap-1 bg-cyan-400/20 border border-cyan-400/60 rounded-full px-3 py-1.5 backdrop-blur-md">
+              <div className="text-cyan-400 text-xs">⚡</div>
+              <span className="text-cyan-400 font-display font-bold text-sm">+{energyBonus}</span>
+              <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping" />
+              <div className="w-1 h-1 bg-blue-400 rounded-full animate-ping delay-100" />
             </div>
           </div>
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes flyToRp {
+      <style>{`
+        @keyframes flyToRpFromGuardian {
           0% {
             left: 50%;
-            top: 60%;
+            top: 15%; /* 가디언 위치에서 시작 */
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
           }
           50% {
-            left: 75%;
-            top: 35%;
-            transform: translate(-50%, -50%) scale(1.2);
-            opacity: 0.8;
+            left: 70%;
+            top: 25%;
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 0.9;
           }
           100% {
             left: 85%;
-            top: 18%;
+            top: 8%; /* 상단 RP 위치로 도착 */
             transform: translate(-50%, -50%) scale(0.8);
             opacity: 0;
           }

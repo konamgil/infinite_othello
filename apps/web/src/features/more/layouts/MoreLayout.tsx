@@ -28,8 +28,8 @@ export function MoreLayout({ children, detail = false }: MoreLayoutProps) {
     : 'relative z-10 h-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain';
 
   const contentClasses = detail
-    ? 'content-padding pt-12 pb-12 flex flex-col gap-8 min-h-screen flex-1'
-    : 'content-padding section-spacing pb-32';
+    ? 'px-4 pt-12 pb-12 flex flex-col gap-8 min-h-screen flex-1'
+    : 'px-4 py-6 pb-32';
 
   return (
     <div className={rootClasses}>
