@@ -1,7 +1,13 @@
 import { supabase } from './supabase';
 import type { Profile } from '../types/supabase';
 
-// 세션 관리 시스템
+/**
+ * 사용자 세션을 관리하고 동시 로그인을 방지하는 클래스입니다.
+ *
+ * 이 매니저는 새 세션 시작, 충돌 확인, 세션 유지를 위한 주기적인 "하트비트" 전송 등
+ * 사용자 세션의 생명주기를 처리합니다. 또한 세션 하이재킹 처리 및 브라우저 종료 시
+ * 정리 로직을 포함합니다.
+ */
 export class SessionManager {
   private static readonly SESSION_HEARTBEAT_INTERVAL = 30000; // 30초
   private static readonly SESSION_TIMEOUT = 120000; // 2분
@@ -41,7 +47,16 @@ export class SessionManager {
     }
   }
 
-  // 세션 시작
+  /**
+   * 새로운 사용자 세션을 시작합니다.
+   *
+   * 시작하기 전에 동일한 사용자에 대한 기존 활성 세션을 확인합니다.
+   * 충돌이 발견되면 오류를 반환합니다. 그렇지 않으면 사용자의 프로필을
+   * 새 세션 정보로 업데이트하고 세션을 유지하기 위한 하트비트를 시작합니다.
+   *
+   * @param {string} userId - 세션을 시작하는 사용자의 ID.
+   * @returns {Promise<{ success: boolean; error?: string; conflictInfo?: any }>} 세션 시작 시도 결과.
+   */
   static async startSession(userId: string): Promise<{ success: boolean; error?: string; conflictInfo?: any }> {
     try {
       const sessionId = crypto.randomUUID();
@@ -140,7 +155,14 @@ export class SessionManager {
     }
   }
 
-  // 기존 세션 강제 종료 (사용자 선택)
+  /**
+   * 데이터베이스에서 사용자의 기존 세션을 강제로 종료합니다.
+   * 일반적으로 사용자가 새 기기에서 로그인하고 이전 기기의 세션을
+   * 종료하기로 선택했을 때 호출됩니다.
+   *
+   * @param {string} userId - 세션을 종료할 사용자의 ID.
+   * @returns {Promise<{ success: boolean; error?: string }>} 작업 결과.
+   */
   static async forceEndSession(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
       await this.clearSession(userId);
@@ -151,7 +173,12 @@ export class SessionManager {
     }
   }
 
-  // 세션 종료
+  /**
+   * 현재 로컬 세션을 종료합니다.
+   *
+   * 이 메서드는 하트비트를 중지하고 데이터베이스에서 세션 정보를 지우며,
+   * 로컬 세션 상태를 리셋합니다.
+   */
   static async endSession(): Promise<void> {
     if (!this.currentSession) return;
 
@@ -290,12 +317,20 @@ export class SessionManager {
     });
   }
 
-  // 세션 정보 조회
+  /**
+   * 현재 로컬 세션 정보를 가져옵니다.
+   * @returns 활성 세션 객체, 또는 활성 세션이 없는 경우 null.
+   */
   static getCurrentSession() {
     return this.currentSession;
   }
 
-  // 다른 활성 세션들 조회 (관리자용)
+  /**
+   * 데이터베이스에서 사용자의 활성 세션 정보를 검색합니다.
+   * 관리자 목적 또는 사용자에게 세션 정보를 표시하는 데 사용될 수 있습니다.
+   * @param {string} userId - 사용자의 ID.
+   * @returns {Promise<object | null>} 사용자의 활성 세션 데이터.
+   */
   static async getActiveSessions(userId: string) {
     try {
       const { data } = await supabase
@@ -311,7 +346,11 @@ export class SessionManager {
     }
   }
 
-  // 세션 타임아웃 확인
+  /**
+   * 마지막 활동 타임스탬프를 기준으로 세션이 타임아웃되었는지 확인합니다.
+   * @param {string} lastSeen - 마지막 활동 시간의 ISO 문자열.
+   * @returns {boolean} 세션이 타임아웃되었으면 true.
+   */
   static isSessionTimedOut(lastSeen: string): boolean {
     const lastSeenTime = new Date(lastSeen).getTime();
     const now = Date.now();
@@ -319,20 +358,33 @@ export class SessionManager {
   }
 }
 
-// 세션 충돌 정보 타입
+/**
+ * @interface SessionConflictInfo
+ * 충돌하는 세션에 대한 정보를 설명합니다.
+ */
 export interface SessionConflictInfo {
+  /** @property {string} deviceInfo - 충돌하는 세션의 기기를 식별하는 문자열. */
   deviceInfo: string;
+  /** @property {string} startedAt - 충돌하는 세션이 시작된 시간의 ISO 문자열 타임스탬프. */
   startedAt: string;
+  /** @property {string} lastSeen - 충돌하는 세션이 마지막으로 활성화된 시간의 ISO 문자열 타임스탬프. */
   lastSeen: string;
 }
 
-// 세션 이벤트 타입
+/**
+ * @type SessionEvent
+ * 다양한 종류의 세션 관련 이벤트를 나타내는 유니언 타입입니다.
+ */
 export type SessionEvent =
   | { type: 'conflict'; data: SessionConflictInfo }
   | { type: 'timeout'; data: { reason: string } }
   | { type: 'ended'; data: { reason: string } };
 
-// 세션 관리 유틸리티
+/**
+ * `SessionManager`의 주요 메서드를 내보내는 유틸리티 객체입니다.
+ * 세션 상태와 상호작용해야 하는 애플리케이션의 다른 부분에
+ * 깨끗하고 단순화된 인터페이스를 제공합니다.
+ */
 export const sessionUtils = {
   start: SessionManager.startSession,
   end: SessionManager.endSession,

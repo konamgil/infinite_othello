@@ -11,6 +11,16 @@ interface HeaderProps {
   rightAction?: React.ReactNode;
 }
 
+/**
+ * A reusable header component for application pages.
+ *
+ * This component provides a consistent layout for page headers, including
+ * an optional back button, a title, and an optional settings button or
+ * a custom right-side action.
+ *
+ * @param {HeaderProps} props - The component props.
+ * @returns {React.ReactElement} The rendered header component.
+ */
 export function Header({
   title,
   showBackButton = false,

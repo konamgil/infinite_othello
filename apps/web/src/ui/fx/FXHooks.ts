@@ -6,6 +6,18 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { fx, CanvasFX } from './CanvasFX';
 
+/**
+ * A React hook to create and manage a canvas layer for the FX engine.
+ *
+ * It creates a container `div` and a corresponding `canvas` layer when the component mounts.
+ * The returned `containerRef` should be attached to a DOM element.
+ *
+ * @param {string} layerName - A unique name for the layer.
+ * @param {number} width - The logical width of the canvas.
+ * @param {number} height - The logical height of the canvas.
+ * @param {boolean} [active=true] - The initial active state of the layer.
+ * @returns A React ref object to be attached to the container element.
+ */
 export function useFXLayer(
   layerName: string,
   width: number,
@@ -36,6 +48,10 @@ export function useFXLayer(
   return containerRef;
 }
 
+/**
+ * A hook to start and stop the global FX animation loop.
+ * This should typically be used once in a high-level component (e.g., App).
+ */
 export function useFXAnimation() {
   const animationStarted = useRef(false);
 
@@ -54,6 +70,11 @@ export function useFXAnimation() {
   }, []);
 }
 
+/**
+ * A hook that provides a memoized interface to all the effect methods of the global `fx` instance.
+ * Using this hook ensures that the effect functions have a stable identity across re-renders.
+ * @returns An object containing all the available effect functions.
+ */
 export function useFXEffects() {
   const starfield = useCallback((layerName: string, count?: number) => {
     fx.starfield(layerName, count);
@@ -104,6 +125,12 @@ export function useFXEffects() {
   };
 }
 
+/**
+ * A hook to easily apply standard effects (glow on hover, portal ring on click) to a button.
+ *
+ * @returns An object containing a `buttonRef` to attach to the button element,
+ * and `buttonProps` to be spread onto the button component.
+ */
 export function useFXButton() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const effects = useFXEffects();
@@ -133,6 +160,14 @@ export function useFXButton() {
   return { buttonRef, buttonProps };
 }
 
+/**
+ * A hook that provides a set of callbacks for triggering game board-specific visual effects.
+ *
+ * This hook is designed to be used by the main game board component to abstract away
+ * the direct calls to the FX engine for events like placing or flipping a disc.
+ *
+ * @returns An object containing callback functions for various game board events.
+ */
 export function useFXGameBoard() {
   const effects = useFXEffects();
 
@@ -190,6 +225,11 @@ export function useFXGameBoard() {
   };
 }
 
+/**
+ * A hook that provides callbacks for triggering visual effects specific to the Tower feature.
+ *
+ * @returns An object containing callback functions for tower-related events.
+ */
 export function useFXTower() {
   const effects = useFXEffects();
 
@@ -225,6 +265,11 @@ export function useFXTower() {
   };
 }
 
+/**
+ * A hook for applying standard opening and closing effects to a modal dialog.
+ *
+ * @returns An object containing a `modalRef` and functions to trigger the open/close effects.
+ */
 export function useFXModal() {
   const modalRef = useRef<HTMLDivElement>(null);
   const effects = useFXEffects();
@@ -249,6 +294,10 @@ export function useFXModal() {
   };
 }
 
+/**
+ * A hook to get performance statistics from the global FX engine.
+ * @returns An object containing a `getStats` function.
+ */
 export function useFXStats() {
   const getStats = useCallback(() => {
     return fx.getStats();

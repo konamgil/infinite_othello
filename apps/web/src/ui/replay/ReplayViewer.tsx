@@ -13,21 +13,35 @@ import {
 /* ──────────────────────────────
    Local Types
    ────────────────────────────── */
+/** @typedef {-1 | 1} Player 흑돌(1) 또는 백돌(-1)을 나타내는 플레이어 타입 */
 type Player = -1 | 1;
+/** @typedef {-1 | 0 | 1} Disc 보드 위의 돌 상태를 나타내는 타입. 흑돌(1), 백돌(-1), 빈 칸(0) */
 type Disc = -1 | 0 | 1;
+/** @typedef {{x: number, y: number}} Position 보드 위의 좌표 */
 interface Position { x: number; y: number; }
+/** @typedef {Disc[][]} Board 8x8 오델로 보드 상태 */
 type Board = Disc[][];
+/** @typedef {Board[]} Boards 게임의 각 수에 따른 보드 상태 배열 */
 type Boards = Board[];
 
+/** @interface ReplayViewerProps ReplayViewer 컴포넌트의 props 타입 */
 interface ReplayViewerProps {
+  /** @property {GameReplay} gameReplay 표시할 게임 리플레이 데이터 */
   gameReplay: GameReplay;
+  /** @property {() => void} onClose 리플레이 뷰어를 닫을 때 호출되는 콜백 함수 */
   onClose: () => void;
 }
 
 /* ──────────────────────────────
    Helpers
    ────────────────────────────── */
-// Convert new replay moves to legacy format for display
+
+/**
+ * 최신 리플레이 데이터 형식을 레거시(내부용) 형식으로 변환합니다.
+ * 'black'/'white' 문자열을 1/-1 숫자로 변경하고, 필드 이름을 맞춥니다.
+ * @param {ReplayGameMove[]} replayMoves - 변환할 최신 형식의 게임 수순 배열
+ * @returns {Array<{position: Position; player: Player; timestamp: number; capturedDiscs: Position[]}>} 레거시 형식의 게임 수순 배열
+ */
 const convertMovesToLegacyFormat = (replayMoves: ReplayGameMove[]): Array<{
   position: Position;
   player: Player;
@@ -42,6 +56,12 @@ const convertMovesToLegacyFormat = (replayMoves: ReplayGameMove[]): Array<{
   }));
 };
 
+/**
+ * 수의 평가 점수에 따라 품질 정보를 반환합니다.
+ * (예: 'Excellent', 'Good', 'Mistake' 등)
+ * @param {number} evaluation - 수의 평가 점수
+ * @returns {{label: string, color: string, bgColor: string, icon: React.ElementType, description: string}} 수의 품질에 대한 UI 정보 객체
+ */
 const getMoveQualityInfo = (evaluation: number) => {
   if (evaluation >= 50) return {
     label: 'Excellent',
@@ -80,26 +100,49 @@ const getMoveQualityInfo = (evaluation: number) => {
   };
 };
 
-// deterministic pseudo-random in [0,1) for stable SSR/CSR
+/**
+ * 시드 기반의 결정론적 의사 난수를 [0, 1) 범위에서 생성합니다.
+ * 서버 사이드 렌더링(SSR)과 클라이언트 사이드 렌더링(CSR) 간의 일관성을 보장합니다.
+ * @param {number} seed - 난수 생성을 위한 시드 값
+ * @returns {number} 0과 1 사이의 난수
+ */
 function seededRand(seed: number) {
   const s = Math.sin(seed) * 10000;
   return s - Math.floor(s);
 }
 
+/**
+ * 게임 리플레이를 시각화하고 제어하는 메인 컴포넌트입니다.
+ * 오델로 보드, 재생 컨트롤, 수순 정보, 분석 패널 등을 포함합니다.
+ * @param {ReplayViewerProps} props - 컴포넌트 props
+ * @returns {JSX.Element} 게임 리플레이 뷰어 UI
+ */
 export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
+  // 현재 보고 있는 수의 인덱스 (0부터 시작)
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+  // 자동 재생 상태 (true: 재생 중, false: 일시정지)
   const [isPlaying, setIsPlaying] = useState(false);
+  // 자동 재생 속도 (1x, 2x, 4x 등)
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  // 모바일 분석 패널 표시 여부
   const [showMobileAnalysis, setShowMobileAnalysis] = useState(false);
+  // 플로팅 미니맵 표시 여부
   const [showMinimap, setShowMinimap] = useState(false);
 
-  // 안전한 빈 보드
+  /**
+   * 렌더링 시 사용할 안전한 8x8 빈 보드 상태를 memoization합니다.
+   * @type {Board}
+   */
   const EMPTY_BOARD: Board = useMemo(
     () => Array.from({ length: 8 }, () => Array(8).fill(0) as Disc[]),
     []
   );
 
-  // 오델로 엔진과 게임 재구성
+  /**
+   * 오델로 엔진을 사용하여 게임 리플레이 데이터로부터 수순과 각 수 이후의 보드 상태를 재구성합니다.
+   * 이 계산은 gameReplay 데이터가 변경될 때만 다시 실행됩니다.
+   * @returns {{moves: Array, boardStates: Boards}} 레거시 형식의 수순 배열과 보드 상태 배열
+   */
   const { moves, boardStates } = useMemo<{
     moves: Array<{ position: Position; player: Player; timestamp: number; capturedDiscs: Position[] }>;
     boardStates: Boards;
@@ -117,35 +160,61 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
       const s = (engine.reconstructGameFromMoves(engineMoves) || []) as Boards;
       states = Array.isArray(s) && s.length ? s : [];
     } catch {
+      // 엔진 재구성 중 오류 발생 시 빈 상태로 대체
       states = [];
     }
 
     return { moves: legacyMoves, boardStates: states };
   }, [gameReplay]);
 
-  // 현재 보드/수순 인덱스 계산 (엔진이 초기 상태를 포함하는지 자동 감지)
+  /**
+   * `boardStates` 배열이 초기 보드 상태(0번째 수 이전)를 포함하는지 여부를 확인합니다.
+   * @type {boolean}
+   */
   const hasInitialState = boardStates.length === moves.length + 1;
+
+  /**
+   * 현재 `currentMoveIndex`에 해당하는 `boardStates` 배열의 인덱스를 계산합니다.
+   * `hasInitialState` 값에 따라 인덱스를 조정합니다.
+   * @type {number}
+   */
   const boardIdx = useMemo(() => {
     const idx = hasInitialState ? currentMoveIndex + 1 : currentMoveIndex;
     return Math.min(Math.max(idx, 0), Math.max(boardStates.length - 1, 0));
   }, [currentMoveIndex, hasInitialState, boardStates.length]);
 
+  /**
+   * 현재 표시할 보드 상태입니다. `boardStates`가 비어있을 경우 `EMPTY_BOARD`를 사용합니다.
+   * @type {Board}
+   */
   const board = boardStates[boardIdx] ?? EMPTY_BOARD;
+  /**
+   * 현재 수에 대한 정보입니다.
+   * @type {{position: Position; player: Player; timestamp: number; capturedDiscs: Position[]}}
+   */
   const currentMove = moves[currentMoveIndex];
 
-  // 모바일 분석 패널용 GameMove 데이터 생성
+  /**
+   * 모바일 분석 패널에 전달할 현재 수의 분석 데이터를 생성합니다.
+   * 데이터에는 평가 점수, 최적의 수 여부, 대안 수 등이 포함됩니다.
+   * 평가는 `seededRand`를 사용하여 결정론적으로 생성되어, 렌더링 간 일관성을 유지합니다.
+   * @returns {ReplayGameMove | null} 현재 수의 분석 데이터 또는 null
+   */
   const currentAnalysisMove = useMemo(() => {
     if (!currentMove) return null;
 
+    // 현재 수 정보를 기반으로 고유한 시드 값을 생성합니다.
     const seedBase =
       (currentMove.position.x + 1) * 31 +
       (currentMove.position.y + 1) * 131 +
       (currentMove.player === 1 ? 997 : 499) +
       currentMoveIndex * 17;
 
+    // 시드 기반의 결정론적 난수를 사용하여 평가 점수를 생성합니다.
     const evalVal = Math.floor(seededRand(seedBase) * 100) - 50;
     const isOptimal = evalVal >= 30;
 
+    // 대안 수도 결정론적으로 생성합니다.
     const alt1 = {
       x: Math.floor(seededRand(seedBase + 1) * 8),
       y: Math.floor(seededRand(seedBase + 2) * 8),
@@ -157,7 +226,7 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
       score: Math.floor(seededRand(seedBase + 6) * 30) + 10
     };
 
-    // GameMove 형식으로 변환
+    // 분석 데이터를 ReplayGameMove 형식으로 변환하여 반환합니다.
     return {
       x: currentMove.position.x,
       y: currentMove.position.y,
@@ -171,11 +240,14 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
     } as ReplayGameMove;
   }, [currentMoveIndex, currentMove]);
 
-  // Auto-play
+  /**
+   * 자동 재생(Auto-play) 기능을 처리하는 `useEffect` 훅입니다.
+   * `isPlaying` 상태가 true일 때, `playbackSpeed`에 맞춰 다음 수로 자동으로 넘어갑니다.
+   */
   useEffect(() => {
     if (!isPlaying || moves.length === 0) return;
     if (currentMoveIndex >= moves.length - 1) {
-      setIsPlaying(false);
+      setIsPlaying(false); // 마지막 수에 도달하면 재생 중지
       return;
     }
 
@@ -189,28 +261,40 @@ export function ReplayViewer({ gameReplay, onClose }: ReplayViewerProps) {
       });
     }, 1000 / playbackSpeed);
 
+    // 컴포넌트 언마운트 또는 의존성 변경 시 인터벌 정리
     return () => clearInterval(interval);
   }, [isPlaying, currentMoveIndex, moves.length, playbackSpeed]);
 
-  // Controls
+  // --- 컨트롤 핸들러 함수들 ---
+
+  /** 재생/일시정지 상태를 토글합니다. */
   const handlePlayPause = () => setIsPlaying(p => !p);
+
+  /** 한 수 뒤로 이동하고, 재생을 중지합니다. */
   const handleStepBackward = () => {
     setCurrentMoveIndex(v => Math.max(0, v - 1));
     setIsPlaying(false);
   };
+
+  /** 한 수 앞으로 이동하고, 재생을 중지합니다. */
   const handleStepForward = () => {
     setCurrentMoveIndex(v => Math.min(moves.length - 1, v + 1));
     setIsPlaying(false);
   };
+
+  /** 게임의 가장 처음으로 이동하고, 재생을 중지합니다. */
   const handleGoToStart = () => {
     setCurrentMoveIndex(0);
     setIsPlaying(false);
   };
+
+  /** 게임의 가장 마지막으로 이동하고, 재생을 중지합니다. */
   const handleGoToEnd = () => {
     setCurrentMoveIndex(Math.max(0, moves.length - 1));
     setIsPlaying(false);
   };
 
+  // UI 렌더링에 필요한 계산된 값들
   const currentMoveNumber = moves.length > 0 ? currentMoveIndex + 1 : 0;
   const progressPercent = moves.length > 0 ? ((currentMoveIndex + 1) / moves.length) * 100 : 0;
 

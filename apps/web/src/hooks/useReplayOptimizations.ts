@@ -1,32 +1,48 @@
 import { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { GameReplay, GameMove } from '../types/replay';
 
-// Virtual scrolling configuration
+/**
+ * @interface VirtualScrollConfig
+ * 가상 스크롤링 설정을 위한 인터페이스.
+ */
 interface VirtualScrollConfig {
-  itemHeight: number;
-  containerHeight: number;
-  overscan: number;
-}
-
-// Performance monitoring
-interface PerformanceMetrics {
-  renderTime: number;
-  memoryUsage: number;
-  frameDrop: number;
-  lastUpdate: number;
-}
-
-// Optimized data structures
-export interface OptimizedReplayData {
-  boardStates: Array<Array<Array<number>>>;
-  moveIndices: Map<string, number>;
-  evaluationCache: Map<number, number>;
-  positionKeys: string[];
-  turningPoints: number[];
+  itemHeight: number;      // 각 항목의 높이
+  containerHeight: number; // 스크롤 컨테이너의 높이
+  overscan: number;        // 렌더링할 여분의 항목 수
 }
 
 /**
- * Hook for virtual scrolling large move lists
+ * @interface PerformanceMetrics
+ * 성능 모니터링을 위한 데이터 구조.
+ */
+interface PerformanceMetrics {
+  renderTime: number;      // 평균 렌더링 시간
+  memoryUsage: number;     // 메모리 사용량
+  frameDrop: number;       // 프레임 드롭 횟수
+  lastUpdate: number;      // 마지막 업데이트 시간
+}
+
+/**
+ * @interface OptimizedReplayData
+ * 최적화된 리플레이 데이터를 위한 구조.
+ */
+export interface OptimizedReplayData {
+  boardStates: Array<Array<Array<number>>>; // 모든 턴의 보드 상태
+  moveIndices: Map<string, number>;        // 'x,y' 좌표 문자열로 수의 인덱스를 찾는 맵
+  evaluationCache: Map<number, number>;    // 수 인덱스로 평가 점수를 찾는 캐시
+  positionKeys: string[];                  // 모든 수의 좌표 문자열 배열
+  turningPoints: number[];                 // 게임의 전환점이 된 수의 인덱스 배열
+}
+
+/**
+ * 긴 목록에 대한 가상 스크롤링을 구현하는 커스텀 훅.
+ *
+ * 스크롤 위치, 컨테이너 높이, 항목 높이를 기반으로 현재 보여야 할 항목들을 계산합니다.
+ * 이를 통해 보이는 항목만 렌더링하여 긴 목록의 성능을 크게 향상시킵니다.
+ *
+ * @param {any[]} items - 가상화할 전체 항목 목록.
+ * @param {VirtualScrollConfig} config - 항목 높이, 컨테이너 높이, overscan 개수 설정 객체.
+ * @returns 보이는 항목, 리스트의 총 높이, 스크롤 핸들러를 포함한 객체.
  */
 export function useVirtualScrolling(
   items: any[],
@@ -41,7 +57,6 @@ export function useVirtualScrolling(
       items.length - 1,
       Math.ceil((scrollTop + containerHeight) / config.itemHeight) + config.overscan
     );
-
     return { startIndex, endIndex };
   }, [scrollTop, containerHeight, config.itemHeight, config.overscan, items.length]);
 
@@ -69,40 +84,37 @@ export function useVirtualScrolling(
 }
 
 /**
- * Hook for optimized move processing and memoization
+ * 최적화된 렌더링을 위해 게임의 수 목록을 처리하고 메모이제이션하는 커스텀 훅.
+ *
+ * UI에서 자주 사용되는 값들(좌표 키, 시간 차이 등)을 미리 계산하고,
+ * 처리된 수 목록을 캐시하여 리렌더링 시 중복 계산을 방지합니다.
+ *
+ * @param {GameMove[]} moves - 게임의 수 배열.
+ * @returns 처리되고 메모이제이션된 수 목록.
  */
 export function useOptimizedMoves(moves: GameMove[]) {
   const moveCache = useRef(new Map<string, any>());
   const lastMovesRef = useRef<GameMove[]>([]);
 
   const optimizedMoves = useMemo(() => {
-    // Check if moves array has changed
     if (moves === lastMovesRef.current) {
       return lastMovesRef.current;
     }
-
-    // Create cache key for the entire moves array
     const cacheKey = `${moves.length}_${moves[0]?.timestamp}_${moves[moves.length - 1]?.timestamp}`;
-
     if (moveCache.current.has(cacheKey)) {
       return moveCache.current.get(cacheKey);
     }
 
-    // Process moves with optimizations
     const processed = moves.map((move, index) => ({
       ...move,
-      // Pre-calculate frequently used values
       positionKey: `${move.x},${move.y}`,
       displayPosition: `${String.fromCharCode(65 + move.x)}${move.y + 1}`,
       isLastMove: index === moves.length - 1,
       isFirstMove: index === 0,
-      // Cache evaluation calculations
       qualityScore: calculateMoveQuality(move),
-      // Pre-calculate time differences
       timeDiff: index > 0 ? move.timestamp - moves[index - 1].timestamp : 0
     }));
 
-    // Store in cache with size limit
     if (moveCache.current.size > 10) {
       const firstKey = moveCache.current.keys().next().value;
       moveCache.current.delete(firstKey);
@@ -117,7 +129,12 @@ export function useOptimizedMoves(moves: GameMove[]) {
 }
 
 /**
- * Hook for performance monitoring and optimization suggestions
+ * 컴포넌트의 성능을 모니터링하기 위한 커스텀 훅.
+ *
+ * 평균 렌더링 시간, 프레임 드롭과 같은 메트릭을 추적하고, 이를 기반으로
+ * 최적화 제안을 제공할 수 있습니다.
+ *
+ * @returns 성능 메트릭과 타이밍 제어 함수를 포함한 객체.
  */
 export function usePerformanceMonitoring() {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -138,12 +155,10 @@ export function usePerformanceMonitoring() {
     const renderTime = performance.now() - renderStartRef.current;
     frameTimeRef.current.push(renderTime);
 
-    // Keep only last 60 frame times
     if (frameTimeRef.current.length > 60) {
       frameTimeRef.current.shift();
     }
 
-    // Calculate metrics
     const avgRenderTime = frameTimeRef.current.reduce((a, b) => a + b, 0) / frameTimeRef.current.length;
     const frameDrop = frameTimeRef.current.filter(time => time > 16.67).length; // 60fps = 16.67ms
 
@@ -169,24 +184,19 @@ export function usePerformanceMonitoring() {
 
   const getOptimizationSuggestions = useCallback(() => {
     const suggestions: string[] = [];
-
     if (metrics.renderTime > 16) {
       suggestions.push('렌더링 시간이 느립니다. 가상 스크롤링을 고려해보세요.');
     }
-
     if (metrics.frameDrop > 5) {
       suggestions.push('프레임 드롭이 감지되었습니다. 애니메이션을 단순화하세요.');
     }
-
     const memory = getMemoryUsage();
     if (memory && memory.used > memory.limit * 0.8) {
       suggestions.push('메모리 사용량이 높습니다. 데이터 캐시를 정리하세요.');
     }
-
     if (suggestions.length === 0) {
       suggestions.push('성능이 최적화되어 있습니다.');
     }
-
     return suggestions;
   }, [metrics, getMemoryUsage]);
 
@@ -200,40 +210,38 @@ export function usePerformanceMonitoring() {
 }
 
 /**
- * Hook for efficient board state calculations
+ * 주어진 리플레이의 모든 보드 상태를 미리 계산하고 캐시하는 커스텀 훅.
+ *
+ * 각 수 이후의 보드 상태를 계산하여 저장하는 무거운 최적화 작업입니다.
+ * 이를 통해 리플레이의 어느 시점으로든 처음부터 다시 계산할 필요 없이 즉시 이동할 수 있습니다.
+ *
+ * @param {GameReplay} replay - 게임 리플레이 객체.
+ * @returns {OptimizedReplayData} 모든 보드 상태를 포함한 최적화된 데이터.
  */
 export function useOptimizedBoardStates(replay: GameReplay) {
   const boardStatesCache = useRef(new Map<string, OptimizedReplayData>());
 
   const optimizedData = useMemo(() => {
     const cacheKey = `${replay.id}_${replay.moves.length}`;
-
     if (boardStatesCache.current.has(cacheKey)) {
       return boardStatesCache.current.get(cacheKey)!;
     }
 
-    // Pre-calculate all board states
     const boardStates: Array<Array<Array<number>>> = [];
     const moveIndices = new Map<string, number>();
     const evaluationCache = new Map<number, number>();
     const positionKeys: string[] = [];
     const turningPoints: number[] = [];
 
-    // Initialize empty board
     let currentBoard = Array.from({ length: 8 }, () => Array(8).fill(0));
     boardStates.push(JSON.parse(JSON.stringify(currentBoard)));
 
-    // Process each move
     replay.moves.forEach((move, index) => {
-      // Update board state
       currentBoard[move.y][move.x] = move.player === 'black' ? 1 : -1;
-
-      // Apply flipped discs
       move.flippedDiscs.forEach(pos => {
         currentBoard[pos.y][pos.x] = move.player === 'black' ? 1 : -1;
       });
 
-      // Store optimized data
       boardStates.push(JSON.parse(JSON.stringify(currentBoard)));
       moveIndices.set(`${move.x},${move.y}`, index);
       positionKeys.push(`${move.x},${move.y}`);
@@ -241,8 +249,6 @@ export function useOptimizedBoardStates(replay: GameReplay) {
       if (move.evaluationScore !== undefined) {
         evaluationCache.set(index, move.evaluationScore);
       }
-
-      // Detect turning points
       if (index > 0 && move.evaluationScore !== undefined && replay.moves[index - 1].evaluationScore !== undefined) {
         const scoreDiff = Math.abs(move.evaluationScore - replay.moves[index - 1].evaluationScore!);
         if (scoreDiff > 20) {
@@ -259,7 +265,6 @@ export function useOptimizedBoardStates(replay: GameReplay) {
       turningPoints
     };
 
-    // Cache with size limit
     if (boardStatesCache.current.size > 5) {
       const firstKey = boardStatesCache.current.keys().next().value;
       boardStatesCache.current.delete(firstKey);
@@ -273,7 +278,14 @@ export function useOptimizedBoardStates(replay: GameReplay) {
 }
 
 /**
- * Hook for debounced state updates to prevent excessive re-renders
+ * 값을 디바운스(debounce)하는 커스텀 훅.
+ *
+ * 원본 값이 변경된 후 지정된 딜레이 시간 동안 추가 변경이 없을 때만 새 값을 반환합니다.
+ * 빠르게 변경되는 상태로 인한 과도한 리렌더링을 방지하는 데 유용합니다.
+ *
+ * @param {T} value - 디바운스할 값.
+ * @param {number} delay - 디바운스 딜레이 (밀리초).
+ * @returns {T} 디바운스된 값.
  */
 export function useDebouncedValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -292,7 +304,14 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 }
 
 /**
- * Hook for optimized animation frames
+ * `requestAnimationFrame`을 사용하여 애니메이션을 실행하는 커스텀 훅.
+ *
+ * 브라우저의 렌더링 주기에 애니메이션을 동기화하여 부드럽고 효율적인 애니메이션을 보장합니다.
+ *
+ * @param {() => void} callback - 각 프레임에서 실행될 애니메이션 콜백 함수.
+ * @param {React.DependencyList} deps - 콜백의 의존성 배열.
+ * @param {boolean} [enabled=true] - 애니메이션 활성화 여부.
+ * @returns 애니메이션을 중지하는 함수를 포함한 객체.
  */
 export function useOptimizedAnimation(
   callback: () => void,
@@ -302,7 +321,6 @@ export function useOptimizedAnimation(
   const requestRef = useRef<number>();
   const callbackRef = useRef(callback);
 
-  // Update callback ref when dependencies change
   useEffect(() => {
     callbackRef.current = callback;
   }, deps);
@@ -318,7 +336,6 @@ export function useOptimizedAnimation(
     if (enabled) {
       requestRef.current = requestAnimationFrame(animate);
     }
-
     return () => {
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
@@ -336,7 +353,14 @@ export function useOptimizedAnimation(
 }
 
 /**
- * Hook for managing large datasets with pagination
+ * 대규모 데이터셋에 대한 페이지네이션을 관리하는 커스텀 훅.
+ *
+ * 현재 보이는 데이터와 페이지 로드 및 사전 로드 함수를 제공하여,
+ * 무한 스크롤 구현에 유용할 수 있습니다.
+ *
+ * @param {T[]} data - 전체 데이터셋.
+ * @param {number} [pageSize=50] - 페이지당 항목 수.
+ * @returns 페이지네이션된 데이터와 제어 함수를 포함한 객체.
  */
 export function usePaginatedData<T>(
   data: T[],
@@ -355,7 +379,6 @@ export function usePaginatedData<T>(
       result.push(...data.slice(start, end));
     }
     return result.sort((a: any, b: any) => {
-      // Assuming items have an index or can be sorted
       const aIndex = data.indexOf(a);
       const bIndex = data.indexOf(b);
       return aIndex - bIndex;
@@ -386,17 +409,21 @@ export function usePaginatedData<T>(
   };
 }
 
-// Helper function for move quality calculation
+// 수 품질 계산을 위한 헬퍼 함수
 function calculateMoveQuality(move: GameMove): number {
   if (move.isOptimal) return 100;
   if (move.evaluationScore === undefined) return 50;
-
-  // Normalize evaluation score to 0-100 range
+  // 평가 점수를 0-100 범위로 정규화
   return Math.max(0, Math.min(100, 50 + move.evaluationScore));
 }
 
 /**
- * Hook for memory cleanup and garbage collection optimization
+ * 정리(cleanup) 콜백을 관리하는 커스텀 훅.
+ *
+ * 컴포넌트가 언마운트될 때 호출될 정리 함수를 등록할 수 있게 해줍니다.
+ * 메모리 누수 방지에 유용할 수 있습니다.
+ *
+ * @returns 정리 콜백을 추가하고 실행하는 함수를 포함한 객체.
  */
 export function useMemoryCleanup() {
   const cleanupCallbacks = useRef<(() => void)[]>([]);
@@ -410,7 +437,7 @@ export function useMemoryCleanup() {
       try {
         callback();
       } catch (error) {
-        console.warn('Cleanup callback failed:', error);
+        console.warn('정리 콜백 실패:', error);
       }
     });
     cleanupCallbacks.current = [];
@@ -424,7 +451,14 @@ export function useMemoryCleanup() {
 }
 
 /**
- * Combined optimization hook that provides all optimizations
+ * 이 파일의 다른 모든 최적화 훅을 결합하는 포괄적인 훅.
+ *
+ * 리플레이 뷰어에 성능 최적화를 적용하기 위한 메인 진입점입니다.
+ * 제공된 옵션에 따라 다양한 훅을 조건부로 적용합니다.
+ *
+ * @param {GameReplay} replay - 최적화할 게임 리플레이.
+ * @param {object} [options] - 특정 최적화를 활성화/비활성화하는 옵션.
+ * @returns 모든 최적화 데이터와 도구를 포함하는 객체.
  */
 export function useReplayOptimizations(replay: GameReplay, options?: {
   enableVirtualScrolling?: boolean;
@@ -443,7 +477,6 @@ export function useReplayOptimizations(replay: GameReplay, options?: {
   const paginatedData = usePaginatedData(optimizedMoves, pageSize);
   const memoryCleanup = useMemoryCleanup();
 
-  // Virtual scrolling for move list
   const virtualScrolling = enableVirtualScrolling
     ? useVirtualScrolling(optimizedMoves, {
         itemHeight: 40,

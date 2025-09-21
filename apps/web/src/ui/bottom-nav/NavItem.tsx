@@ -10,6 +10,16 @@ interface NavItemProps {
   badge?: number;
 }
 
+/**
+ * A single item in the bottom navigation bar.
+ *
+ * This component displays an icon, a label, and an optional notification badge.
+ * It handles its own styling and animations based on whether it is the currently
+ * active navigation item.
+ *
+ * @param {NavItemProps} props - The component props.
+ * @returns {React.ReactElement} The rendered navigation item button.
+ */
 export function NavItem({ path, label, icon: Icon, isActive, onNavigate, badge }: NavItemProps) {
   const handleClick = () => {
     onNavigate(path);

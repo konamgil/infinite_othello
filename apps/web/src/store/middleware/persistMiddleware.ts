@@ -17,7 +17,10 @@ export interface CustomPersistOptions<T> extends Partial<PersistOptions<T>> {
   };
 }
 
-// 압축된 JSON 직렬화
+/**
+ * Creates a serializer that sanitizes the state before stringifying it.
+ * This is used to prevent sensitive information from being written to storage.
+ */
 const createCompressedStorage = () => ({
   stringify: (state: any) => {
     try {
@@ -39,7 +42,11 @@ const createCompressedStorage = () => ({
   },
 });
 
-// 상태에서 민감한 정보 제거
+/**
+ * Recursively removes sensitive and temporary fields from a state object.
+ * @param state The state object to sanitize.
+ * @returns A new state object with sensitive data removed.
+ */
 const sanitizeState = (state: any) => {
   if (!state || typeof state !== 'object') return state;
 
@@ -84,7 +91,13 @@ const sanitizeState = (state: any) => {
   return removeSensitiveData(sanitized);
 };
 
-// IndexedDB 스토리지 (대용량 데이터용)
+/**
+ * Creates a storage object that uses IndexedDB.
+ * This is suitable for storing larger amounts of data that might exceed localStorage limits.
+ * @param {string} dbName - The name of the IndexedDB database.
+ * @param {string} [storeName='state'] - The name of the object store within the database.
+ * @returns A storage object with `getItem`, `setItem`, and `removeItem` methods.
+ */
 const createIndexedDBStorage = (dbName: string, storeName: string = 'state') => {
   let db: IDBDatabase | null = null;
 
@@ -164,7 +177,13 @@ const createIndexedDBStorage = (dbName: string, storeName: string = 'state') => 
   };
 };
 
-// 상태 마이그레이션 유틸리티
+/**
+ * Creates a migration function that can be passed to Zustand's persist middleware.
+ * It sequentially applies migration functions to update the state from an older version to the current version.
+ * @template T - The type of the state.
+ * @param {Record<number, (state: any) => T>} migrations - An object where keys are version numbers and values are migration functions.
+ * @returns A migration function compatible with the `persist` middleware.
+ */
 export const createStateMigration = <T>(migrations: Record<number, (state: any) => T>) => {
   return (persistedState: any, version: number): T => {
     let state = persistedState;
@@ -189,7 +208,17 @@ export const createStateMigration = <T>(migrations: Record<number, (state: any) 
   };
 };
 
-// 커스텀 persist 미들웨어 생성기
+/**
+ * A high-level wrapper around Zustand's `persist` middleware.
+ *
+ * This function enhances the default `persist` middleware by automatically selecting
+ * the best available storage (custom, IndexedDB, or localStorage) and applying a
+ * default serialization method that sanitizes the data.
+ *
+ * @template T - The type of the state.
+ * @param {CustomPersistOptions<T>} options - The custom persistence options.
+ * @returns A configured Zustand middleware function.
+ */
 export const createCustomPersist = <T>(
   options: CustomPersistOptions<T>
 ) => {
@@ -227,9 +256,12 @@ export const createCustomPersist = <T>(
   );
 };
 
-// 프리셋 persist 설정들
+/**
+ * A collection of pre-defined configurations for the `createCustomPersist` middleware.
+ * These presets provide sensible defaults for different types of data (e.g., game data, user settings).
+ */
 export const persistPresets = {
-  // 게임 데이터 (중요도 높음)
+  /** Preset for important game data, which partially persists and saves a limited history. */
   gameData: <T>(name: string): CustomPersistOptions<T> => ({
     name,
     version: 1,
@@ -245,14 +277,14 @@ export const persistPresets = {
     },
   }),
 
-  // 사용자 설정 (영구 저장)
+  /** Preset for user settings that should be saved permanently. */
   userSettings: <T>(name: string): CustomPersistOptions<T> => ({
     name,
     version: 1,
     serialize: createCompressedStorage(),
   }),
 
-  // 세션 데이터 (임시)
+  /** Preset for temporary session data, which excludes volatile state like `loading` and `error`. */
   sessionData: <T>(name: string): CustomPersistOptions<T> => ({
     name,
     version: 1,
@@ -264,7 +296,7 @@ export const persistPresets = {
     },
   }),
 
-  // 대용량 데이터 (IndexedDB 사용)
+  /** Preset for very large datasets, forcing the use of IndexedDB. */
   largeData: <T>(name: string): CustomPersistOptions<T> => ({
     name,
     version: 1,
@@ -273,7 +305,10 @@ export const persistPresets = {
   }),
 };
 
-// 스토어 초기화 유틸리티
+/**
+ * An initialization utility that can be used to perform tasks like cleaning up
+ * old or stale data from localStorage.
+ */
 export const initializeStores = async () => {
   // 필요시 오래된 데이터 정리
   const cleanup = () => {

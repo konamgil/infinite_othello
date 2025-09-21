@@ -1,18 +1,24 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-// 오셀로 게임 전용 상태 타입 정의
+/**
+ * @interface OthelloState
+ * 핵심 오델로 게임 상태의 형태를 정의합니다.
+ */
 export interface OthelloState {
-  // 게임 보드 상태
+  /** @property {Array<Array<'black' | 'white' | null>>} board - 게임 보드를 나타내는 2차원 배열. */
   board: Array<Array<'black' | 'white' | null>>;
+  /** @property {number} boardSize - 보드의 크기 (예: 표준 8x8 보드의 경우 8). */
   boardSize: number;
 
-  // 게임 진행 상태
+  /** @property {'waiting' | 'playing' | 'paused' | 'finished'} gameStatus - 현재 게임의 상태. */
   gameStatus: 'waiting' | 'playing' | 'paused' | 'finished';
+  /** @property {'black' | 'white'} currentPlayer - 현재 턴인 플레이어. */
   currentPlayer: 'black' | 'white';
+  /** @property {Array<{ row: number; col: number }>} validMoves - 현재 플레이어가 둘 수 있는 유효한 수의 좌표 배열. */
   validMoves: Array<{ row: number; col: number }>;
 
-  // 게임 기록
+  /** @property {Array} history - 현재 게임에서 이루어진 모든 수의 기록. */
   history: Array<{
     board: Array<Array<'black' | 'white' | null>>;
     player: 'black' | 'white';
@@ -20,22 +26,25 @@ export interface OthelloState {
     timestamp: number;
   }>;
 
-  // 게임 결과
+  /** @property {{ black: number; white: number }} score - 현재 게임의 점수. */
   score: {
     black: number;
     white: number;
   };
 
-  // 게임 설정
+  /** @property {'single' | 'local' | 'online' | 'ai'} gameMode - 현재 게임 모드 관련 설정. */
   gameMode: 'single' | 'local' | 'online' | 'ai';
+  /** @property {'easy' | 'medium' | 'hard' | 'expert'} difficulty - AI 상대의 난이도. */
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  timeLimit: number | null; // 초 단위, null이면 무제한
+  /** @property {number | null} timeLimit - 게임의 시간 제한 (초). null이면 무제한. */
+  timeLimit: number | null;
 
-  // AI 관련
+  /** @property {boolean} aiThinking - AI가 현재 수를 계산 중인지 여부를 나타내는 플래그. */
   aiThinking: boolean;
-  aiMoveDelay: number; // ms
+  /** @property {number} aiMoveDelay - AI의 생각하는 시간을 시뮬레이션하기 위한 딜레이 (밀리초). */
+  aiMoveDelay: number;
 
-  // 게임 통계
+  /** @property {object} stats - 현재 게임에 대한 통계. */
   stats: {
     totalMoves: number;
     captures: {
@@ -47,40 +56,54 @@ export interface OthelloState {
   };
 }
 
-// 액션 타입 정의
+/**
+ * @interface OthelloActions
+ * 오델로 게임 상태에 대해 수행할 수 있는 액션들을 정의합니다.
+ */
 export interface OthelloActions {
-  // 게임 초기화
+  /** 주어진 크기로 새 게임을 초기화합니다. */
   initializeGame: (size?: number) => void;
+  /** 게임을 초기 상태로 리셋합니다. */
   resetGame: () => void;
 
-  // 게임 진행
+  /** 현재 플레이어를 위해 보드에 수를 두려고 시도합니다. */
   makeMove: (row: number, col: number) => boolean;
+  /** 마지막으로 둔 수를 무릅니다. */
   undoMove: () => boolean;
 
-  // 게임 상태 제어
+  /** 게임을 일시정지합니다. */
   pauseGame: () => void;
+  /** 일시정지된 게임을 재개합니다. */
   resumeGame: () => void;
+  /** 게임 상태를 'finished'로 설정합니다. */
   finishGame: () => void;
 
-  // 유효한 이동 계산
+  /** 주어진 플레이어에 대한 유효한 수의 목록을 계산하고 업데이트합니다. */
   calculateValidMoves: (player: 'black' | 'white') => Array<{ row: number; col: number }>;
 
-  // AI 관련
+  /** AI의 생각 중 상태를 설정합니다. */
   setAIThinking: (thinking: boolean) => void;
+  /** AI가 다음 수를 계산하고 두도록 트리거합니다. */
   makeAIMove: () => Promise<void>;
 
-  // 설정 업데이트
+  /** 다양한 게임 설정을 업데이트합니다. */
   updateGameSettings: (settings: Partial<Pick<OthelloState, 'gameMode' | 'difficulty' | 'timeLimit' | 'aiMoveDelay'>>) => void;
 
-  // 보드 상태 계산
+  /** 현재 점수를 계산하고 업데이트합니다. */
   calculateScore: () => { black: number; white: number };
+  /** 게임이 끝났는지 확인합니다. */
   isGameFinished: () => boolean;
+  /** 게임이 끝났을 경우 승자를 결정합니다. */
   getWinner: () => 'black' | 'white' | 'tie' | null;
 }
 
 export type OthelloStore = OthelloState & OthelloActions;
 
-// 빈 보드 생성 함수
+/**
+ * 주어진 크기의 새 오델로 보드를 표준 초기 설정으로 생성합니다.
+ * @param {number} [size=8] - 보드의 크기 (예: 8x8 보드의 경우 8).
+ * @returns {Array<Array<'black' | 'white' | null>>} 새 보드를 나타내는 2차원 배열.
+ */
 const createEmptyBoard = (size: number = 8): Array<Array<'black' | 'white' | null>> => {
   const board = Array(size).fill(null).map(() => Array(size).fill(null));
 
@@ -116,7 +139,12 @@ const initialState: OthelloState = {
   },
 };
 
-// Zustand 스토어 생성
+/**
+ * 핵심 오델로 게임 로직과 상태를 관리하는 Zustand 스토어입니다.
+ *
+ * 이 스토어는 게임 보드, 플레이어 턴, 수 기록 및 오델로 게임을 플레이하는 데
+ * 필요한 모든 액션을 포함합니다.
+ */
 export const useOthelloStore = create<OthelloStore>()(
   devtools(
     (set, get) => ({
@@ -350,7 +378,9 @@ export const useOthelloStore = create<OthelloStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * OthelloStore의 특정 부분에 쉽게 접근하기 위한 편의성 훅입니다.
+ */
 export const useBoard = () => useOthelloStore((state) => state.board);
 export const useGameStatus = () => useOthelloStore((state) => state.gameStatus);
 export const useCurrentPlayer = () => useOthelloStore((state) => state.currentPlayer);
@@ -358,7 +388,9 @@ export const useValidMoves = () => useOthelloStore((state) => state.validMoves);
 export const useScore = () => useOthelloStore((state) => state.score);
 export const useGameStats = () => useOthelloStore((state) => state.stats);
 
-// 액션 훅들
+/**
+ * OthelloStore의 모든 액션 함수에 접근할 수 있는 편의성 훅입니다.
+ */
 export const useOthelloActions = () => useOthelloStore((state) => ({
   initializeGame: state.initializeGame,
   resetGame: state.resetGame,

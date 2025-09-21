@@ -6,6 +6,18 @@ type MoreLayoutProps = {
   detail?: boolean;
 };
 
+/**
+ * A layout component for the "more" feature.
+ *
+ * This component provides a consistent layout for all pages within the "more" feature.
+ * It features a star canvas background (`MoreStarCanvas`) and can be adapted for
+ * main list views versus detail pages.
+ *
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The content to be rendered within the layout.
+ * @param {boolean} [props.detail=false] - If true, applies a layout variant for detail pages.
+ * @returns {React.ReactElement} The rendered layout component.
+ */
 export function MoreLayout({ children, detail = false }: MoreLayoutProps) {
   const rootClasses = detail
     ? 'min-h-screen w-full overflow-hidden relative flex flex-col bg-black'

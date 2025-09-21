@@ -23,6 +23,14 @@ const DIFFICULTY_STYLES: Record<string, { container: string; text: string }> = {
   }
 };
 
+/**
+ * The strategy lessons page.
+ *
+ * This component displays a list of available strategy lessons, categorized by difficulty.
+ * Each lesson shows its title, description, duration, and completion status.
+ *
+ * @returns {React.ReactElement} The rendered strategy lessons page.
+ */
 export default function StellaStrategy() {
   const navigate = useNavigate();
 

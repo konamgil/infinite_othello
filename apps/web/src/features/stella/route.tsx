@@ -8,6 +8,10 @@ import StellaMissions from './pages/missions/page';
 import StellaStrategy from './pages/strategy/page';
 import StellaPractice from './pages/practice/page';
 
+/**
+ * Metadata for the root of the Stella AI mentor feature.
+ * This is used for the main '/stella' route.
+ */
 const STELLA_META: RouteMeta = {
   isRoot: true,
   requiresAuth: false,
@@ -16,6 +20,10 @@ const STELLA_META: RouteMeta = {
   navPath: '/stella',
 };
 
+/**
+ * Base metadata for detail pages within the Stella feature.
+ * These pages typically hide the bottom navigation.
+ */
 const STELLA_DETAIL_META: RouteMeta = {
   requiresAuth: false,
   hideBottomNav: true,
@@ -24,6 +32,13 @@ const STELLA_DETAIL_META: RouteMeta = {
   navPath: '/stella',
 };
 
+/**
+ * An error boundary component for the Stella feature.
+ *
+ * This is displayed if an error occurs while rendering any of the Stella feature's pages.
+ *
+ * @returns {React.ReactElement} The rendered error boundary UI.
+ */
 const StellaErrorBoundary = () => (
   <StellaLayout>
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
@@ -33,6 +48,12 @@ const StellaErrorBoundary = () => (
   </StellaLayout>
 );
 
+/**
+ * The main route object for the Stella AI mentor feature.
+ *
+ * This object defines the layout and all sub-routes for the Stella section,
+ * which includes the main hub, missions, strategy lessons, and practice mode.
+ */
 export const stellaRoute: AppRouteObject = {
   id: 'stella-root',
   path: 'stella',

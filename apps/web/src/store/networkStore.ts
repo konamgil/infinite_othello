@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-// 네트워크 및 멀티플레이어 상태 타입 정의
+/**
+ * Defines the shape of the network and multiplayer state.
+ */
 export interface NetworkState {
-  // 연결 상태
+  /** Information about the WebSocket connection status. */
   connection: {
     status: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
     socketId: string | null;
@@ -76,44 +78,68 @@ export interface NetworkState {
   };
 }
 
-// 액션 타입 정의
+/**
+ * Defines the actions that can be performed on the network state.
+ */
 export interface NetworkActions {
-  // 연결 관리
+  // Connection Management
+  /** Establishes a connection to the WebSocket server. */
   connect: (serverUrl: string) => Promise<void>;
+  /** Disconnects from the server. */
   disconnect: () => void;
+  /** Attempts to reconnect to the server. */
   reconnect: () => Promise<void>;
+  /** Manually updates the connection status. */
   updateConnectionStatus: (status: NetworkState['connection']['status']) => void;
 
-  // 방 관리
+  // Room Management
+  /** Creates a new game room on the server. */
   createRoom: (roomName: string, isPrivate?: boolean) => Promise<string>;
+  /** Joins an existing game room. */
   joinRoom: (roomId: string, code?: string) => Promise<boolean>;
+  /** Leaves the current game room. */
   leaveRoom: () => void;
+  /** Updates the information for the current room. */
   updateRoomInfo: (room: Partial<NetworkState['room']>) => void;
 
-  // 플레이어 관리
+  // Player Management
+  /** Replaces the entire list of players in the room. */
   updatePlayers: (players: NetworkState['players']) => void;
+  /** Adds a new player to the room. */
   addPlayer: (player: NetworkState['players'][0]) => void;
+  /** Removes a player from the room by their ID. */
   removePlayer: (playerId: string) => void;
+  /** Updates the information for a specific player. */
   updatePlayer: (playerId: string, updates: Partial<NetworkState['players'][0]>) => void;
+  /** Sets the ready status for a player. */
   setPlayerReady: (playerId: string, ready: boolean) => void;
 
-  // 사용자 정보
+  // Current User
+  /** Updates the profile information for the current user in the context of the network session. */
   updateCurrentUser: (user: Partial<NetworkState['currentUser']>) => void;
 
-  // 게임 세션
+  // Game Session
+  /** Starts a new online game session. */
   startGameSession: (sessionInfo: Partial<NetworkState['gameSession']>) => void;
+  /** Updates the state of the current online game session. */
   updateGameSession: (updates: Partial<NetworkState['gameSession']>) => void;
+  /** Ends the current online game session. */
   endGameSession: () => void;
 
-  // 채팅
+  // Chat
+  /** Adds a new message to the chat history. */
   addChatMessage: (message: Omit<NetworkState['chat']['messages'][0], 'id' | 'timestamp'>) => void;
+  /** Clears all chat messages. */
   clearChat: () => void;
+  /** Marks all chat messages as read. */
   markChatRead: () => void;
 
-  // 설정
+  // Settings
+  /** Updates the network-related settings. */
   updateNetworkSettings: (settings: Partial<NetworkState['settings']>) => void;
 
-  // 네트워크 이벤트 처리
+  // Event Handling
+  /** A generic handler for processing incoming WebSocket events. */
   handleSocketEvent: (event: string, data: any) => void;
 }
 
@@ -166,7 +192,13 @@ const initialState: NetworkState = {
   },
 };
 
-// Zustand 스토어 생성
+/**
+ * The Zustand store for managing network and multiplayer state.
+ *
+ * This store handles all real-time communication aspects of the application,
+ * including WebSocket connection, room management, player synchronization,
+ * online game sessions, and chat.
+ */
 export const useNetworkStore = create<NetworkStore>()(
   devtools(
     (set, get) => ({
@@ -457,7 +489,9 @@ export const useNetworkStore = create<NetworkStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * Convenience hooks for accessing specific parts of the NetworkStore.
+ */
 export const useConnection = () => useNetworkStore((state) => state.connection);
 export const useRoom = () => useNetworkStore((state) => state.room);
 export const usePlayers = () => useNetworkStore((state) => state.players);
@@ -466,7 +500,9 @@ export const useGameSession = () => useNetworkStore((state) => state.gameSession
 export const useChat = () => useNetworkStore((state) => state.chat);
 export const useNetworkSettings = () => useNetworkStore((state) => state.settings);
 
-// 액션 훅들
+/**
+ * A convenience hook that provides access to all the action functions of the NetworkStore.
+ */
 export const useNetworkActions = () => useNetworkStore((state) => ({
   connect: state.connect,
   disconnect: state.disconnect,

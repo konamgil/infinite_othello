@@ -9,37 +9,65 @@ import {
   X
 } from 'lucide-react';
 
+/**
+ * @interface FloatingMinimapProps
+ * `FloatingMinimap` 컴포넌트의 props를 정의합니다.
+ */
 interface FloatingMinimapProps {
+  /** @property {any} gameReplay - 전체 게임 리플레이 데이터. */
   gameReplay: any;
+  /** @property {number} currentMoveIndex - 현재 리플레이의 수 인덱스. */
   currentMoveIndex: number;
+  /** @property {(moveIndex: number) => void} [onMoveSelect] - 사용자가 미니맵에서 특정 수를 선택했을 때 호출될 콜백. */
   onMoveSelect?: (moveIndex: number) => void;
+  /** @property {string} [className] - 컴포넌트의 최상위 요소에 적용할 추가 CSS 클래스. */
   className?: string;
 }
 
+/** @typedef {-1 | 1} Player - 플레이어 타입. */
 type Player = -1 | 1;
+/** @typedef {-1 | 0 | 1} Disc - 돌의 상태 타입. */
 type Disc = -1 | 0 | 1;
+/** @typedef {Disc[][]} Board - 8x8 보드 상태 타입. */
 type Board = Disc[][];
+/** @typedef {{x: number, y: number}} Position - 좌표 타입. */
 type Position = { x: number; y: number };
 
+/**
+ * 화면 위에 떠 다니며 드래그 가능한 미니맵 컴포넌트입니다.
+ * 현재 게임 보드 상태를 간략하게 보여주며, 특정 수를 클릭하여 해당 시점으로 이동할 수 있습니다.
+ * @param {FloatingMinimapProps} props - 컴포넌트 props.
+ * @returns {JSX.Element | null} 미니맵 UI 또는 null.
+ */
 export function FloatingMinimap({ 
   gameReplay, 
   currentMoveIndex, 
   onMoveSelect,
   className = '' 
 }: FloatingMinimapProps) {
+  // --- State and Refs ---
+  /** @state {boolean} isDragging - 미니맵을 드래그 중인지 여부. */
   const [isDragging, setIsDragging] = useState(false);
+  /** @state {boolean} isVisible - 미니맵 전체의 표시 여부. */
   const [isVisible, setIsVisible] = useState(true);
-  const [position, setPosition] = useState({ x: 20, y: 100 }); // 기본 위치
-  // const [isMinimized, setIsMinimized] = useState(false); // 최소화 기능 제거됨
+  /** @state {{x: number, y: number}} position - 미니맵의 화면상 위치 (top, left). */
+  const [position, setPosition] = useState({ x: 20, y: 100 });
+  /** @state {{x: number, y: number}} dragOffset - 드래그 시작 시 마우스 포인터와 미니맵 좌상단 간의 오프셋. */
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  /** @state {boolean} showSettings - 설정 패널 표시 여부. */
   const [showSettings, setShowSettings] = useState(false);
+  /** @state {number} opacity - 미니맵의 불투명도. */
   const [opacity, setOpacity] = useState(0.9);
+  /** @state {number} scale - 미니맵의 크기 배율. */
   const [scale, setScale] = useState(1);
   
+  /** @ref {HTMLDivElement} minimapRef - 미니맵 DOM 요소에 대한 참조. */
   const minimapRef = useRef<HTMLDivElement>(null);
-  const dragStartPos = useRef({ x: 0, y: 0 });
 
-  // 게임 보드 재구성
+  /**
+   * `gameReplay` prop으로부터 보드 상태들을 재구성합니다.
+   * 이 컴포넌트가 독립적으로 보드 상태를 가질 수 있도록 memoization합니다.
+   */
   const { boardStates, moves } = React.useMemo(() => {
     const legacyMoves = gameReplay.moves.map((move: any) => ({
       position: { x: move.x, y: move.y },
@@ -58,16 +86,21 @@ export function FloatingMinimap({
     return { boardStates: states, moves: legacyMoves };
   }, [gameReplay]);
 
+  // 현재 수에 해당하는 보드 상태를 계산합니다.
   const hasInitialState = boardStates.length === moves.length + 1;
   const boardIdx = Math.min(
     Math.max(hasInitialState ? currentMoveIndex + 1 : currentMoveIndex, 0),
     Math.max(boardStates.length - 1, 0)
   );
-  
   const currentBoard = boardStates[boardIdx] || Array.from({ length: 8 }, () => Array(8).fill(0) as Disc[]);
   const currentMove = moves[currentMoveIndex];
 
-  // 드래그 시작
+  // --- Drag Handlers ---
+
+  /**
+   * 드래그 시작 이벤트를 처리합니다 (마우스 및 터치).
+   * @param {React.MouseEvent | React.TouchEvent} e - 이벤트 객체.
+   */
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -75,16 +108,16 @@ export function FloatingMinimap({
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
-    dragStartPos.current = { x: clientX, y: clientY };
     setDragOffset({ x: clientX - position.x, y: clientY - position.y });
     
-    // 햅틱 피드백
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+    if (navigator.vibrate) navigator.vibrate(10);
   };
 
-  // 드래그 중
+  /**
+   * 드래그 중 이동 이벤트를 처리합니다.
+   * 화면 경계 내에서 미니맵 위치를 업데이트합니다.
+   * @param {MouseEvent | TouchEvent} e - 이벤트 객체.
+   */
   const handleDragMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging) return;
     
@@ -94,9 +127,9 @@ export function FloatingMinimap({
     const newX = clientX - dragOffset.x;
     const newY = clientY - dragOffset.y;
     
-    // 화면 경계 내로 제한
-    const maxX = window.innerWidth - 200;
-    const maxY = window.innerHeight - 200;
+    // 화면 경계를 벗어나지 않도록 위치를 제한합니다.
+    const maxX = window.innerWidth - (minimapRef.current?.offsetWidth || 200);
+    const maxY = window.innerHeight - (minimapRef.current?.offsetHeight || 200);
     
     setPosition({
       x: Math.max(0, Math.min(newX, maxX)),
@@ -104,17 +137,16 @@ export function FloatingMinimap({
     });
   };
 
-  // 드래그 종료
+  /** 드래그 종료 이벤트를 처리합니다. */
   const handleDragEnd = () => {
     setIsDragging(false);
-    
-    // 햅틱 피드백
-    if (navigator.vibrate) {
-      navigator.vibrate(20);
-    }
+    if (navigator.vibrate) navigator.vibrate(20);
   };
 
-  // 전역 이벤트 리스너
+  /**
+   * 드래그 상태일 때 전역 이벤트 리스너를 설정하여
+   * 미니맵 외부에서도 드래그가 가능하도록 합니다.
+   */
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleDragMove);
@@ -131,22 +163,23 @@ export function FloatingMinimap({
     }
   }, [isDragging, dragOffset]);
 
-  // 보드 클릭으로 수 이동 (드래그와 구분)
+  /**
+   * 미니맵의 셀 클릭 이벤트를 처리합니다.
+   * 해당 위치에 수가 있었던 경우, `onMoveSelect` 콜백을 호출합니다.
+   * @param {React.MouseEvent | React.TouchEvent} e - 이벤트 객체.
+   * @param {number} x - 클릭된 셀의 x 좌표.
+   * @param {number} y - 클릭된 셀의 y 좌표.
+   */
   const handleBoardClick = (e: React.MouseEvent | React.TouchEvent, x: number, y: number) => {
-    e.stopPropagation(); // 드래그 이벤트와 충돌 방지
+    e.stopPropagation(); // 부모의 드래그 이벤트와 충돌 방지
     
-    // 해당 위치의 수 찾기
     const moveIndex = moves.findIndex((move: any) => 
       move.position.x === x && move.position.y === y
     );
     
     if (moveIndex !== -1 && onMoveSelect) {
       onMoveSelect(moveIndex);
-      
-      // 햅틱 피드백
-      if (navigator.vibrate) {
-        navigator.vibrate(15);
-      }
+      if (navigator.vibrate) navigator.vibrate(15);
     }
   };
 

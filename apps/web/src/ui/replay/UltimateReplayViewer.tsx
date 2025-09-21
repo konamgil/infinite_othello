@@ -31,37 +31,65 @@ import {
   ThermometerSun, Activity, Database
 } from 'lucide-react';
 
-// Lazy load heavy components
+// Lazy load heavy components for better initial performance
 const ReplayExporter = lazy(() => import('./ReplayExporter').then(m => ({ default: m.ReplayExporter })));
 
 /* ──────────────────────────────
    Local Types
    ────────────────────────────── */
+/** @typedef {-1 | 1} Player - 흑돌(1) 또는 백돌(-1)을 나타내는 플레이어 타입. */
 type Player = -1 | 1;
+/** @typedef {-1 | 0 | 1} Disc - 보드 위의 돌 상태. 흑돌(1), 백돌(-1), 빈 칸(0). */
 type Disc = -1 | 0 | 1;
+/** @typedef {{x: number, y: number}} Position - 보드 위의 좌표. */
 interface Position { x: number; y: number; }
+/** @typedef {Disc[][]} Board - 8x8 오델로 보드 상태. */
 type Board = Disc[][];
+/** @typedef {Board[]} Boards - 게임의 각 수에 따른 보드 상태 배열. */
 type Boards = Board[];
 
+/**
+ * @interface ViewMode
+ * 뷰어의 다양한 레이아웃 및 표시 설정을 관리하는 객체의 타입을 정의합니다.
+ */
 interface ViewMode {
+  /** @property {'standard' | 'analysis' | 'compact' | 'theater'} layout - 전체적인 레이아웃 모드. */
   layout: 'standard' | 'analysis' | 'compact' | 'theater';
+  /** @property {boolean} showSidebar - 분석 사이드바 표시 여부. */
   showSidebar: boolean;
+  /** @property {boolean} showAnalysis - 상세 분석 컴포넌트 표시 여부. */
   showAnalysis: boolean;
+  /** @property {boolean} showStats - 통계 컴포넌트 표시 여부. */
   showStats: boolean;
+  /** @property {'small' | 'medium' | 'large'} boardSize - 게임 보드의 크기. */
   boardSize: 'small' | 'medium' | 'large';
+  /** @property {'cosmic' | 'classic' | 'minimal'} theme - 전체적인 UI 테마. */
   theme: 'cosmic' | 'classic' | 'minimal';
 }
 
+/**
+ * @interface UltimateReplayViewerProps
+ * `UltimateReplayViewer` 컴포넌트의 props를 정의합니다.
+ */
 interface UltimateReplayViewerProps {
+  /** @property {GameReplay} gameReplay - 표시할 게임 리플레이 데이터. */
   gameReplay: GameReplay;
+  /** @property {() => void} onClose - 리플레이 뷰어를 닫을 때 호출될 콜백 함수. */
   onClose: () => void;
+  /** @property {Partial<ViewMode>} [initialViewMode] - 뷰어의 초기 뷰 모드 설정. */
   initialViewMode?: Partial<ViewMode>;
+  /** @property {boolean} [enableAdvancedFeatures=true] - 성능 최적화, 고급 분석 등 고급 기능 활성화 여부. */
   enableAdvancedFeatures?: boolean;
 }
 
 /* ──────────────────────────────
    Helpers
    ────────────────────────────── */
+/**
+ * 최신 리플레이 데이터 형식을 레거시(내부용) 형식으로 변환합니다.
+ * @param {ReplayGameMove[]} replayMoves - 변환할 최신 형식의 게임 수순 배열.
+ * @returns {Array} 레거시 형식의 게임 수순 배열.
+ */
 const convertMovesToLegacyFormat = (replayMoves: ReplayGameMove[]): Array<{
   position: Position;
   player: Player;
@@ -76,6 +104,11 @@ const convertMovesToLegacyFormat = (replayMoves: ReplayGameMove[]): Array<{
   }));
 };
 
+/**
+ * 로딩 상태를 표시하는 간단한 스피너 컴포넌트입니다.
+ * @param {{text?: string}} props - 컴포넌트 props.
+ * @returns {JSX.Element} 로딩 스피너 UI.
+ */
 const LoadingSpinner = ({ text = '로딩 중...' }: { text?: string }) => (
   <div className="flex flex-col items-center justify-center p-8">
     <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mb-3" />
@@ -83,13 +116,21 @@ const LoadingSpinner = ({ text = '로딩 중...' }: { text?: string }) => (
   </div>
 );
 
+/**
+ * 모든 기능을 통합한 최종 버전의 리플레이 뷰어 컴포넌트입니다.
+ * 다양한 뷰 모드, 성능 최적화, 고급 분석, 내보내기, 반응형 UI 등 모든 기능을 갖추고 있습니다.
+ * @param {UltimateReplayViewerProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 최종 리플레이 뷰어 UI.
+ */
 export function UltimateReplayViewer({
   gameReplay,
   onClose,
   initialViewMode = {},
   enableAdvancedFeatures = true
 }: UltimateReplayViewerProps) {
-  // View mode state
+  // --- State Management ---
+
+  /** @state {ViewMode} viewMode - 레이아웃, 테마 등 UI의 전반적인 표시 모드를 관리합니다. */
   const [viewMode, setViewMode] = useState<ViewMode>({
     layout: 'standard',
     showSidebar: true,
@@ -100,30 +141,49 @@ export function UltimateReplayViewer({
     ...initialViewMode
   });
 
-  // Basic state
+  /** @state {number} currentMoveIndex - 현재 수의 인덱스. */
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+  /** @state {boolean} isPlaying - 재생 중인지 여부. */
   const [isPlaying, setIsPlaying] = useState(false);
+  /** @state {number} playbackSpeed - 재생 속도 배율. */
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  /** @state {boolean} showSettings - 설정 패널 표시 여부. */
   const [showSettings, setShowSettings] = useState(false);
+  /** @state {boolean} showExporter - 내보내기 모달 표시 여부. */
   const [showExporter, setShowExporter] = useState(false);
+  /** @state {boolean} isBookmarked - 리플레이 북마크 여부. */
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  // Enhanced features state
+  /** @state {boolean} autoPlay - 자동 재생 기능 활성화 여부. */
   const [autoPlay, setAutoPlay] = useState(false);
+  /** @state {boolean} showMoveAnnotations - 수 해설 패널 표시 여부. */
   const [showMoveAnnotations, setShowMoveAnnotations] = useState(true);
+  /** @state {boolean} criticalMoveDetection - 결정적인 수에서 자동 멈춤 기능 활성화 여부. */
   const [criticalMoveDetection, setCriticalMoveDetection] = useState(true);
+  /** @state {boolean} soundEnabled - 효과음 활성화 여부. */
   const [soundEnabled, setSoundEnabled] = useState(false);
+  /** @state {boolean} showCoordinates - 보드 좌표 표시 여부. */
   const [showCoordinates, setShowCoordinates] = useState(true);
+  /** @state {boolean} highlightLastMove - 마지막 수 강조 표시 여부. */
   const [highlightLastMove, setHighlightLastMove] = useState(true);
+  /** @state {boolean} showEvaluationGraph - 평가 그래프 표시 여부. */
   const [showEvaluationGraph, setShowEvaluationGraph] = useState(true);
+  /** @state {boolean} showPerformanceMetrics - 성능 지표 오버레이 표시 여부. */
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
 
-  // Advanced UI state
+  /** @state {boolean} isFullscreen - 전체 화면 모드 여부. */
   const [isFullscreen, setIsFullscreen] = useState(false);
+  /** @state {boolean} showMobileControls - 모바일 전용 컨트롤 표시 여부. */
   const [showMobileControls, setShowMobileControls] = useState(false);
+  /** @state {number | null} selectedMoveForAnalysis - 사용자가 보드에서 직접 클릭하여 선택한 수의 인덱스. */
   const [selectedMoveForAnalysis, setSelectedMoveForAnalysis] = useState<number | null>(null);
 
-  // Performance optimizations
+  // --- Hooks ---
+
+  /**
+   * 리플레이 데이터 처리 최적화를 위한 커스텀 훅입니다.
+   * 가상 스크롤링, 성능 모니터링 등의 기능을 제공합니다.
+   */
   const {
     optimizedMoves,
     optimizedBoardData,
@@ -135,23 +195,31 @@ export function UltimateReplayViewer({
     enablePerformanceMonitoring: enableAdvancedFeatures
   });
 
-  // Sound system
+  /** 리플레이 사운드 효과를 관리하는 커스텀 훅입니다. */
   const { sounds, cleanup } = useReplaySounds({
     enabled: soundEnabled,
     volume: 0.3
   });
 
-  // Safe empty board
+  // --- Memos ---
+
+  /** 렌더링 시 사용할 안전한 8x8 빈 보드 상태를 memoization합니다. */
   const EMPTY_BOARD: Board = useMemo(
     () => Array.from({ length: 8 }, () => Array(8).fill(0) as Disc[]),
     []
   );
 
-  // Othello engine and game reconstruction
+  /**
+   * 게임의 모든 보드 상태를 재구성합니다.
+   * `useReplayOptimizations` 훅에서 제공하는 최적화된 데이터가 있으면 사용하고,
+   * 그렇지 않으면 `OthelloEngine`을 통해 직접 계산합니다.
+   * @returns {{moves: Array, boardStates: Boards}}
+   */
   const { moves, boardStates } = useMemo<{
     moves: Array<{ position: Position; player: Player; timestamp: number; capturedDiscs: Position[] }>;
     boardStates: Boards;
   }>(() => {
+    // 최적화된 데이터가 있으면 사용
     if (enableAdvancedFeatures && optimizedBoardData) {
       const legacyMoves = convertMovesToLegacyFormat(gameReplay.moves);
       return {
@@ -162,15 +230,10 @@ export function UltimateReplayViewer({
       };
     }
 
-    // Fallback to regular computation
+    // Fallback: 직접 계산
     const legacyMoves = convertMovesToLegacyFormat(gameReplay.moves);
     const engine = new OthelloEngine();
-
-    const engineMoves = legacyMoves.map(m => ({
-      position: m.position,
-      player: m.player
-    }));
-
+    const engineMoves = legacyMoves.map(m => ({ position: m.position, player: m.player }));
     let states: Boards = [];
     try {
       const s = (engine.reconstructGameFromMoves(engineMoves) || []) as Boards;
@@ -178,49 +241,47 @@ export function UltimateReplayViewer({
     } catch {
       states = [];
     }
-
     return { moves: legacyMoves, boardStates: states };
   }, [gameReplay, optimizedBoardData, enableAdvancedFeatures]);
 
-  // Current board calculation
-  const hasInitialState = boardStates.length === moves.length + 1;
+  /** 현재 `currentMoveIndex`에 해당하는 `boardStates` 배열의 인덱스를 계산합니다. */
   const boardIdx = useMemo(() => {
+    const hasInitialState = boardStates.length === moves.length + 1;
     const idx = hasInitialState ? currentMoveIndex + 1 : currentMoveIndex;
     return Math.min(Math.max(idx, 0), Math.max(boardStates.length - 1, 0));
-  }, [currentMoveIndex, hasInitialState, boardStates.length]);
+  }, [currentMoveIndex, boardStates.length, moves.length]);
 
   const board = boardStates[boardIdx] ?? EMPTY_BOARD;
   const currentMove = moves[currentMoveIndex];
   const currentGameMove = gameReplay.moves[currentMoveIndex];
 
-  // Evaluation data for visualization
+  /** 평가 그래프 시각화를 위한 데이터를 생성합니다. */
   const evaluationData = useMemo(() =>
     generateEvaluationGraph(gameReplay.moves), [gameReplay.moves]
   );
 
-  // Responsive design detection
+  // --- Effects ---
+
+  /** 화면 크기를 감지하여 모바일/태블릿 뷰를 결정하는 `useEffect` 훅입니다. */
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
       setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
     };
-
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // Auto-play effect
+  /** 자동 재생 기능을 처리합니다. */
   useEffect(() => {
     if (!isPlaying || moves.length === 0) return;
     if (currentMoveIndex >= moves.length - 1) {
       setIsPlaying(false);
       return;
     }
-
     const interval = setInterval(() => {
       setCurrentMoveIndex(prev => {
         const next = prev + 1;
@@ -228,109 +289,69 @@ export function UltimateReplayViewer({
           setIsPlaying(false);
           return prev;
         }
-
-        // Play move sound
-        if (soundEnabled) {
-          sounds.playMove();
-        }
-
+        if (soundEnabled) sounds.playMove();
         return next;
       });
     }, 1000 / playbackSpeed);
-
     return () => clearInterval(interval);
   }, [isPlaying, currentMoveIndex, moves.length, playbackSpeed, soundEnabled, sounds]);
 
-  // Critical move detection
+  /** '결정적인 수에서 자동 멈춤' 기능을 처리합니다. */
   useEffect(() => {
     if (criticalMoveDetection && isPlaying && currentGameMove) {
       const analysis = analyzeMoveQuality(currentGameMove);
       if (analysis?.shouldPause) {
         setIsPlaying(false);
-        if (soundEnabled) {
-          sounds.criticalMove();
-        }
+        if (soundEnabled) sounds.criticalMove();
       } else if (analysis?.quality.severity === 'excellent' && soundEnabled) {
         sounds.excellentMove();
       }
     }
   }, [currentMoveIndex, criticalMoveDetection, isPlaying, currentGameMove, soundEnabled, sounds]);
 
-  // Keyboard shortcuts
+  /** 다양한 키보드 단축키를 처리합니다. (재생, 탐색, 전체화면, 설정, 내보내기, 북마크 등) */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       switch (e.code) {
-        case 'Space':
-          e.preventDefault();
-          isPlaying ? handlePause() : handlePlay();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          handleStepBackward();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          handleStepForward();
-          break;
-        case 'Home':
-          e.preventDefault();
-          handleSeek(0);
-          break;
-        case 'End':
-          e.preventDefault();
-          handleSeek(moves.length);
-          break;
-        case 'KeyF':
-          e.preventDefault();
-          setIsFullscreen(prev => !prev);
-          break;
-        case 'KeyS':
-          e.preventDefault();
-          setShowSettings(prev => !prev);
-          break;
-        case 'KeyE':
-          e.preventDefault();
-          setShowExporter(true);
-          break;
-        case 'KeyB':
-          e.preventDefault();
-          setIsBookmarked(prev => !prev);
-          break;
+        case 'Space': e.preventDefault(); isPlaying ? handlePause() : handlePlay(); break;
+        case 'ArrowLeft': e.preventDefault(); handleStepBackward(); break;
+        case 'ArrowRight': e.preventDefault(); handleStepForward(); break;
+        case 'Home': e.preventDefault(); handleSeek(0); break;
+        case 'End': e.preventDefault(); handleSeek(moves.length); break;
+        case 'KeyF': e.preventDefault(); setIsFullscreen(prev => !prev); break;
+        case 'KeyS': e.preventDefault(); setShowSettings(prev => !prev); break;
+        case 'KeyE': e.preventDefault(); setShowExporter(true); break;
+        case 'KeyB': e.preventDefault(); setIsBookmarked(prev => !prev); break;
         case 'Escape':
           e.preventDefault();
-          if (isFullscreen) {
-            setIsFullscreen(false);
-          } else if (showSettings) {
-            setShowSettings(false);
-          } else if (showExporter) {
-            setShowExporter(false);
-          } else {
-            onClose();
-          }
+          if (isFullscreen) setIsFullscreen(false);
+          else if (showSettings) setShowSettings(false);
+          else if (showExporter) setShowExporter(false);
+          else onClose();
           break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, isFullscreen, showSettings, showExporter, moves.length]);
 
-  // Cleanup audio on unmount
+  /** 컴포넌트 언마운트 시 오디오 컨텍스트를 정리합니다. */
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
 
-  // Enhanced handlers
+  // --- Handlers ---
+
+  /** 재생을 시작하고 성능 모니터링을 시작합니다. */
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
     if (soundEnabled) sounds.playStart();
     if (performanceMonitoring) performanceMonitoring.startRenderTiming();
   }, [soundEnabled, sounds, performanceMonitoring]);
 
+  /** 재생을 멈추고 성능 모니터링을 종료합니다. */
   const handlePause = useCallback(() => {
     setIsPlaying(false);
     if (soundEnabled) sounds.playPause();
@@ -368,10 +389,12 @@ export function UltimateReplayViewer({
     if (soundEnabled) sounds.jumpToMove();
   }, [soundEnabled, sounds]);
 
+  /** 뷰 모드(레이아웃, 테마 등)를 변경합니다. */
   const handleViewModeChange = useCallback((changes: Partial<ViewMode>) => {
     setViewMode(prev => ({ ...prev, ...changes }));
   }, []);
 
+  /** 전체 화면 모드를 토글합니다. */
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen(prev => !prev);
     if (!isFullscreen) {
@@ -385,7 +408,7 @@ export function UltimateReplayViewer({
   const gameConfig = getGameModeConfig(gameReplay.gameMode);
   const playerResult = getPlayerResult(gameReplay);
 
-  // Performance metrics display
+  /** 성능 지표 오버레이를 렌더링합니다. */
   const performanceMetrics = useMemo(() => {
     if (!performanceMonitoring || !showPerformanceMetrics) return null;
 
@@ -409,7 +432,7 @@ export function UltimateReplayViewer({
     );
   }, [performanceMonitoring, showPerformanceMetrics]);
 
-  // Board size classes
+  /** 뷰 모드에 따라 보드 크기 CSS 클래스를 반환합니다. */
   const getBoardSizeClasses = () => {
     switch (viewMode.boardSize) {
       case 'small': return 'max-w-xs lg:max-w-sm';
@@ -418,7 +441,7 @@ export function UltimateReplayViewer({
     }
   };
 
-  // Layout classes
+  /** 뷰 모드와 전체 화면 상태에 따라 레이아웃 CSS 클래스를 반환합니다. */
   const getLayoutClasses = () => {
     if (isFullscreen) return 'fixed inset-0 z-[100]';
     if (viewMode.layout === 'theater') return 'fixed inset-0 z-50';

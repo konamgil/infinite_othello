@@ -4,41 +4,40 @@ import {
   ReplaySortOptions
 } from '../../types/replay';
 import {
-  Filter,
-  X,
-  Calendar,
-  Trophy,
-  Brain,
-  Users,
-  Castle,
-  Swords,
-  Clock,
-  SortAsc,
-  SortDesc,
-  Target,
-  Timer,
-  Search,
-  Star,
-  Zap,
-  TrendingUp,
-  Sliders,
-  RotateCcw,
-  ChevronDown,
-  ChevronUp,
-  Sparkles
+  Filter, X, Calendar, Trophy, Brain, Users, Castle, Swords, Clock,
+  SortAsc, SortDesc, Target, Timer, Search, Star, Zap, TrendingUp,
+  Sliders, RotateCcw, ChevronDown, ChevronUp, Sparkles
 } from 'lucide-react';
 
+/**
+ * @interface ReplayFiltersProps
+ * `ReplayFilters` 컴포넌트의 props를 정의합니다.
+ */
 interface ReplayFiltersProps {
+  /** @property {IReplayFilters} filters - 현재 적용된 필터 객체. */
   filters: IReplayFilters;
+  /** @property {ReplaySortOptions} sortOptions - 현재 적용된 정렬 옵션 객체. */
   sortOptions: ReplaySortOptions;
+  /** @property {string} searchQuery - 현재 검색어. */
   searchQuery: string;
+  /** @property {(filters: Partial<IReplayFilters>) => void} onFiltersChange - 필터 변경 시 호출될 콜백. */
   onFiltersChange: (filters: Partial<IReplayFilters>) => void;
+  /** @property {(sort: ReplaySortOptions) => void} onSortChange - 정렬 옵션 변경 시 호출될 콜백. */
   onSortChange: (sort: ReplaySortOptions) => void;
+  /** @property {(query: string) => void} onSearchChange - 검색어 변경 시 호출될 콜백. */
   onSearchChange: (query: string) => void;
+  /** @property {() => void} onClose - 필터 컴포넌트를 닫을 때 호출될 콜백. */
   onClose: () => void;
+  /** @property {string} [className] - 컴포넌트의 최상위 요소에 적용할 추가 CSS 클래스. */
   className?: string;
 }
 
+/**
+ * 게임 리플레이 목록을 위한 포괄적인 필터 및 정렬 UI를 제공하는 컴포넌트입니다.
+ * 검색, 빠른 필터 프리셋, 확장 가능한 고급 필터 섹션을 포함합니다.
+ * @param {ReplayFiltersProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 필터 및 정렬 UI.
+ */
 export function ReplayFilters({
   filters,
   sortOptions,
@@ -49,11 +48,17 @@ export function ReplayFilters({
   onClose,
   className = ''
 }: ReplayFiltersProps) {
+  /** @state {boolean} isExpanded - 고급 필터 섹션의 확장 여부. */
   const [isExpanded, setIsExpanded] = useState(false);
+  /** @state {string} searchTerm - 내부 검색어 상태 (디바운싱 적용). */
   const [searchTerm, setSearchTerm] = useState(searchQuery);
+  /** @state {string | null} activeSection - 현재 열려있는 고급 필터 섹션의 ID. */
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
-  // Debounced search
+  /**
+   * 검색어 입력에 대한 디바운싱을 처리하는 `useEffect` 훅입니다.
+   * 사용자가 타이핑을 멈춘 후 300ms가 지나면 `onSearchChange` 콜백을 호출합니다.
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       onSearchChange(searchTerm);
@@ -61,26 +66,24 @@ export function ReplayFilters({
     return () => clearTimeout(timer);
   }, [searchTerm, onSearchChange]);
 
+  // --- UI 옵션 상수 ---
   const gameModeOptions = [
     { value: 'tower' as const, label: '무한 탑', icon: Castle, color: 'text-amber-400', bgColor: 'bg-amber-400/10' },
     { value: 'battle' as const, label: '랭크 대전', icon: Swords, color: 'text-red-400', bgColor: 'bg-red-400/10' },
     { value: 'casual' as const, label: '일반 대전', icon: Users, color: 'text-blue-400', bgColor: 'bg-blue-400/10' },
     { value: 'ai' as const, label: 'AI 대전', icon: Brain, color: 'text-purple-400', bgColor: 'bg-purple-400/10' }
   ];
-
   const resultOptions = [
     { value: 'any' as const, label: '전체', icon: Filter, color: 'text-white/60' },
     { value: 'win' as const, label: '승리', icon: Trophy, color: 'text-green-400', bgColor: 'bg-green-400/10' },
     { value: 'loss' as const, label: '패배', icon: X, color: 'text-red-400', bgColor: 'bg-red-400/10' },
     { value: 'draw' as const, label: '무승부', icon: Target, color: 'text-yellow-400', bgColor: 'bg-yellow-400/10' }
   ];
-
   const opponentOptions = [
     { value: 'any' as const, label: '전체', icon: Filter, color: 'text-white/60' },
     { value: 'human' as const, label: '인간', icon: Users, color: 'text-blue-400', bgColor: 'bg-blue-400/10' },
     { value: 'ai' as const, label: 'AI', icon: Brain, color: 'text-purple-400', bgColor: 'bg-purple-400/10' }
   ];
-
   const sortOptions_list = [
     { value: 'date' as const, label: '날짜', icon: Calendar },
     { value: 'duration' as const, label: '게임 시간', icon: Timer },
@@ -88,95 +91,58 @@ export function ReplayFilters({
     { value: 'accuracy' as const, label: '정확도', icon: Target },
     { value: 'moves' as const, label: '수 개수', icon: Clock }
   ];
-
-  // Quick filter presets
   const quickPresets = [
-    {
-      label: '최근 승리',
-      icon: Trophy,
-      color: 'text-green-400',
-      bgColor: 'bg-green-400/10',
-      borderColor: 'border-green-400/20',
-      filters: { result: 'win' as const, dateRange: { start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), end: new Date() } }
-    },
-    {
-      label: '도전적인 게임',
-      icon: TrendingUp,
-      color: 'text-orange-400',
-      bgColor: 'bg-orange-400/10',
-      borderColor: 'border-orange-400/20',
-      filters: { ratingRange: { min: 1500, max: 2000 } }
-    },
-    {
-      label: 'AI 매치',
-      icon: Brain,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-400/10',
-      borderColor: 'border-purple-400/20',
-      filters: { opponent: 'ai' as const }
-    },
-    {
-      label: '긴 게임',
-      icon: Clock,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-400/10',
-      borderColor: 'border-blue-400/20',
-      filters: { minDuration: 1800 } // 30+ minutes
-    }
+    { label: '최근 승리', icon: Trophy, color: 'text-green-400', bgColor: 'bg-green-400/10', borderColor: 'border-green-400/20', filters: { result: 'win' as const, dateRange: { start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), end: new Date() } } },
+    { label: '도전적인 게임', icon: TrendingUp, color: 'text-orange-400', bgColor: 'bg-orange-400/10', borderColor: 'border-orange-400/20', filters: { ratingRange: { min: 1500, max: 2000 } } },
+    { label: 'AI 매치', icon: Brain, color: 'text-purple-400', bgColor: 'bg-purple-400/10', borderColor: 'border-purple-400/20', filters: { opponent: 'ai' as const } },
+    { label: '긴 게임', icon: Clock, color: 'text-blue-400', bgColor: 'bg-blue-400/10', borderColor: 'border-blue-400/20', filters: { minDuration: 1800 } }
   ];
 
+  // --- 이벤트 핸들러 ---
+
+  /** 게임 모드 필터를 토글합니다 (다중 선택). */
   const handleGameModeToggle = (mode: typeof gameModeOptions[0]['value']) => {
     const currentModes = filters.gameMode || [];
     const newModes = currentModes.includes(mode)
       ? currentModes.filter(m => m !== mode)
       : [...currentModes, mode];
-
     onFiltersChange({ gameMode: newModes });
   };
 
+  /** 빠른 필터 프리셋을 적용합니다. */
   const applyQuickPreset = (preset: typeof quickPresets[0]) => {
     onFiltersChange(preset.filters);
     setActiveSection(null);
   };
 
+  /** 레이팅 범위 슬라이더 변경을 처리합니다. */
   const handleRatingChange = useCallback((type: 'min' | 'max', value: number) => {
     const currentRange = filters.ratingRange || { min: 800, max: 2400 };
-    const newRange = { ...currentRange, [type]: value };
-    onFiltersChange({ ratingRange: newRange });
+    onFiltersChange({ ratingRange: { ...currentRange, [type]: value } });
   }, [filters.ratingRange, onFiltersChange]);
 
+  /** 날짜 범위 선택 변경을 처리합니다. */
   const handleDateRangeChange = (type: 'start' | 'end', date: Date) => {
     const currentRange = filters.dateRange || { start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), end: new Date() };
-    const newRange = { ...currentRange, [type]: date };
-    onFiltersChange({ dateRange: newRange });
+    onFiltersChange({ dateRange: { ...currentRange, [type]: date } });
   };
 
+  /** 모든 필터와 검색어를 초기화합니다. */
   const clearAllFilters = () => {
-    onFiltersChange({
-      gameMode: [],
-      opponent: 'any',
-      result: 'any',
-      dateRange: undefined,
-      minDuration: undefined,
-      maxDuration: undefined,
-      ratingRange: undefined,
-      tags: []
-    });
+    onFiltersChange({ gameMode: [], opponent: 'any', result: 'any', dateRange: undefined, minDuration: undefined, maxDuration: undefined, ratingRange: undefined, tags: [] });
     setSearchTerm('');
     onSearchChange('');
   };
 
+  /** 현재 활성화된 필터가 있는지 확인합니다. */
   const hasActiveFilters = () => {
     return (filters.gameMode && filters.gameMode.length > 0) ||
-           filters.opponent !== 'any' ||
-           filters.result !== 'any' ||
-           filters.dateRange ||
-           filters.minDuration ||
-           filters.maxDuration ||
-           filters.ratingRange ||
-           (filters.tags && filters.tags.length > 0);
+           filters.opponent !== 'any' || filters.result !== 'any' ||
+           filters.dateRange || filters.minDuration || filters.maxDuration ||
+           filters.ratingRange || (filters.tags && filters.tags.length > 0);
   };
 
+  /** 고급 필터 내의 섹션을 열고 닫습니다. */
   const toggleSection = (section: string) => {
     setActiveSection(activeSection === section ? null : section);
   };

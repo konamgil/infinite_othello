@@ -4,6 +4,20 @@ interface MoreStarCanvasProps {
   className?: string;
 }
 
+/**
+ * A React component that renders a dynamic, animated canvas background for the "More" feature screen.
+ *
+ * This component creates a calm and serene space-themed background, featuring:
+ * - A dark, deep space gradient.
+ * - Subtle, twinkling stars with soft colors.
+ * - Gently rotating and pulsing gear/setting symbols, hinting at the "More" section's purpose.
+ *
+ * It uses `requestAnimationFrame` for smooth animation and an `IntersectionObserver`
+ * to only render when visible, optimizing performance.
+ *
+ * @param {MoreStarCanvasProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element.
+ */
 export function MoreStarCanvas({ className = '' }: MoreStarCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();

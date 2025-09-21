@@ -32,8 +32,22 @@ const OAUTH_CONFIGS: Record<SupportedProvider, OAuthConfig> = {
   },
 };
 
+/**
+ * OAuth 인증 흐름을 관리하기 위한 유틸리티 클래스입니다.
+ *
+ * 이 클래스는 다양한 OAuth 제공업체를 통한 로그인, 게스트 계정을 영구 OAuth 계정에 연결,
+ * 그리고 OAuth 콜백 처리를 위한 정적 메서드를 제공합니다.
+ */
 export class OAuthManager {
-  // OAuth 로그인 시작 (게스트 데이터 포함)
+  /**
+   * 주어진 제공업체에 대한 OAuth 로그인 흐름을 시작합니다.
+   * 게스트 프로필이 제공된 경우, 성공적인 로그인 후 계정 연결을 용이하게 하기 위해
+   * OAuth 요청에 게스트 정보를 포함합니다.
+   *
+   * @param {SupportedProvider} provider - 로그인할 OAuth 제공업체.
+   * @param {Profile | null} [guestProfile] - 현재 게스트의 프로필 (있는 경우).
+   * @returns {Promise<{ success: boolean; error?: string }>} 로그인 시작 결과 객체.
+   */
   static async signInWithProvider(
     provider: SupportedProvider,
     guestProfile?: Profile | null
@@ -75,7 +89,18 @@ export class OAuthManager {
     }
   }
 
-  // 게스트 계정을 OAuth 계정으로 연동
+  /**
+   * 기존 게스트 계정을 새로운 OAuth ID에 연결합니다.
+   *
+   * 이 메서드는 게스트의 프로필을 OAuth 사용자의 정보로 업데이트하고,
+   * 게임 기록을 마이그레이션하며, 임시 게스트 데이터를 제거합니다.
+   *
+   * @param {string} guestCode - 연결할 게스트 계정의 코드.
+   * @param {string} oauthUserId - OAuth 제공업체의 사용자 ID.
+   * @param {SupportedProvider} provider - 연결 중인 OAuth 제공업체.
+   * @param {object} oauthData - OAuth 제공업체의 사용자 데이터.
+   * @returns {Promise<{ success: boolean; profile?: Profile; error?: string }>} 연결 작업 결과.
+   */
   static async linkGuestToOAuth(
     guestCode: string,
     oauthUserId: string,
@@ -143,7 +168,10 @@ export class OAuthManager {
     }
   }
 
-  // 기존 OAuth 연동 확인
+  /**
+   * 주어진 OAuth 제공업체 ID가 이미 기존 프로필에 연결되어 있는지 확인합니다.
+   * @private
+   */
   private static async checkExistingOAuthLink(
     provider: SupportedProvider,
     providerId: string
@@ -161,7 +189,10 @@ export class OAuthManager {
     }
   }
 
-  // 이메일에서 사용자명 생성
+  /**
+   * 이메일 주소에서 기본 사용자 이름을 생성합니다.
+   * @private
+   */
   private static generateUsernameFromEmail(email?: string): string | null {
     if (!email) return null;
 
@@ -173,7 +204,10 @@ export class OAuthManager {
     return cleaned.length < 3 ? `${cleaned}${Math.floor(Math.random() * 1000)}` : cleaned;
   }
 
-  // 게스트 게임 기록 마이그레이션
+  /**
+   * 게스트의 게임 기록을 새로운 영구 사용자 ID로 마이그레이션합니다.
+   * @private
+   */
   private static async migrateGuestGameHistory(guestCode: string, newUserId: string): Promise<void> {
     try {
       // 게스트로 플레이한 게임들의 플레이어 ID 업데이트
@@ -193,7 +227,15 @@ export class OAuthManager {
     }
   }
 
-  // OAuth 콜백 처리
+  /**
+   * 사용자가 로그인한 후 OAuth 콜백을 처리합니다.
+   *
+   * 이 복잡한 메서드는 사용자가 신규인지, 게스트 계정에서 연결 중인지,
+   * 또는 재방문 사용자인지를 결정합니다. 그에 따라 사용자 프로필의 생성 또는
+   * 업데이트를 조율합니다.
+   *
+   * @returns {Promise<{ success: boolean; profile?: Profile; isNewUser?: boolean; error?: string }>} 콜백 처리 결과.
+   */
   static async handleOAuthCallback(): Promise<{
     success: boolean;
     profile?: Profile;
@@ -267,7 +309,10 @@ export class OAuthManager {
     }
   }
 
-  // 사용자에서 제공자 정보 추출
+  /**
+   * Supabase 사용자 객체에서 OAuth 제공업체 유형과 ID를 추출합니다.
+   * @private
+   */
   private static extractProviderFromUser(user: any): {
     type: SupportedProvider;
     id: string;
@@ -292,7 +337,10 @@ export class OAuthManager {
     };
   }
 
-  // 연동된 프로필 조회
+  /**
+   * 사용자 ID로 데이터베이스에서 기존 사용자 프로필을 가져옵니다.
+   * @private
+   */
   private static async getLinkedProfile(userId: string): Promise<Profile | null> {
     try {
       const { data } = await supabase
@@ -307,7 +355,10 @@ export class OAuthManager {
     }
   }
 
-  // 새 OAuth 프로필 생성
+  /**
+   * 새로운 OAuth 사용자를 위해 데이터베이스에 새 사용자 프로필을 생성합니다.
+   * @private
+   */
   private static async createOAuthProfile(
     user: any,
     provider: { type: SupportedProvider; id: string }
@@ -344,7 +395,11 @@ export class OAuthManager {
     return data;
   }
 
-  // 제공자 표시 이름
+  /**
+   * 주어진 OAuth 제공업체의 표시 이름을 가져옵니다.
+   * @param {SupportedProvider} provider - 제공업체.
+   * @returns {string} 표시 이름 (예: "Google").
+   */
   static getProviderDisplayName(provider: SupportedProvider): string {
     const names = {
       google: 'Google',
@@ -354,7 +409,10 @@ export class OAuthManager {
     return names[provider];
   }
 
-  // OAuth 에러 메시지 번역
+  /**
+   * 일반적인 OAuth 오류 메시지를 한국어로 번역합니다.
+   * @private
+   */
   private static translateOAuthError(error: string): string {
     const errorMap: Record<string, string> = {
       'Invalid login credentials': '로그인 정보가 올바르지 않습니다.',
@@ -367,7 +425,11 @@ export class OAuthManager {
     return errorMap[error] || `인증 오류: ${error}`;
   }
 
-  // 제공자별 아이콘/색상 정보
+  /**
+   * 주어진 OAuth 제공업체에 대한 UI 스타일링 정보(아이콘, 색상)를 제공합니다.
+   * @param {SupportedProvider} provider - 제공업체.
+   * @returns 스타일링 속성을 가진 객체.
+   */
   static getProviderStyle(provider: SupportedProvider) {
     const styles = {
       google: {
@@ -393,7 +455,11 @@ export class OAuthManager {
   }
 }
 
-// OAuth 관련 유틸리티 함수들
+/**
+ * `OAuthManager`의 주요 메서드를 내보내는 유틸리티 객체입니다.
+ * 이는 애플리케이션의 다른 부분, 특히 인증 흐름을 트리거해야 하는
+ * UI 컴포넌트나 훅에 깨끗하고 단순화된 인터페이스를 제공합니다.
+ */
 export const oauthUtils = {
   signIn: OAuthManager.signInWithProvider,
   handleCallback: OAuthManager.handleOAuthCallback,

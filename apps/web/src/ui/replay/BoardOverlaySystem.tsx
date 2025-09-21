@@ -5,17 +5,33 @@ import { AnalysisData } from './AdvancedAnalysisSystem';
    Types & Interfaces
    ────────────────────────────────────────────────────────────────── */
 
+/**
+ * @interface BoardOverlayProps
+ * `BoardOverlaySystem` 컴포넌트의 props를 정의합니다.
+ */
 export interface BoardOverlayProps {
+  /** @property {Array<Array<-1 | 0 | 1>>} board - 현재 게임 보드 상태. */
   board: Array<Array<-1 | 0 | 1>>;
+  /** @property {AnalysisData | null} analysisData - 시각화할 분석 데이터. */
   analysisData: AnalysisData | null;
+  /** @property {'scores' | 'heatmap' | 'mobility' | 'frontier' | null} overlayMode - 현재 활성화된 오버레이 모드. */
   overlayMode: 'scores' | 'heatmap' | 'mobility' | 'frontier' | null;
+  /** @property {boolean} simulationMode - 'What-if' 시뮬레이션 모드 활성화 여부. */
   simulationMode: boolean;
+  /** @property {{ x: number; y: number }} [currentMove] - 현재 수의 위치. */
   currentMove?: { x: number; y: number };
+  /** @property {(x: number, y: number) => void} [onCellClick] - 사용자가 셀을 클릭했을 때 호출될 콜백. */
   onCellClick?: (x: number, y: number) => void;
+  /** @property {(x: number, y: number) => void} [onSimulationMove] - 시뮬레이션 모드에서 사용자가 셀을 클릭했을 때 호출될 콜백. */
   onSimulationMove?: (x: number, y: number) => void;
+  /** @property {string} [className] - 컴포넌트의 최상위 요소에 적용할 추가 CSS 클래스. */
   className?: string;
 }
 
+/**
+ * @interface CellOverlay
+ * 각 셀에 대한 오버레이 데이터를 표준화하기 위한 내부 인터페이스.
+ */
 interface CellOverlay {
   x: number;
   y: number;
@@ -30,6 +46,12 @@ interface CellOverlay {
    Board Overlay System Component
    ────────────────────────────────────────────────────────────────── */
 
+/**
+ * 게임 보드 위에 다양한 분석 정보를 시각적으로 오버레이하는 시스템 컴포넌트입니다.
+ * 점수, 히트맵, 이동성, 경계 등 다양한 모드를 지원합니다.
+ * @param {BoardOverlayProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 보드 오버레이 UI.
+ */
 export function BoardOverlaySystem({
   board,
   analysisData,
@@ -40,14 +62,21 @@ export function BoardOverlaySystem({
   onSimulationMove,
   className = ''
 }: BoardOverlayProps) {
+  /** @state {{x: number, y: number} | null} hoveredCell - 현재 마우스가 호버된 셀의 좌표. */
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
+  /** @state {{x: number, y: number} | null} simulationPreview - 시뮬레이션 모드에서 호버된 셀의 미리보기 좌표. */
   const [simulationPreview, setSimulationPreview] = useState<{ x: number; y: number } | null>(null);
 
-  // Generate overlay data based on mode
+  /**
+   * `analysisData`와 `overlayMode`에 따라 렌더링할 오버레이 데이터를 계산하고 memoization합니다.
+   * 각 오버레이 모드에 따라 `CellOverlay` 형식의 배열을 생성합니다.
+   * @type {CellOverlay[]}
+   */
   const overlayData = useMemo<CellOverlay[]>(() => {
     if (!analysisData || !overlayMode) return [];
 
     switch (overlayMode) {
+      // 'scores': 둘 수 있는 각 수의 평가 점수를 표시합니다.
       case 'scores':
         return analysisData.legalMoves.map(move => ({
           x: move.x,
@@ -59,54 +88,47 @@ export function BoardOverlaySystem({
           category: move.category
         }));
 
+      // 'mobility': 비어있는 각 칸에 두었을 때 확보 가능한 이동성을 계산하여 표시합니다.
       case 'mobility':
-        // Generate mobility heatmap for empty cells
         return board.flatMap((row, y) =>
           row.map((cell, x) => {
             if (cell !== 0) return null;
-            // Simulate mobility calculation for this position
-            const mobilityScore = calculateMobilityScore(x, y, board);
+            const mobilityScore = calculateMobilityScore(x, y, board); // 단순화된 목업 계산
             return {
-              x,
-              y,
-              value: mobilityScore,
+              x, y, value: mobilityScore,
               color: getMobilityColor(mobilityScore),
               intensity: mobilityScore / 10,
-              label: mobilityScore > 0 ? '+' + mobilityScore.toString() : mobilityScore.toString()
+              label: mobilityScore > 0 ? `+${mobilityScore}` : `${mobilityScore}`
             };
-          }).filter(Boolean)
-        ).filter((item): item is CellOverlay => item !== null);
+          })
+        ).filter((item): item is CellOverlay => !!item);
 
+      // 'frontier': 경계에 있는 돌들의 안정성을 계산하여 표시합니다.
       case 'frontier':
-        // Show frontier analysis for occupied cells
         return board.flatMap((row, y) =>
           row.map((cell, x) => {
             if (cell === 0) return null;
-            const isEdge = isFrontierCell(x, y, board);
-            const stability = calculateStability(x, y, board);
+            const isEdge = isFrontierCell(x, y, board); // 단순화된 목업 계산
+            const stability = calculateStability(x, y, board); // 단순화된 목업 계산
             return isEdge ? {
-              x,
-              y,
-              value: stability,
+              x, y, value: stability,
               color: getStabilityColor(stability),
               intensity: 1 - (stability / 100),
-              label: stability + '%'
+              label: `${stability}%`
             } : null;
-          }).filter(Boolean)
-        ).filter((item): item is CellOverlay => item !== null);
+          })
+        ).filter((item): item is CellOverlay => !!item);
 
+      // 'heatmap': 각 칸의 정적인 전략적 가치를 히트맵으로 표시합니다.
       case 'heatmap':
-        // General position evaluation heatmap
         return board.flatMap((row, y) =>
           row.map((cell, x) => {
-            const positionValue = getPositionValue(x, y);
+            const positionValue = getPositionValue(x, y); // 정적 위치 가치
             return {
-              x,
-              y,
-              value: positionValue,
+              x, y, value: positionValue,
               color: getHeatmapColor(positionValue),
               intensity: Math.abs(positionValue) / 100,
-              label: positionValue > 0 ? '+' + positionValue.toString() : positionValue.toString()
+              label: positionValue > 0 ? `+${positionValue}` : `${positionValue}`
             };
           })
         );
@@ -116,7 +138,10 @@ export function BoardOverlaySystem({
     }
   }, [board, analysisData, overlayMode]);
 
-  // Handle cell interaction
+  /**
+   * 셀 클릭 이벤트를 처리합니다.
+   * 시뮬레이션 모드일 경우 `onSimulationMove`를, 그 외에는 `onCellClick` 콜백을 호출합니다.
+   */
   const handleCellClick = (x: number, y: number) => {
     if (simulationMode && board[y][x] === 0) {
       onSimulationMove?.(x, y);
@@ -124,6 +149,7 @@ export function BoardOverlaySystem({
     onCellClick?.(x, y);
   };
 
+  /** 셀 호버 시작 이벤트를 처리합니다. */
   const handleCellHover = (x: number, y: number) => {
     setHoveredCell({ x, y });
     if (simulationMode && board[y][x] === 0) {
@@ -131,6 +157,7 @@ export function BoardOverlaySystem({
     }
   };
 
+  /** 셀 호버 종료 이벤트를 처리합니다. */
   const handleCellLeave = () => {
     setHoveredCell(null);
     setSimulationPreview(null);
