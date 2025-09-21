@@ -33,20 +33,20 @@ const OAUTH_CONFIGS: Record<SupportedProvider, OAuthConfig> = {
 };
 
 /**
- * A utility class for managing OAuth authentication flows.
+ * OAuth 인증 흐름을 관리하기 위한 유틸리티 클래스입니다.
  *
- * This class provides static methods to handle signing in with various OAuth providers,
- * linking guest accounts to permanent OAuth accounts, and processing the OAuth callback.
+ * 이 클래스는 다양한 OAuth 제공업체를 통한 로그인, 게스트 계정을 영구 OAuth 계정에 연결,
+ * 그리고 OAuth 콜백 처리를 위한 정적 메서드를 제공합니다.
  */
 export class OAuthManager {
   /**
-   * Initiates the OAuth sign-in flow for a given provider.
-   * If a guest profile is provided, it includes guest information in the OAuth
-   * request to facilitate account linking after a successful sign-in.
+   * 주어진 제공업체에 대한 OAuth 로그인 흐름을 시작합니다.
+   * 게스트 프로필이 제공된 경우, 성공적인 로그인 후 계정 연결을 용이하게 하기 위해
+   * OAuth 요청에 게스트 정보를 포함합니다.
    *
-   * @param {SupportedProvider} provider - The OAuth provider to sign in with.
-   * @param {Profile | null} [guestProfile] - The current guest's profile, if any.
-   * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the outcome of the sign-in initiation.
+   * @param {SupportedProvider} provider - 로그인할 OAuth 제공업체.
+   * @param {Profile | null} [guestProfile] - 현재 게스트의 프로필 (있는 경우).
+   * @returns {Promise<{ success: boolean; error?: string }>} 로그인 시작 결과 객체.
    */
   static async signInWithProvider(
     provider: SupportedProvider,
@@ -90,16 +90,16 @@ export class OAuthManager {
   }
 
   /**
-   * Links an existing guest account to a new OAuth identity.
+   * 기존 게스트 계정을 새로운 OAuth ID에 연결합니다.
    *
-   * This method updates the guest's profile with the OAuth user's information,
-   * migrates their game history, and removes the temporary guest data.
+   * 이 메서드는 게스트의 프로필을 OAuth 사용자의 정보로 업데이트하고,
+   * 게임 기록을 마이그레이션하며, 임시 게스트 데이터를 제거합니다.
    *
-   * @param {string} guestCode - The code of the guest account to link.
-   * @param {string} oauthUserId - The user ID from the OAuth provider.
-   * @param {SupportedProvider} provider - The OAuth provider being linked.
-   * @param {object} oauthData - The user data from the OAuth provider.
-   * @returns {Promise<{ success: boolean; profile?: Profile; error?: string }>} The result of the linking operation.
+   * @param {string} guestCode - 연결할 게스트 계정의 코드.
+   * @param {string} oauthUserId - OAuth 제공업체의 사용자 ID.
+   * @param {SupportedProvider} provider - 연결 중인 OAuth 제공업체.
+   * @param {object} oauthData - OAuth 제공업체의 사용자 데이터.
+   * @returns {Promise<{ success: boolean; profile?: Profile; error?: string }>} 연결 작업 결과.
    */
   static async linkGuestToOAuth(
     guestCode: string,
@@ -169,7 +169,7 @@ export class OAuthManager {
   }
 
   /**
-   * Checks if a given OAuth provider ID is already linked to an existing profile.
+   * 주어진 OAuth 제공업체 ID가 이미 기존 프로필에 연결되어 있는지 확인합니다.
    * @private
    */
   private static async checkExistingOAuthLink(
@@ -190,7 +190,7 @@ export class OAuthManager {
   }
 
   /**
-   * Generates a default username from an email address.
+   * 이메일 주소에서 기본 사용자 이름을 생성합니다.
    * @private
    */
   private static generateUsernameFromEmail(email?: string): string | null {
@@ -205,7 +205,7 @@ export class OAuthManager {
   }
 
   /**
-   * Migrates a guest's game history to their new permanent user ID.
+   * 게스트의 게임 기록을 새로운 영구 사용자 ID로 마이그레이션합니다.
    * @private
    */
   private static async migrateGuestGameHistory(guestCode: string, newUserId: string): Promise<void> {
@@ -228,12 +228,13 @@ export class OAuthManager {
   }
 
   /**
-   * Handles the OAuth callback after a user signs in.
+   * 사용자가 로그인한 후 OAuth 콜백을 처리합니다.
    *
-   * This complex method determines if the user is new, linking from a guest account,
-   * or a returning user. It orchestrates the creation or updating of the user's profile accordingly.
+   * 이 복잡한 메서드는 사용자가 신규인지, 게스트 계정에서 연결 중인지,
+   * 또는 재방문 사용자인지를 결정합니다. 그에 따라 사용자 프로필의 생성 또는
+   * 업데이트를 조율합니다.
    *
-   * @returns {Promise<{ success: boolean; profile?: Profile; isNewUser?: boolean; error?: string }>} The result of the callback processing.
+   * @returns {Promise<{ success: boolean; profile?: Profile; isNewUser?: boolean; error?: string }>} 콜백 처리 결과.
    */
   static async handleOAuthCallback(): Promise<{
     success: boolean;
@@ -309,7 +310,7 @@ export class OAuthManager {
   }
 
   /**
-   * Extracts the OAuth provider type and ID from the Supabase user object.
+   * Supabase 사용자 객체에서 OAuth 제공업체 유형과 ID를 추출합니다.
    * @private
    */
   private static extractProviderFromUser(user: any): {
@@ -337,7 +338,7 @@ export class OAuthManager {
   }
 
   /**
-   * Fetches an existing user profile from the database by their user ID.
+   * 사용자 ID로 데이터베이스에서 기존 사용자 프로필을 가져옵니다.
    * @private
    */
   private static async getLinkedProfile(userId: string): Promise<Profile | null> {
@@ -355,7 +356,7 @@ export class OAuthManager {
   }
 
   /**
-   * Creates a new user profile in the database for a new OAuth user.
+   * 새로운 OAuth 사용자를 위해 데이터베이스에 새 사용자 프로필을 생성합니다.
    * @private
    */
   private static async createOAuthProfile(
@@ -395,9 +396,9 @@ export class OAuthManager {
   }
 
   /**
-   * Gets the display name for a given OAuth provider.
-   * @param {SupportedProvider} provider - The provider.
-   * @returns {string} The display name (e.g., "Google").
+   * 주어진 OAuth 제공업체의 표시 이름을 가져옵니다.
+   * @param {SupportedProvider} provider - 제공업체.
+   * @returns {string} 표시 이름 (예: "Google").
    */
   static getProviderDisplayName(provider: SupportedProvider): string {
     const names = {
@@ -409,7 +410,7 @@ export class OAuthManager {
   }
 
   /**
-   * Translates common OAuth error messages into Korean.
+   * 일반적인 OAuth 오류 메시지를 한국어로 번역합니다.
    * @private
    */
   private static translateOAuthError(error: string): string {
@@ -425,9 +426,9 @@ export class OAuthManager {
   }
 
   /**
-   * Provides UI styling information (icon, colors) for a given OAuth provider.
-   * @param {SupportedProvider} provider - The provider.
-   * @returns An object with styling properties.
+   * 주어진 OAuth 제공업체에 대한 UI 스타일링 정보(아이콘, 색상)를 제공합니다.
+   * @param {SupportedProvider} provider - 제공업체.
+   * @returns 스타일링 속성을 가진 객체.
    */
   static getProviderStyle(provider: SupportedProvider) {
     const styles = {
@@ -455,9 +456,9 @@ export class OAuthManager {
 }
 
 /**
- * A utility object that exports key methods from the OAuthManager.
- * This provides a clean, simplified interface for other parts of the application,
- * particularly UI components or hooks that need to trigger authentication flows.
+ * `OAuthManager`의 주요 메서드를 내보내는 유틸리티 객체입니다.
+ * 이는 애플리케이션의 다른 부분, 특히 인증 흐름을 트리거해야 하는
+ * UI 컴포넌트나 훅에 깨끗하고 단순화된 인터페이스를 제공합니다.
  */
 export const oauthUtils = {
   signIn: OAuthManager.signInWithProvider,

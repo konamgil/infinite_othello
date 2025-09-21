@@ -2,24 +2,25 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
 /**
- * Defines the shape of the application's global state.
+ * @interface AppState
+ * 애플리케이션의 전역 상태의 형태를 정의합니다.
  */
 export interface AppState {
-  /** Manages different types of loading indicators across the app. */
+  /** @property {object} loading - 앱 전체의 다양한 로딩 상태를 관리합니다. */
   loading: {
     global: boolean;
     page: string | null;
     operation: string | null;
   };
 
-  // 에러 관리
+  /** @property {object} error - 발생한 에러 상태를 관리합니다. */
   error: {
     global: Error | null;
     network: Error | null;
     game: Error | null;
   };
 
-  // 알림 시스템
+  /** @property {Array} notifications - 사용자에게 표시될 알림 목록입니다. */
   notifications: Array<{
     id: string;
     type: 'info' | 'success' | 'warning' | 'error';
@@ -29,7 +30,7 @@ export interface AppState {
     read: boolean;
   }>;
 
-  // 앱 설정
+  /** @property {object} settings - 사용자의 앱 설정을 관리합니다. */
   settings: {
     language: 'ko' | 'en' | 'ja';
     timezone: string;
@@ -37,7 +38,7 @@ export interface AppState {
     performanceMode: boolean;
   };
 
-  // 디바이스 정보
+  /** @property {object} device - 사용자의 디바이스 환경 정보를 관리합니다. */
   device: {
     isMobile: boolean;
     isTablet: boolean;
@@ -48,34 +49,35 @@ export interface AppState {
 }
 
 /**
- * Defines the actions that can be performed on the application's global state.
+ * @interface AppActions
+ * 애플리케이션 전역 상태에 대해 수행할 수 있는 액션들을 정의합니다.
  */
 export interface AppActions {
-  /** Sets the state for a specific type of loading indicator. */
+  /** 특정 종류의 로딩 상태를 설정합니다. */
   setLoading: (type: keyof AppState['loading'], value: boolean | string) => void;
-  /** Resets all loading indicators to their initial state. */
+  /** 모든 로딩 상태를 초기화합니다. */
   clearLoading: () => void;
 
-  /** Sets an error for a specific domain. */
+  /** 특정 영역의 에러를 설정합니다. */
   setError: (type: keyof AppState['error'], error: Error | null) => void;
-  /** Clears all errors. */
+  /** 모든 에러를 초기화합니다. */
   clearErrors: () => void;
-  /** Clears a specific error by its type. */
+  /** 특정 종류의 에러를 초기화합니다. */
   clearError: (type: keyof AppState['error']) => void;
 
-  /** Adds a new notification to be displayed to the user. */
+  /** 새로운 알림을 추가합니다. */
   addNotification: (notification: Omit<AppState['notifications'][0], 'id' | 'timestamp' | 'read'>) => void;
-  /** Removes a notification by its ID. */
+  /** ID로 특정 알림을 제거합니다. */
   removeNotification: (id: string) => void;
-  /** Marks a specific notification as read. */
+  /** 특정 알림을 '읽음' 상태로 표시합니다. */
   markNotificationRead: (id: string) => void;
-  /** Clears all notifications. */
+  /** 모든 알림을 제거합니다. */
   clearNotifications: () => void;
 
-  /** Updates one or more application settings. */
+  /** 하나 이상의 앱 설정을 업데이트합니다. */
   updateSettings: (settings: Partial<AppState['settings']>) => void;
 
-  /** Updates device-specific information, like orientation or online status. */
+  /** 디바이스 관련 정보를 업데이트합니다. (예: 화면 방향, 온라인 상태) */
   updateDevice: (device: Partial<AppState['device']>) => void;
 }
 
@@ -110,11 +112,11 @@ const initialState: AppState = {
 };
 
 /**
- * The main Zustand store for global application state.
+ * 앱의 전역 상태를 관리하는 메인 Zustand 스토어입니다.
  *
- * This store manages application-wide concerns such as loading states, error handling,
- * notifications, and device information. It uses `devtools` for debugging and `persist`
- * middleware to save user settings to localStorage.
+ * 이 스토어는 로딩 상태, 에러 핸들링, 알림, 디바이스 정보 등 앱 전반의 상태를 다룹니다.
+ * 디버깅을 위해 `devtools` 미들웨어를 사용하고, 사용자 설정을 localStorage에 저장하기 위해
+ * `persist` 미들웨어를 사용합니다.
  */
 export const useAppStore = create<AppStore>()(
   devtools(
@@ -252,9 +254,8 @@ export const useAppStore = create<AppStore>()(
 );
 
 /**
- * Convenience hooks for accessing specific parts of the AppStore.
- * These allow components to subscribe to only the state they need, preventing
- * unnecessary re-renders.
+ * AppStore의 특정 부분에 쉽게 접근하기 위한 편의성 훅입니다.
+ * 이 훅들을 사용하면 컴포넌트가 필요한 상태에만 구독하여 불필요한 리렌더링을 방지할 수 있습니다.
  */
 export const useLoading = () => useAppStore((state) => state.loading);
 export const useError = () => useAppStore((state) => state.error);
@@ -263,9 +264,9 @@ export const useAppSettings = () => useAppStore((state) => state.settings);
 export const useDevice = () => useAppStore((state) => state.device);
 
 /**
- * A hook that provides access to all the action functions of the AppStore.
- * This is useful for components that need to dispatch actions but don't need to
- * subscribe to any state changes, as it won't cause re-renders when state changes.
+ * AppStore의 모든 액션 함수에 접근할 수 있는 훅입니다.
+ * 상태 변화에는 구독하지 않고 액션만 디스패치해야 하는 컴포넌트에 유용하며,
+ * 상태가 변경될 때 리렌더링을 발생시키지 않습니다.
  */
 export const useAppActions = () => useAppStore((state) => ({
   setLoading: state.setLoading,

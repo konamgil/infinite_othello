@@ -2,13 +2,14 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 /**
- * Defines the shape of the game's UI and user preference state.
+ * @interface GameState
+ * 게임의 UI 및 사용자 선호도와 관련된 상태의 형태를 정의합니다.
  */
 export interface GameState {
-  /** The currently active main tab in the bottom navigation. */
+  /** @property {string} activeTab - 하단 네비게이션에서 현재 활성화된 메인 탭. */
   activeTab: 'home' | 'tower' | 'battle' | 'stella' | 'more';
 
-  // 플레이어 정보
+  /** @property {object} player - 플레이어의 프로필 및 진행 상황 정보. */
   player: {
     name: string;
     rating: number;
@@ -21,13 +22,13 @@ export interface GameState {
     rp: number;
   };
 
-  // 테마 설정
+  /** @property {object} theme - 시각적 테마 설정. */
   theme: {
     board: 'classic' | 'dark' | 'galaxy' | 'magic' | 'seasons';
     stone: 'classic' | 'ruby-sapphire' | 'sun-moon' | 'fire-ice' | 'techno';
   };
 
-  // UI 설정
+  /** @property {object} ui - 일반적인 UI 관련 설정. */
   ui: {
     fontSize: 'small' | 'medium' | 'large';
     animations: boolean;
@@ -36,25 +37,26 @@ export interface GameState {
 }
 
 /**
- * Defines the actions that can be performed on the game state.
+ * @interface GameActions
+ * 게임 상태에 대해 수행할 수 있는 액션들을 정의합니다.
  */
 export interface GameActions {
-  /** Sets the currently active tab. */
+  /** 현재 활성화된 탭을 설정합니다. */
   setActiveTab: (tab: GameState['activeTab']) => void;
-  /** Updates one or more properties of the player's profile. */
+  /** 플레이어 프로필의 하나 이상의 속성을 업데이트합니다. */
   updatePlayer: (player: Partial<GameState['player']>) => void;
-  /** Updates the visual theme settings. */
+  /** 시각적 테마 설정을 업데이트합니다. */
   setTheme: (theme: Partial<GameState['theme']>) => void;
-  /** Updates the general UI settings. */
+  /** 일반 UI 설정을 업데이트합니다. */
   updateUISettings: (settings: Partial<GameState['ui']>) => void;
 }
 
 export type GameStore = GameState & GameActions;
 
 /**
- * Calculates the initial active tab based on the current URL path.
- * This ensures the correct tab is highlighted when the app loads on a specific page.
- * @returns {GameState['activeTab']} The initial tab to be activated.
+ * 현재 URL 경로를 기반으로 초기 활성 탭을 계산합니다.
+ * 이를 통해 앱이 특정 페이지에서 로드될 때 올바른 탭이 강조 표시됩니다.
+ * @returns {GameState['activeTab']} 활성화할 초기 탭.
  */
 const getInitialTab = (): GameState['activeTab'] => {
   if (typeof window === 'undefined') return 'home';
@@ -64,7 +66,7 @@ const getInitialTab = (): GameState['activeTab'] => {
   if (path === '/tower') return 'tower';
   if (path === '/battle') return 'battle';
   if (path === '/stella') return 'stella';
-  if (path === '/more' || path === '/replay') return 'more'; // /replay maps to more tab
+  if (path === '/more' || path === '/replay') return 'more'; // /replay는 '더보기' 탭에 매핑됨
   return 'home';
 };
 
@@ -94,11 +96,10 @@ const initialState: GameState = {
 };
 
 /**
- * The Zustand store for managing general game UI state and user preferences.
+ * 일반적인 게임 UI 상태와 사용자 선호도를 관리하는 Zustand 스토어입니다.
  *
- * This store holds information about the active UI tab, player stats,
- * and visual/audio settings. It does not manage the core Othello game logic,
- * which is handled by `othelloStore`.
+ * 이 스토어는 활성 UI 탭, 플레이어 통계, 시각/음향 설정에 대한 정보를 관리합니다.
+ * 핵심 오델로 게임 로직은 `othelloStore`에서 처리하며, 이 스토어에서는 다루지 않습니다.
  */
 export const useGameStore = create<GameStore>()(
   devtools(
@@ -142,7 +143,7 @@ export const useGameStore = create<GameStore>()(
 );
 
 /**
- * Convenience hooks for accessing specific parts of the GameStore.
+ * GameStore의 특정 부분에 쉽게 접근하기 위한 편의성 훅입니다.
  */
 export const useActiveTab = () => useGameStore((state) => state.activeTab);
 export const usePlayer = () => useGameStore((state) => state.player);

@@ -2,22 +2,23 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 /**
- * Defines the shape of the core Othello game state.
+ * @interface OthelloState
+ * 핵심 오델로 게임 상태의 형태를 정의합니다.
  */
 export interface OthelloState {
-  /** The 2D array representing the game board. */
+  /** @property {Array<Array<'black' | 'white' | null>>} board - 게임 보드를 나타내는 2차원 배열. */
   board: Array<Array<'black' | 'white' | null>>;
-  /** The size of the board (e.g., 8 for a standard 8x8 board). */
+  /** @property {number} boardSize - 보드의 크기 (예: 표준 8x8 보드의 경우 8). */
   boardSize: number;
 
-  /** The current status of the game. */
+  /** @property {'waiting' | 'playing' | 'paused' | 'finished'} gameStatus - 현재 게임의 상태. */
   gameStatus: 'waiting' | 'playing' | 'paused' | 'finished';
-  /** The player whose turn it is. */
+  /** @property {'black' | 'white'} currentPlayer - 현재 턴인 플레이어. */
   currentPlayer: 'black' | 'white';
-  /** An array of coordinates representing valid moves for the current player. */
+  /** @property {Array<{ row: number; col: number }>} validMoves - 현재 플레이어가 둘 수 있는 유효한 수의 좌표 배열. */
   validMoves: Array<{ row: number; col: number }>;
 
-  /** A record of all moves made in the current game. */
+  /** @property {Array} history - 현재 게임에서 이루어진 모든 수의 기록. */
   history: Array<{
     board: Array<Array<'black' | 'white' | null>>;
     player: 'black' | 'white';
@@ -25,25 +26,25 @@ export interface OthelloState {
     timestamp: number;
   }>;
 
-  /** The current score of the game. */
+  /** @property {{ black: number; white: number }} score - 현재 게임의 점수. */
   score: {
     black: number;
     white: number;
   };
 
-  /** Settings related to the current game mode. */
+  /** @property {'single' | 'local' | 'online' | 'ai'} gameMode - 현재 게임 모드 관련 설정. */
   gameMode: 'single' | 'local' | 'online' | 'ai';
-  /** The difficulty level for an AI opponent. */
+  /** @property {'easy' | 'medium' | 'hard' | 'expert'} difficulty - AI 상대의 난이도. */
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  /** The time limit for the game in seconds (null for no limit). */
+  /** @property {number | null} timeLimit - 게임의 시간 제한 (초). null이면 무제한. */
   timeLimit: number | null;
 
-  /** A flag indicating if the AI is currently calculating its move. */
+  /** @property {boolean} aiThinking - AI가 현재 수를 계산 중인지 여부를 나타내는 플래그. */
   aiThinking: boolean;
-  /** A delay in milliseconds to simulate AI thinking time. */
+  /** @property {number} aiMoveDelay - AI의 생각하는 시간을 시뮬레이션하기 위한 딜레이 (밀리초). */
   aiMoveDelay: number;
 
-  /** Statistics for the current game. */
+  /** @property {object} stats - 현재 게임에 대한 통계. */
   stats: {
     totalMoves: number;
     captures: {
@@ -56,51 +57,52 @@ export interface OthelloState {
 }
 
 /**
- * Defines the actions that can be performed on the Othello game state.
+ * @interface OthelloActions
+ * 오델로 게임 상태에 대해 수행할 수 있는 액션들을 정의합니다.
  */
 export interface OthelloActions {
-  /** Initializes a new game with a given board size. */
+  /** 주어진 크기로 새 게임을 초기화합니다. */
   initializeGame: (size?: number) => void;
-  /** Resets the game to its initial state. */
+  /** 게임을 초기 상태로 리셋합니다. */
   resetGame: () => void;
 
-  /** Attempts to make a move on the board for the current player. */
+  /** 현재 플레이어를 위해 보드에 수를 두려고 시도합니다. */
   makeMove: (row: number, col: number) => boolean;
-  /** Reverts the last move made. */
+  /** 마지막으로 둔 수를 무릅니다. */
   undoMove: () => boolean;
 
-  /** Pauses the game. */
+  /** 게임을 일시정지합니다. */
   pauseGame: () => void;
-  /** Resumes a paused game. */
+  /** 일시정지된 게임을 재개합니다. */
   resumeGame: () => void;
-  /** Sets the game status to 'finished'. */
+  /** 게임 상태를 'finished'로 설정합니다. */
   finishGame: () => void;
 
-  /** Calculates and updates the list of valid moves for a given player. */
+  /** 주어진 플레이어에 대한 유효한 수의 목록을 계산하고 업데이트합니다. */
   calculateValidMoves: (player: 'black' | 'white') => Array<{ row: number; col: number }>;
 
-  /** Sets the AI's thinking status. */
+  /** AI의 생각 중 상태를 설정합니다. */
   setAIThinking: (thinking: boolean) => void;
-  /** Triggers the AI to calculate and make its next move. */
+  /** AI가 다음 수를 계산하고 두도록 트리거합니다. */
   makeAIMove: () => Promise<void>;
 
-  /** Updates various game settings. */
+  /** 다양한 게임 설정을 업데이트합니다. */
   updateGameSettings: (settings: Partial<Pick<OthelloState, 'gameMode' | 'difficulty' | 'timeLimit' | 'aiMoveDelay'>>) => void;
 
-  /** Calculates and updates the current score. */
+  /** 현재 점수를 계산하고 업데이트합니다. */
   calculateScore: () => { black: number; white: number };
-  /** Checks if the game has ended. */
+  /** 게임이 끝났는지 확인합니다. */
   isGameFinished: () => boolean;
-  /** Determines the winner of the game, if it has finished. */
+  /** 게임이 끝났을 경우 승자를 결정합니다. */
   getWinner: () => 'black' | 'white' | 'tie' | null;
 }
 
 export type OthelloStore = OthelloState & OthelloActions;
 
 /**
- * Creates a new Othello board of a given size with the standard initial setup.
- * @param {number} [size=8] - The size of the board (e.g., 8 for an 8x8 board).
- * @returns A 2D array representing the new board.
+ * 주어진 크기의 새 오델로 보드를 표준 초기 설정으로 생성합니다.
+ * @param {number} [size=8] - 보드의 크기 (예: 8x8 보드의 경우 8).
+ * @returns {Array<Array<'black' | 'white' | null>>} 새 보드를 나타내는 2차원 배열.
  */
 const createEmptyBoard = (size: number = 8): Array<Array<'black' | 'white' | null>> => {
   const board = Array(size).fill(null).map(() => Array(size).fill(null));
@@ -138,10 +140,10 @@ const initialState: OthelloState = {
 };
 
 /**
- * The Zustand store for managing the core Othello game logic and state.
+ * 핵심 오델로 게임 로직과 상태를 관리하는 Zustand 스토어입니다.
  *
- * This store contains the game board, player turn, move history, and all the actions
- * required to play a game of Othello.
+ * 이 스토어는 게임 보드, 플레이어 턴, 수 기록 및 오델로 게임을 플레이하는 데
+ * 필요한 모든 액션을 포함합니다.
  */
 export const useOthelloStore = create<OthelloStore>()(
   devtools(
@@ -377,7 +379,7 @@ export const useOthelloStore = create<OthelloStore>()(
 );
 
 /**
- * Convenience hooks for accessing specific parts of the OthelloStore.
+ * OthelloStore의 특정 부분에 쉽게 접근하기 위한 편의성 훅입니다.
  */
 export const useBoard = () => useOthelloStore((state) => state.board);
 export const useGameStatus = () => useOthelloStore((state) => state.gameStatus);
@@ -387,7 +389,7 @@ export const useScore = () => useOthelloStore((state) => state.score);
 export const useGameStats = () => useOthelloStore((state) => state.stats);
 
 /**
- * A convenience hook that provides access to all the action functions of the OthelloStore.
+ * OthelloStore의 모든 액션 함수에 접근할 수 있는 편의성 훅입니다.
  */
 export const useOthelloActions = () => useOthelloStore((state) => ({
   initializeGame: state.initializeGame,

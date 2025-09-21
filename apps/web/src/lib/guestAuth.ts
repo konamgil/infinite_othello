@@ -2,11 +2,11 @@ import { supabase } from './supabase';
 import type { Profile } from '../types/supabase';
 
 /**
- * A utility class for managing guest user accounts.
+ * 게스트 사용자 계정을 관리하기 위한 유틸리티 클래스입니다.
  *
- * This class provides a set of static methods to handle the entire lifecycle of a guest account,
- * from creation and local storage to expiration and cleanup. It interacts with both the
- * browser's localStorage and the Supabase backend.
+ * 이 클래스는 생성, 로컬 저장, 만료, 정리에 이르기까지 게스트 계정의 전체 생명주기를
+ * 처리하기 위한 정적 메서드 집합을 제공합니다. 브라우저의 localStorage와 Supabase 백엔드
+ * 모두와 상호작용합니다.
  */
 export class GuestAuthManager {
   private static readonly GUEST_STORAGE_KEY = 'infinity-othello-guest';
@@ -14,8 +14,8 @@ export class GuestAuthManager {
   private static readonly GUEST_EXPIRY_DAYS = 30;
 
   /**
-   * Generates a unique, human-readable code for a guest account.
-   * @returns {string} A unique guest code.
+   * 게스트 계정을 위한 고유하고 사람이 읽을 수 있는 코드를 생성합니다.
+   * @returns {string} 고유한 게스트 코드.
    */
   static generateGuestCode(): string {
     const timestamp = Date.now().toString(36);
@@ -26,12 +26,12 @@ export class GuestAuthManager {
   }
 
   /**
-   * Creates a new guest account profile.
+   * 새로운 게스트 계정 프로필을 생성합니다.
    *
-   * The profile is first saved to the Supabase backend. If that fails, it falls back
-   * to saving the profile only in the browser's localStorage.
+   * 프로필은 먼저 Supabase 백엔드에 저장됩니다. 실패할 경우, 브라우저의
+   * localStorage에만 프로필을 저장하는 것으로 대체됩니다.
    *
-   * @returns {Promise<Profile>} A promise that resolves with the newly created guest profile.
+   * @returns {Promise<Profile>} 새로 생성된 게스트 프로필로 귀결되는 프로미스.
    */
   static async createGuestAccount(): Promise<Profile> {
     const guestCode = this.generateGuestCode();
@@ -92,8 +92,8 @@ export class GuestAuthManager {
   }
 
   /**
-   * Saves the guest profile to the browser's localStorage.
-   * @param {Profile} profile - The guest profile to save.
+   * 게스트 프로필을 브라우저의 localStorage에 저장합니다.
+   * @param {Profile} profile - 저장할 게스트 프로필.
    */
   private static saveGuestToLocal(profile: Profile) {
     try {
@@ -107,10 +107,10 @@ export class GuestAuthManager {
   }
 
   /**
-   * Retrieves the guest profile from localStorage.
-   * It also checks if the stored guest profile has expired.
+   * localStorage에서 게스트 프로필을 검색합니다.
+   * 저장된 게스트 프로필이 만료되었는지도 확인합니다.
    *
-   * @returns {Profile | null} The guest profile, or null if not found or expired.
+   * @returns {Profile | null} 게스트 프로필. 찾을 수 없거나 만료된 경우 null.
    */
   static getGuestFromLocal(): Profile | null {
     try {
@@ -133,7 +133,7 @@ export class GuestAuthManager {
   }
 
   /**
-   * Removes the guest profile from localStorage.
+   * localStorage에서 게스트 프로필을 제거합니다.
    */
   static clearGuestFromLocal() {
     try {
@@ -144,9 +144,9 @@ export class GuestAuthManager {
   }
 
   /**
-   * Finds a guest account in the database using a guest code.
-   * @param {string} guestCode - The guest code to search for.
-   * @returns {Promise<Profile | null>} The guest profile, or null if not found or expired.
+   * 게스트 코드를 사용하여 데이터베이스에서 게스트 계정을 찾습니다.
+   * @param {string} guestCode - 검색할 게스트 코드.
+   * @returns {Promise<Profile | null>} 게스트 프로필. 찾을 수 없거나 만료된 경우 null.
    */
   static async getGuestByCode(guestCode: string): Promise<Profile | null> {
     try {
@@ -167,9 +167,9 @@ export class GuestAuthManager {
   }
 
   /**
-   * Checks if a guest profile has expired.
-   * @param {Profile} profile - The guest profile to check.
-   * @returns {boolean} True if the profile is expired, false otherwise.
+   * 게스트 프로필이 만료되었는지 확인합니다.
+   * @param {Profile} profile - 확인할 게스트 프로필.
+   * @returns {boolean} 프로필이 만료되었으면 true, 그렇지 않으면 false.
    */
   static isGuestExpired(profile: Profile): boolean {
     if (!profile.expires_at) return false;
@@ -177,8 +177,8 @@ export class GuestAuthManager {
   }
 
   /**
-   * Renews a guest account's expiration date upon activity.
-   * @param {string} guestId - The ID of the guest account to renew.
+   * 활동 시 게스트 계정의 만료 날짜를 갱신합니다.
+   * @param {string} guestId - 갱신할 게스트 계정의 ID.
    */
   static async renewGuestAccount(guestId: string): Promise<void> {
     const newExpiryDate = new Date();
@@ -198,9 +198,9 @@ export class GuestAuthManager {
   }
 
   /**
-   * Updates a guest's game statistics after a match.
-   * @param {string} guestId - The ID of the guest account.
-   * @param {'win' | 'loss' | 'draw'} result - The result of the game.
+   * 경기 후 게스트의 게임 통계를 업데이트합니다.
+   * @param {string} guestId - 게스트 계정의 ID.
+   * @param {'win' | 'loss' | 'draw'} result - 게임 결과.
    */
   static async updateGuestStats(guestId: string, result: 'win' | 'loss' | 'draw'): Promise<void> {
     try {
@@ -237,8 +237,8 @@ export class GuestAuthManager {
   }
 
   /**
-   * Returns an object describing the limitations of a guest account.
-   * @returns An object detailing what a guest user can and cannot do.
+   * 게스트 계정의 제한 사항을 설명하는 객체를 반환합니다.
+   * @returns 게스트 사용자가 할 수 있는 것과 할 수 없는 것을 상세히 기술한 객체.
    */
   static getGuestLimitations() {
     return {
@@ -253,10 +253,10 @@ export class GuestAuthManager {
   }
 
   /**
-   * Determines whether to prompt a guest user to link their account based on their activity.
-   * @param {Profile} profile - The guest's profile.
-   * @param {string} context - The context in which the check is being made (e.g., 'ranked_attempt').
-   * @returns {boolean} True if the user should be prompted to link their account.
+   * 게스트 사용자의 활동을 기반으로 계정 연동을 유도할지 여부를 결정합니다.
+   * @param {Profile} profile - 게스트의 프로필.
+   * @param {string} context - 확인이 이루어지는 맥락 (예: 'ranked_attempt').
+   * @returns {boolean} 사용자에게 계정 연동을 유도해야 하면 true.
    */
   static shouldPromptLinking(profile: Profile, context: string): boolean {
     const triggers = {
@@ -277,10 +277,10 @@ export class GuestAuthManager {
   }
 
   /**
-   * Exports a guest's data, including their profile and recent games.
-   * This can be used for backup purposes before linking to a permanent account.
-   * @param {string} guestId - The ID of the guest account to export.
-   * @returns {Promise<object | null>} An object containing the guest's data, or null on failure.
+   * 프로필과 최근 게임을 포함한 게스트의 데이터를 내보냅니다.
+   * 영구 계정으로 연동하기 전 백업 목적으로 사용될 수 있습니다.
+   * @param {string} guestId - 내보낼 게스트 계정의 ID.
+   * @returns {Promise<object | null>} 게스트 데이터를 담은 객체, 또는 실패 시 null.
    */
   static async exportGuestData(guestId: string) {
     try {
@@ -311,7 +311,7 @@ export class GuestAuthManager {
   }
 
   /**
-   * A maintenance function to delete expired guest accounts from the database.
+   * 데이터베이스에서 만료된 게스트 계정을 삭제하는 유지보수 함수입니다.
    */
   static async cleanupExpiredGuests(): Promise<void> {
     try {
@@ -332,24 +332,25 @@ export class GuestAuthManager {
 }
 
 /**
- * Represents the authentication state for a guest user.
+ * @interface GuestAuthState
+ * 게스트 사용자의 인증 상태를 나타냅니다.
  */
 export interface GuestAuthState {
-  /** The guest user's profile data, or null if not logged in. */
+  /** @property {Profile | null} profile - 게스트 사용자의 프로필 데이터, 로그인하지 않은 경우 null. */
   profile: Profile | null;
-  /** True if the current user is a guest. */
+  /** @property {boolean} isGuest - 현재 사용자가 게스트인 경우 true. */
   isGuest: boolean;
-  /** True if the guest account has expired. */
+  /** @property {boolean} isExpired - 게스트 계정이 만료된 경우 true. */
   isExpired: boolean;
-  /** True if the guest is eligible to link their account to a permanent one. */
+  /** @property {boolean} canLink - 게스트가 계정을 영구 계정으로 연동할 자격이 있는 경우 true. */
   canLink: boolean;
-  /** An object detailing the limitations of the guest account. */
+  /** @property {object} limitations - 게스트 계정의 제한 사항을 상세히 기술한 객체. */
   limitations: ReturnType<typeof GuestAuthManager.getGuestLimitations>;
 }
 
 /**
- * A utility object that exports key methods from the GuestAuthManager.
- * This is likely used to provide a clean interface for a custom hook (e.g., `useGuestAuth`).
+ * `GuestAuthManager`의 주요 메서드를 내보내는 유틸리티 객체입니다.
+ * 커스텀 훅(예: `useGuestAuth`)에 깔끔한 인터페이스를 제공하기 위해 사용될 수 있습니다.
  */
 export const guestAuthUtils = {
   createGuest: GuestAuthManager.createGuestAccount,

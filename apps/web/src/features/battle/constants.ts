@@ -1,9 +1,9 @@
 /**
- * A list of available tournaments.
+ * 참가 가능한 토너먼트 목록입니다.
  *
- * This constant provides static data for different tournaments that users can join.
- * Each tournament object includes details like its ID, name, rank requirements, rewards, etc.
- * This data is likely used to display a list of tournaments in the UI.
+ * 이 상수는 사용자가 참여할 수 있는 다양한 토너먼트에 대한 정적 데이터를 제공합니다.
+ * 각 토너먼트 객체는 ID, 이름, 랭크 요구 조건, 보상 등과 같은 세부 정보를 포함합니다.
+ * 이 데이터는 UI에 토너먼트 목록을 표시하는 데 사용될 가능성이 높습니다.
  */
 export const TOURNAMENTS = [
   {
@@ -27,12 +27,11 @@ export const TOURNAMENTS = [
 ];
 
 /**
- * A list of recent battles for display.
+ * 표시할 최근 대전 목록입니다.
  *
- * This constant holds mock or sample data for a user's recent battle history.
- * Each object represents a single battle and contains information about the opponent,
- * result, score, and when the battle took place.
- * This is likely used for UI mockups or as placeholder data.
+ * 이 상수는 사용자의 최근 대전 기록에 대한 모의 또는 샘플 데이터를 보유합니다.
+ * 각 객체는 단일 대전을 나타내며 상대방, 결과, 점수 및 대전 시간에 대한 정보를 포함합니다.
+ * 이는 UI 목업 또는 플레이스홀더 데이터로 사용될 가능성이 높습니다.
  */
 export const RECENT_BATTLES = [
   {

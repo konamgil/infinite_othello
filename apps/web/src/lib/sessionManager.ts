@@ -2,11 +2,11 @@ import { supabase } from './supabase';
 import type { Profile } from '../types/supabase';
 
 /**
- * A class to manage user sessions and prevent concurrent logins.
+ * 사용자 세션을 관리하고 동시 로그인을 방지하는 클래스입니다.
  *
- * This manager handles the lifecycle of a user session, from starting a new session
- * and checking for conflicts to sending regular "heartbeats" to keep the session alive.
- * It also includes logic to handle session hijacking and cleanup on browser exit.
+ * 이 매니저는 새 세션 시작, 충돌 확인, 세션 유지를 위한 주기적인 "하트비트" 전송 등
+ * 사용자 세션의 생명주기를 처리합니다. 또한 세션 하이재킹 처리 및 브라우저 종료 시
+ * 정리 로직을 포함합니다.
  */
 export class SessionManager {
   private static readonly SESSION_HEARTBEAT_INTERVAL = 30000; // 30초
@@ -48,14 +48,14 @@ export class SessionManager {
   }
 
   /**
-   * Starts a new user session.
+   * 새로운 사용자 세션을 시작합니다.
    *
-   * Before starting, it checks for an existing active session for the same user.
-   * If a conflict is found, it returns an error. Otherwise, it updates the user's
-   * profile with the new session information and starts a heartbeat to keep the session alive.
+   * 시작하기 전에 동일한 사용자에 대한 기존 활성 세션을 확인합니다.
+   * 충돌이 발견되면 오류를 반환합니다. 그렇지 않으면 사용자의 프로필을
+   * 새 세션 정보로 업데이트하고 세션을 유지하기 위한 하트비트를 시작합니다.
    *
-   * @param {string} userId - The ID of the user starting the session.
-   * @returns {Promise<{ success: boolean; error?: string; conflictInfo?: any }>} The result of the session start attempt.
+   * @param {string} userId - 세션을 시작하는 사용자의 ID.
+   * @returns {Promise<{ success: boolean; error?: string; conflictInfo?: any }>} 세션 시작 시도 결과.
    */
   static async startSession(userId: string): Promise<{ success: boolean; error?: string; conflictInfo?: any }> {
     try {
@@ -156,12 +156,12 @@ export class SessionManager {
   }
 
   /**
-   * Forcibly ends a user's existing session from the database.
-   * This is typically called when a user chooses to log in on a new device
-   * and end the session on the old one.
+   * 데이터베이스에서 사용자의 기존 세션을 강제로 종료합니다.
+   * 일반적으로 사용자가 새 기기에서 로그인하고 이전 기기의 세션을
+   * 종료하기로 선택했을 때 호출됩니다.
    *
-   * @param {string} userId - The ID of the user whose session should be ended.
-   * @returns {Promise<{ success: boolean; error?: string }>} The result of the operation.
+   * @param {string} userId - 세션을 종료할 사용자의 ID.
+   * @returns {Promise<{ success: boolean; error?: string }>} 작업 결과.
    */
   static async forceEndSession(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -174,10 +174,10 @@ export class SessionManager {
   }
 
   /**
-   * Ends the current local session.
+   * 현재 로컬 세션을 종료합니다.
    *
-   * This stops the heartbeat, clears the session information from the database,
-   * and resets the local session state.
+   * 이 메서드는 하트비트를 중지하고 데이터베이스에서 세션 정보를 지우며,
+   * 로컬 세션 상태를 리셋합니다.
    */
   static async endSession(): Promise<void> {
     if (!this.currentSession) return;
@@ -318,18 +318,18 @@ export class SessionManager {
   }
 
   /**
-   * Gets the current local session information.
-   * @returns The current session object, or null if no session is active.
+   * 현재 로컬 세션 정보를 가져옵니다.
+   * @returns 활성 세션 객체, 또는 활성 세션이 없는 경우 null.
    */
   static getCurrentSession() {
     return this.currentSession;
   }
 
   /**
-   * Retrieves active session information for a user from the database.
-   * This might be used for admin purposes or to display session info to the user.
-   * @param {string} userId - The ID of the user.
-   * @returns {Promise<object | null>} The user's active session data.
+   * 데이터베이스에서 사용자의 활성 세션 정보를 검색합니다.
+   * 관리자 목적 또는 사용자에게 세션 정보를 표시하는 데 사용될 수 있습니다.
+   * @param {string} userId - 사용자의 ID.
+   * @returns {Promise<object | null>} 사용자의 활성 세션 데이터.
    */
   static async getActiveSessions(userId: string) {
     try {
@@ -347,9 +347,9 @@ export class SessionManager {
   }
 
   /**
-   * Checks if a session has timed out based on the last seen timestamp.
-   * @param {string} lastSeen - The ISO string of the last activity time.
-   * @returns {boolean} True if the session has timed out.
+   * 마지막 활동 타임스탬프를 기준으로 세션이 타임아웃되었는지 확인합니다.
+   * @param {string} lastSeen - 마지막 활동 시간의 ISO 문자열.
+   * @returns {boolean} 세션이 타임아웃되었으면 true.
    */
   static isSessionTimedOut(lastSeen: string): boolean {
     const lastSeenTime = new Date(lastSeen).getTime();
@@ -359,19 +359,21 @@ export class SessionManager {
 }
 
 /**
- * Describes the information about a conflicting session.
+ * @interface SessionConflictInfo
+ * 충돌하는 세션에 대한 정보를 설명합니다.
  */
 export interface SessionConflictInfo {
-  /** A string identifying the device of the conflicting session. */
+  /** @property {string} deviceInfo - 충돌하는 세션의 기기를 식별하는 문자열. */
   deviceInfo: string;
-  /** The ISO string timestamp when the conflicting session started. */
+  /** @property {string} startedAt - 충돌하는 세션이 시작된 시간의 ISO 문자열 타임스탬프. */
   startedAt: string;
-  /** The ISO string timestamp when the conflicting session was last active. */
+  /** @property {string} lastSeen - 충돌하는 세션이 마지막으로 활성화된 시간의 ISO 문자열 타임스탬프. */
   lastSeen: string;
 }
 
 /**
- * A union type representing different kinds of session-related events.
+ * @type SessionEvent
+ * 다양한 종류의 세션 관련 이벤트를 나타내는 유니언 타입입니다.
  */
 export type SessionEvent =
   | { type: 'conflict'; data: SessionConflictInfo }
@@ -379,9 +381,9 @@ export type SessionEvent =
   | { type: 'ended'; data: { reason: string } };
 
 /**
- * A utility object that exports key methods from the SessionManager.
- * This provides a clean, simplified interface for other parts of the application
- * that need to interact with the session state.
+ * `SessionManager`의 주요 메서드를 내보내는 유틸리티 객체입니다.
+ * 세션 상태와 상호작용해야 하는 애플리케이션의 다른 부분에
+ * 깨끗하고 단순화된 인터페이스를 제공합니다.
  */
 export const sessionUtils = {
   start: SessionManager.startSession,
