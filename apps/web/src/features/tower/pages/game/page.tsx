@@ -11,6 +11,18 @@ interface TowerGameRouteState {
   title?: string;
 }
 
+/**
+ * The game screen for a specific floor in the Tower challenge.
+ *
+ * This component acts as a wrapper for the main `GameController`. It is responsible for:
+ * 1.  Validating the 'floor' parameter from the URL. It ensures the floor is a valid number,
+ *     is accessible based on the player's progress, and does not exceed the maximum floor.
+ * 2.  Redirecting the user if the floor parameter is invalid.
+ * 3.  Determining the AI opponent's difficulty based on the current floor number.
+ * 4.  Rendering the `GameController` with the appropriate props for the tower match.
+ *
+ * @returns {React.ReactElement | null} The rendered game controller for the tower match, or `null` if redirecting.
+ */
 export default function TowerGamePage() {
   const navigate = useNavigate();
   const location = useLocation();

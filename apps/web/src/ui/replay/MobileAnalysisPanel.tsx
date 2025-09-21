@@ -15,19 +15,39 @@ import {
   Eye
 } from 'lucide-react';
 
+/**
+ * @interface MobileAnalysisPanelProps
+ * `MobileAnalysisPanel` 컴포넌트의 props를 정의합니다.
+ */
 interface MobileAnalysisPanelProps {
+  /** @property {GameMove} [currentMove] - 현재 선택된 수에 대한 정보. */
   currentMove?: GameMove;
+  /** @property {number} currentMoveIndex - 현재 선택된 수의 인덱스. */
   currentMoveIndex: number;
+  /** @property {number} totalMoves - 게임의 총 수. */
   totalMoves: number;
+  /** @property {boolean} isVisible - 패널의 표시 여부. */
   isVisible: boolean;
+  /** @property {() => void} onToggle - 패널 표시/숨김을 토글하는 콜백 함수. */
   onToggle: () => void;
+  /** @property {() => void} [onMinimapToggle] - 미니맵 표시/숨김을 토글하는 콜백 함수 (선택적). */
   onMinimapToggle?: () => void;
+  /** @property {boolean} [showMinimap] - 미니맵의 현재 표시 상태 (선택적). */
   showMinimap?: boolean;
 }
 
+/** @typedef {'minimal' | 'half' | 'full'} PanelHeight - 패널의 높이 상태를 정의하는 타입. */
 type PanelHeight = 'minimal' | 'half' | 'full';
+/** @typedef {'move' | 'position' | 'simulation' | 'stats'} AnalysisTab - 분석 탭의 종류를 정의하는 타입. */
 type AnalysisTab = 'move' | 'position' | 'simulation' | 'stats';
 
+/**
+ * 모바일 환경을 위한 인터랙티브 분석 패널 컴포넌트입니다.
+ * 화면 하단에서 슬라이드 업되며, 드래그를 통해 높이를 조절할 수 있습니다.
+ * 탭을 통해 다양한 분석 정보를 제공합니다.
+ * @param {MobileAnalysisPanelProps} props - 컴포넌트 props.
+ * @returns {JSX.Element | null} 패널이 표시될 때의 UI 또는 null.
+ */
 export function MobileAnalysisPanel({
   currentMove,
   currentMoveIndex,
@@ -37,22 +57,35 @@ export function MobileAnalysisPanel({
   onMinimapToggle,
   showMinimap = false
 }: MobileAnalysisPanelProps) {
-  const [panelHeight, setPanelHeight] = useState<PanelHeight>('half'); // 기본값을 half로 유지 (이제 더 넓어짐)
+  /** @state {PanelHeight} panelHeight - 패널의 현재 높이 상태 ('minimal', 'half', 'full'). */
+  const [panelHeight, setPanelHeight] = useState<PanelHeight>('half');
+  /** @state {AnalysisTab} activeTab - 현재 활성화된 분석 탭. */
   const [activeTab, setActiveTab] = useState<AnalysisTab>('move');
+  /** @state {boolean} isDragging - 사용자가 패널을 드래그 중인지 여부. */
   const [isDragging, setIsDragging] = useState(false);
-  const [dragProgress, setDragProgress] = useState(0); // 드래그 진행도 (0-1)
+  /** @state {number} dragProgress - 드래그 진행도(0-1)로, UI 효과에 사용됩니다. */
+  const [dragProgress, setDragProgress] = useState(0);
+  /** @ref {HTMLDivElement} panelRef - 패널 DOM 요소에 대한 참조. */
   const panelRef = useRef<HTMLDivElement>(null);
+  /** @ref {number} startY - 드래그 시작 시의 Y 좌표. */
   const startY = useRef(0);
+  /** @ref {number} startHeight - 드래그 시작 시의 패널 높이. */
   const startHeight = useRef(0);
+  /** @ref {number} lastDragTime - 마지막 드래그 이벤트 시간 (햅틱 피드백 조절용). */
   const lastDragTime = useRef(0);
 
-  // Panel height configurations (모바일 전용) - 향후 많은 내용을 고려하여 높이 증가
+  /** 패널 높이 상태에 따른 CSS 클래스 설정. */
   const heightConfig = {
-    minimal: 'h-20', // 탭 헤더만 (16px에서 20px로 증가)
-    half: 'h-[50vh]', // 화면의 50% (기존 40%에서 50%로 증가)
-    full: 'h-[80vh]'  // 화면의 80% (기존 70%에서 80%로 증가, 보드는 20%만 표시)
+    minimal: 'h-20', // 탭 헤더만 표시
+    half: 'h-[50vh]',    // 화면의 50%
+    full: 'h-[80vh]'     // 화면의 80%
   };
 
+  /**
+   * 수의 평가 점수에 따라 품질(레이블, 색상) 정보를 반환합니다.
+   * @param {GameMove} [move] - 분석할 수 정보.
+   * @returns {{label: string, color: string, bgColor: string} | null} 수 품질 정보 객체 또는 null.
+   */
   const getMoveQuality = (move?: GameMove) => {
     if (!move || move.evaluationScore === undefined) return null;
 
@@ -68,23 +101,27 @@ export function MobileAnalysisPanel({
     return { label: '평균', color: 'text-white/70', bgColor: 'bg-white/10' };
   };
 
-  // 터치 드래그로 높이 조절 (개선된 버전)
+  // --- 드래그 핸들러 (터치 & 마우스) ---
+
+  /**
+   * 터치 드래그 시작 시 호출됩니다.
+   * 드래그 상태를 활성화하고 시작 위치와 높이를 저장합니다.
+   * @param {React.TouchEvent} e - 터치 이벤트 객체.
+   */
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
     setIsDragging(true);
     startY.current = e.touches[0].clientY;
-    
-    // 현재 높이를 픽셀로 변환해서 저장
-    const currentHeight = panelRef.current?.offsetHeight || 0;
-    startHeight.current = currentHeight;
+    startHeight.current = panelRef.current?.offsetHeight || 0;
     lastDragTime.current = Date.now();
-    
-    // 햅틱 피드백 (지원되는 경우)
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+    if (navigator.vibrate) navigator.vibrate(10);
   };
 
+  /**
+   * 터치 드래그 중에 호출됩니다.
+   * 드래그 거리에 따라 실시간으로 패널의 높이 상태를 변경하고 UI 효과를 적용합니다.
+   * @param {React.TouchEvent} e - 터치 이벤트 객체.
+   */
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
     
@@ -93,68 +130,7 @@ export function MobileAnalysisPanel({
     const deltaY = startY.current - currentY; // 위로 드래그하면 양수
     const screenHeight = window.innerHeight;
     
-    // 드래그 진행도 계산 (0-1)
-    const maxDragDistance = screenHeight * 0.4; // 최대 드래그 거리
-    const progress = Math.max(0, Math.min(1, Math.abs(deltaY) / maxDragDistance));
-    setDragProgress(progress);
-    
-    // 실시간 높이 계산
-    const newHeight = startHeight.current + deltaY;
-    const clampedHeight = Math.max(screenHeight * 0.1, Math.min(screenHeight * 0.8, newHeight));
-    
-    // 높이에 따라 패널 상태 결정 (임계값 조정) - 새로운 높이 설정에 맞게 조정
-    const minimalThreshold = screenHeight * 0.25; // 20%에서 25%로 증가
-    const halfThreshold = screenHeight * 0.65; // 50%에서 65%로 증가
-    
-    if (clampedHeight < minimalThreshold) {
-      setPanelHeight('minimal');
-    } else if (clampedHeight < halfThreshold) {
-      setPanelHeight('half');
-    } else {
-      setPanelHeight('full');
-    }
-    
-    // 드래그 중 햅틱 피드백 (제한적으로)
-    const now = Date.now();
-    if (now - lastDragTime.current > 100) { // 100ms마다 최대
-      if (navigator.vibrate && progress > 0.5) {
-        navigator.vibrate(5);
-      }
-      lastDragTime.current = now;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return;
-    
-    setIsDragging(false);
-    setDragProgress(0);
-    
-    // 최종 햅틱 피드백
-    if (navigator.vibrate) {
-      navigator.vibrate(20);
-    }
-  };
-
-  // 마우스 드래그 지원 (데스크톱)
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    startY.current = e.clientY;
-    
-    const currentHeight = panelRef.current?.offsetHeight || 0;
-    startHeight.current = currentHeight;
-    lastDragTime.current = Date.now();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    e.preventDefault();
-    const currentY = e.clientY;
-    const deltaY = startY.current - currentY;
-    const screenHeight = window.innerHeight;
-    
+    // 드래그 진행도 계산 및 UI 효과 적용
     const maxDragDistance = screenHeight * 0.4;
     const progress = Math.max(0, Math.min(1, Math.abs(deltaY) / maxDragDistance));
     setDragProgress(progress);
@@ -162,37 +138,78 @@ export function MobileAnalysisPanel({
     const newHeight = startHeight.current + deltaY;
     const clampedHeight = Math.max(screenHeight * 0.1, Math.min(screenHeight * 0.8, newHeight));
     
-    const minimalThreshold = screenHeight * 0.25; // 20%에서 25%로 증가
-    const halfThreshold = screenHeight * 0.65; // 50%에서 65%로 증가
+    // 높이 임계값에 따라 패널 상태 변경
+    const minimalThreshold = screenHeight * 0.25;
+    const halfThreshold = screenHeight * 0.65;
+    if (clampedHeight < minimalThreshold) setPanelHeight('minimal');
+    else if (clampedHeight < halfThreshold) setPanelHeight('half');
+    else setPanelHeight('full');
     
-    if (clampedHeight < minimalThreshold) {
-      setPanelHeight('minimal');
-    } else if (clampedHeight < halfThreshold) {
-      setPanelHeight('half');
-    } else {
-      setPanelHeight('full');
+    // 햅틱 피드백 (쓰로틀링)
+    const now = Date.now();
+    if (now - lastDragTime.current > 100) {
+      if (navigator.vibrate && progress > 0.5) navigator.vibrate(5);
+      lastDragTime.current = now;
     }
   };
 
+  /** 터치 드래그 종료 시 호출됩니다. 드래그 상태를 비활성화합니다. */
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragProgress(0);
+    if (navigator.vibrate) navigator.vibrate(20);
+  };
+
+  /** 마우스 드래그 시작 시 호출됩니다. */
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    startY.current = e.clientY;
+    startHeight.current = panelRef.current?.offsetHeight || 0;
+  };
+
+  /** 마우스 드래그 중에 호출됩니다. (로직은 handleTouchMove와 유사) */
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const currentY = e.clientY;
+    const deltaY = startY.current - currentY;
+    const screenHeight = window.innerHeight;
+    const maxDragDistance = screenHeight * 0.4;
+    const progress = Math.max(0, Math.min(1, Math.abs(deltaY) / maxDragDistance));
+    setDragProgress(progress);
+    const newHeight = startHeight.current + deltaY;
+    const clampedHeight = Math.max(screenHeight * 0.1, Math.min(screenHeight * 0.8, newHeight));
+    const minimalThreshold = screenHeight * 0.25;
+    const halfThreshold = screenHeight * 0.65;
+    if (clampedHeight < minimalThreshold) setPanelHeight('minimal');
+    else if (clampedHeight < halfThreshold) setPanelHeight('half');
+    else setPanelHeight('full');
+  };
+
+  /** 마우스 드래그 종료 시 호출됩니다. */
   const handleMouseUp = () => {
     if (!isDragging) return;
-    
     setIsDragging(false);
     setDragProgress(0);
   };
 
-  // 전역 마우스 이벤트 리스너
+  /** 드래그 중일 때 전역 마우스 이벤트 리스너를 추가/제거합니다. */
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove as any);
-      document.addEventListener('mouseup', handleMouseUp);
+      const moveHandler = (e: MouseEvent) => handleMouseMove(e as any);
+      const upHandler = () => handleMouseUp();
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', upHandler);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove as any);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', upHandler);
       };
     }
   }, [isDragging]);
 
+  /** 탭 버튼에 대한 설정값 배열. */
   const tabs = [
     { id: 'move' as const, label: '수 분석', icon: Brain },
     { id: 'position' as const, label: '포지션', icon: Target },

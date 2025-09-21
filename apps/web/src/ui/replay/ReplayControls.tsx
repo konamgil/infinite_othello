@@ -24,37 +24,80 @@ import {
 } from 'lucide-react';
 import { ReplayPlayerControls, GameMove } from '../../types/replay';
 
+/**
+ * @interface ReplayControlsProps
+ * `ReplayControls` 컴포넌트의 props를 정의합니다.
+ * 기본 재생 제어 기능과 다양한 고급 기능을 포함합니다.
+ */
 interface ReplayControlsProps {
+  // --- 기본 제어 Props ---
+  /** @property {number} currentMoveIndex 현재 리플레이의 수 인덱스 (0부터 시작). */
   currentMoveIndex: number;
+  /** @property {number} totalMoves 리플레이의 총 수. */
   totalMoves: number;
+  /** @property {boolean} isPlaying 현재 재생 중인지 여부. */
   isPlaying: boolean;
+  /** @property {number} playbackSpeed 현재 재생 속도 배율. */
   playbackSpeed: number;
+  /** @property {() => void} onPlay 재생 시작 시 호출될 콜백. */
   onPlay: () => void;
+  /** @property {() => void} onPause 일시정지 시 호출될 콜백. */
   onPause: () => void;
+  /** @property {() => void} onStepForward 한 수 앞으로 이동 시 호출될 콜백. */
   onStepForward: () => void;
+  /** @property {() => void} onStepBackward 한 수 뒤로 이동 시 호출될 콜백. */
   onStepBackward: () => void;
+  /** @property {(index: number) => void} onSeek 특정 수 인덱스로 이동 시 호출될 콜백. */
   onSeek: (index: number) => void;
+  /** @property {(speed: number) => void} onSpeedChange 재생 속도 변경 시 호출될 콜백. */
   onSpeedChange: (speed: number) => void;
+
+  // --- 설정 및 UI 상태 Props ---
+  /** @property {() => void} onToggleSettings 설정 패널 표시/숨김 토글 콜백. */
   onToggleSettings: () => void;
+  /** @property {boolean} showSettings 설정 패널이 현재 표시되는지 여부. */
   showSettings: boolean;
+  /** @property {() => void} onToggleCoordinates 좌표 표시/숨김 토글 콜백. */
   onToggleCoordinates: () => void;
+  /** @property {() => void} onToggleHighlight 마지막 수 강조 표시/숨김 토글 콜백. */
   onToggleHighlight: () => void;
+  /** @property {boolean} showCoordinates 좌표가 현재 표시되는지 여부. */
   showCoordinates: boolean;
+  /** @property {boolean} highlightLastMove 마지막 수가 현재 강조되는지 여부. */
   highlightLastMove: boolean;
-  // Enhanced features
+
+  // --- 고급 기능 Props (선택적) ---
+  /** @property {GameMove[]} [moves] 게임의 모든 수에 대한 데이터 배열. 수 분석에 사용됩니다. */
   moves?: GameMove[];
+  /** @property {boolean} [autoPlay] 자동 재생 기능 활성화 여부. */
   autoPlay?: boolean;
+  /** @property {() => void} [onToggleAutoPlay] 자동 재생 토글 콜백. */
   onToggleAutoPlay?: () => void;
+  /** @property {(moveNumber: number) => void} [onJumpToMove] 특정 수 번호로 점프하는 콜백. */
   onJumpToMove?: (moveNumber: number) => void;
+  /** @property {boolean} [showMoveAnnotations] 수 해설/분석 표시 여부. */
   showMoveAnnotations?: boolean;
+  /** @property {() => void} [onToggleMoveAnnotations] 수 해설 표시 토글 콜백. */
   onToggleMoveAnnotations?: () => void;
+  /** @property {boolean} [criticalMoveDetection] 결정적인 수(실수, 최적수)에서 자동 멈춤 기능 활성화 여부. */
   criticalMoveDetection?: boolean;
+  /** @property {() => void} [onToggleCriticalMoves] 결정적인 수 감지 기능 토글 콜백. */
   onToggleCriticalMoves?: () => void;
+  /** @property {boolean} [soundEnabled] 효과음 활성화 여부. */
   soundEnabled?: boolean;
+  /** @property {() => void} [onToggleSound] 효과음 토글 콜백. */
   onToggleSound?: () => void;
+  /** @property {number[]} [evaluationData] 각 수에 대한 평가 점수 배열. 프로그레스 바 시각화에 사용됩니다. */
   evaluationData?: number[];
 }
 
+/**
+ * 게임 리플레이를 위한 종합 컨트롤러 컴포넌트입니다.
+ * 재생/정지, 탐색, 속도 조절 등 기본 기능과 함께
+ * 키보드 단축키, 설정 패널, 수 이동, 고급 분석 기능 등 다양한 UI를 제공합니다.
+ * @param {ReplayControlsProps} props - 컴포넌트 props
+ * @returns {JSX.Element} 리플레이 컨트롤러 UI
+ */
 export function ReplayControls({
   currentMoveIndex,
   totalMoves,
@@ -86,37 +129,57 @@ export function ReplayControls({
   evaluationData = []
 }: ReplayControlsProps) {
 
-  // Enhanced speed range with smooth increments
+  // 재생 속도 옵션 배열
   const speedOptions: number[] = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4];
 
-  // State for enhanced features
+  // --- 상태(State) 및 참조(Ref) ---
+  /** @state {boolean} showJumpDialog - '수 번호로 이동' 다이얼로그 표시 여부 */
   const [showJumpDialog, setShowJumpDialog] = useState(false);
+  /** @state {string} jumpValue - '수 번호로 이동' 다이얼로그의 입력 값 */
   const [jumpValue, setJumpValue] = useState('');
+  /** @state {boolean} showKeyboardHelp - 키보드 단축키 도움말 표시 여부 */
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  /** @ref {HTMLInputElement} jumpInputRef - '수 번호로 이동' 다이얼로그의 input 요소에 대한 참조 */
   const jumpInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-play interval management
+  // Auto-play interval management (현재는 직접 사용되지 않지만, 향후 확장성을 위해 유지)
   const autoPlayIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  /**
+   * 프로그레스 바(seek bar)의 변경 이벤트를 처리합니다.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - 입력 요소의 변경 이벤트
+   */
   const handleSeekBarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     onSeek(value);
   };
 
-  // Enhanced handlers
+  /**
+   * '수 번호로 이동' 다이얼로그에서 이동 버튼 클릭을 처리합니다.
+   * 입력된 수 번호로 리플레이를 이동시킵니다.
+   */
   const handleJumpToMove = useCallback(() => {
     const moveNumber = parseInt(jumpValue);
     if (moveNumber >= 1 && moveNumber <= totalMoves && onJumpToMove) {
-      onJumpToMove(moveNumber - 1); // Convert to 0-based index
+      onJumpToMove(moveNumber - 1); // 0-based 인덱스로 변환하여 전달
       setShowJumpDialog(false);
       setJumpValue('');
     }
   }, [jumpValue, totalMoves, onJumpToMove]);
 
+  /**
+   * 현재 수 인덱스에 해당하는 수 정보를 반환합니다.
+   * @returns {GameMove | undefined} 현재 수 정보
+   */
   const getCurrentMove = useCallback(() => {
     return moves[currentMoveIndex];
   }, [moves, currentMoveIndex]);
 
+  /**
+   * 주어진 수의 평가 점수를 기반으로 품질(최적수, 실수 등) 정보를 반환합니다.
+   * @param {GameMove} [move] - 분석할 수 정보
+   * @returns {{label: string, color: string, bgColor: string, icon: React.ElementType} | null} 수 품질 정보 객체 또는 null
+   */
   const getMoveQuality = useCallback((move?: GameMove) => {
     if (!move || move.evaluationScore === undefined) return null;
 
@@ -132,15 +195,23 @@ export function ReplayControls({
     return { label: '평균', color: 'text-white/70', bgColor: 'bg-white/10', icon: Target };
   }, []);
 
+  /**
+   * 주어진 수가 결정적인 수(최적수 또는 큰 실수)인지 확인합니다.
+   * @param {GameMove} [move] - 확인할 수 정보
+   * @returns {boolean} 결정적인 수인 경우 true
+   */
   const isCriticalMove = useCallback((move?: GameMove) => {
     if (!move || move.evaluationScore === undefined) return false;
-    return move.isOptimal || move.evaluationScore < -20; // Excellent moves or blunders
+    return move.isOptimal || move.evaluationScore < -20; // 최적수 또는 큰 실수
   }, []);
 
-  // Keyboard shortcuts
+  /**
+   * 키보드 단축키를 처리하는 `useEffect` 훅입니다.
+   * Space: 재생/일시정지, ←/→: 이전/다음 수, Home/End: 처음/끝, J: 수 이동, S: 설정, H: 도움말
+   */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
+      // 입력 필드에 포커스가 있을 때는 단축키를 비활성화합니다.
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -148,11 +219,8 @@ export function ReplayControls({
       switch (e.code) {
         case 'Space':
           e.preventDefault();
-          if (isPlaying) {
-            onPause();
-          } else {
-            onPlay();
-          }
+          if (isPlaying) onPause();
+          else onPlay();
           break;
         case 'ArrowLeft':
           e.preventDefault();
@@ -184,30 +252,35 @@ export function ReplayControls({
           setShowKeyboardHelp(true);
           break;
         case 'Escape':
-          setShowJumpDialog(false);
-          setShowKeyboardHelp(false);
+          if (showJumpDialog) setShowJumpDialog(false);
+          if (showKeyboardHelp) setShowKeyboardHelp(false);
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, onPlay, onPause, onStepBackward, onStepForward, onSeek, onToggleSettings, totalMoves]);
+  }, [isPlaying, onPlay, onPause, onStepBackward, onStepForward, onSeek, onToggleSettings, totalMoves, showJumpDialog, showKeyboardHelp]);
 
-  // Auto-focus jump input when dialog opens
+  /**
+   * '수 번호로 이동' 다이얼로그가 열릴 때 input 필드에 자동으로 포커스를 줍니다.
+   */
   useEffect(() => {
     if (showJumpDialog && jumpInputRef.current) {
       jumpInputRef.current.focus();
     }
   }, [showJumpDialog]);
 
-  // Critical move auto-pause
+  /**
+   * '결정적인 수에서 자동 멈춤' 기능을 처리하는 `useEffect` 훅입니다.
+   * 재생 중에 결정적인 수를 만나면 자동으로 일시정지합니다.
+   */
   useEffect(() => {
     if (criticalMoveDetection && isPlaying) {
       const currentMove = getCurrentMove();
       if (currentMove && isCriticalMove(currentMove)) {
         onPause();
-        // Optional: Play sound notification
+        // TODO: 효과음이 활성화된 경우, 알림 소리를 재생하는 로직 추가 가능
         if (soundEnabled) {
           // Play critical move sound
         }
@@ -215,25 +288,38 @@ export function ReplayControls({
     }
   }, [currentMoveIndex, criticalMoveDetection, isPlaying, onPause, getCurrentMove, isCriticalMove, soundEnabled]);
 
+  /**
+   * 현재 수/총 수 형식의 문자열을 반환합니다. (예: "5 / 64")
+   * @returns {string}
+   */
   const formatMoveDisplay = () => {
     return `${currentMoveIndex} / ${totalMoves}`;
   };
 
+  /**
+   * 재생 속도를 표시용 문자열로 변환합니다. (예: "2×")
+   * @param {number} speed - 재생 속도
+   * @returns {string}
+   */
   const getSpeedDisplay = (speed: number) => {
     return speed === 1 ? '1×' : `${speed}×`;
   };
 
+  /**
+   * 현재 수의 평가 점수에 따라 프로그레스 바의 그라데이션 색상을 결정합니다.
+   * @returns {string} Tailwind CSS 그라데이션 클래스 문자열
+   */
   const getProgressBarGradient = () => {
     if (!evaluationData.length) {
-      return 'from-purple-400 to-blue-400';
+      return 'from-purple-400 to-blue-400'; // 기본 색상
     }
 
-    // Color based on current position evaluation
+    // 현재 위치의 평가 점수에 따라 색상 변경
     const currentEval = evaluationData[currentMoveIndex] || 0;
-    if (currentEval > 20) return 'from-green-400 to-green-300';
-    if (currentEval < -20) return 'from-red-400 to-red-300';
-    if (currentEval < -10) return 'from-yellow-400 to-yellow-300';
-    return 'from-blue-400 to-blue-300';
+    if (currentEval > 20) return 'from-green-400 to-green-300'; // 유리
+    if (currentEval < -20) return 'from-red-400 to-red-300';   // 불리 (큰 실수)
+    if (currentEval < -10) return 'from-yellow-400 to-yellow-300'; // 약간 불리
+    return 'from-blue-400 to-blue-300'; // 보통
   };
 
   return (

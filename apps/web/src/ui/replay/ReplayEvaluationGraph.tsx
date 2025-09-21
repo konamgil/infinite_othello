@@ -2,14 +2,29 @@ import React, { useMemo } from 'react';
 import { GameMove } from '../../types/replay';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
+/**
+ * @interface ReplayEvaluationGraphProps
+ * `ReplayEvaluationGraph` 컴포넌트의 props를 정의합니다.
+ */
 interface ReplayEvaluationGraphProps {
+  /** @property {GameMove[]} moves - 게임의 모든 수에 대한 데이터 배열. 평가 점수를 추출하는 데 사용됩니다. */
   moves: GameMove[];
+  /** @property {number} currentMoveIndex - 현재 리플레이의 수 인덱스. 그래프에서 현재 위치를 강조하는 데 사용됩니다. */
   currentMoveIndex: number;
+  /** @property {(moveIndex: number) => void} [onMoveClick] - 사용자가 그래프의 특정 지점을 클릭했을 때 호출될 콜백 함수. */
   onMoveClick?: (moveIndex: number) => void;
+  /** @property {number} [height=100] - 그래프의 높이 (픽셀 단위). */
   height?: number;
+  /** @property {string} [className] - 컴포넌트의 최상위 요소에 적용할 추가 CSS 클래스. */
   className?: string;
 }
 
+/**
+ * 게임 리플레이의 AI 평가 점수 변화를 시각화하는 라인 그래프 컴포넌트입니다.
+ * SVG를 사용하여 렌더링하며, 사용자가 그래프의 특정 지점을 클릭하여 해당 수로 이동할 수 있습니다.
+ * @param {ReplayEvaluationGraphProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 평가 그래프 UI.
+ */
 export function ReplayEvaluationGraph({
   moves,
   currentMoveIndex,
@@ -17,16 +32,25 @@ export function ReplayEvaluationGraph({
   height = 100,
   className = ''
 }: ReplayEvaluationGraphProps) {
+  /**
+   * `moves` prop으로부터 그래프 렌더링에 필요한 데이터를 계산하고 memoization합니다.
+   * - `evaluationData`: 모든 수의 평가 점수 배열.
+   * - `minEval`, `maxEval`: Y축 스케일링을 위한 최소/최대 평가 점수.
+   * - `turningPoints`: 평가 점수가 급격하게 변하는 '전환점' 수의 인덱스 배열.
+   */
   const { evaluationData, minEval, maxEval, turningPoints } = useMemo(() => {
     const evaluations = moves.map(move => move.evaluationScore || 0);
+    if (evaluations.length === 0) {
+      return { evaluationData: [], minEval: -100, maxEval: 100, turningPoints: [] };
+    }
     const min = Math.min(...evaluations, -100);
     const max = Math.max(...evaluations, 100);
 
-    // Find significant evaluation changes
+    // 평가 점수가 크게 변동하는 지점(전환점)을 찾습니다.
     const turningPoints: number[] = [];
     for (let i = 1; i < evaluations.length; i++) {
       const change = Math.abs(evaluations[i] - evaluations[i - 1]);
-      if (change >= 20) {
+      if (change >= 20) { // 20점 이상 변화 시 전환점으로 간주
         turningPoints.push(i);
       }
     }
@@ -39,6 +63,7 @@ export function ReplayEvaluationGraph({
     };
   }, [moves]);
 
+  // 데이터가 없을 경우 메시지를 표시합니다.
   if (evaluationData.length === 0) {
     return (
       <div className={`flex items-center justify-center text-white/40 ${className}`} style={{ height }}>
@@ -48,21 +73,38 @@ export function ReplayEvaluationGraph({
     );
   }
 
+  /**
+   * 평가 점수 값을 SVG의 Y 좌표(0-100)로 정규화합니다.
+   * @param {number} value - 정규화할 평가 점수.
+   * @returns {number} 0에서 100 사이의 값.
+   */
   const normalize = (value: number) => {
-    return ((value - minEval) / (maxEval - minEval)) * 100;
+    const range = maxEval - minEval;
+    if (range === 0) return 50; // 모든 값이 같을 경우 중간에 표시
+    return ((value - minEval) / range) * 100;
   };
 
+  /**
+   * 평가 점수와 현재 수 여부에 따라 데이터 포인트의 색상을 결정합니다.
+   * @param {number} evaluation - 평가 점수.
+   * @param {number} index - 해당 수의 인덱스.
+   * @returns {string} SVG `fill` 및 `stroke`에 사용할 Tailwind CSS 클래스.
+   */
   const getPointColor = (evaluation: number, index: number) => {
     if (index === currentMoveIndex) {
       return 'fill-yellow-400 stroke-yellow-300';
     }
-
     if (evaluation >= 20) return 'fill-green-400 stroke-green-300';
     if (evaluation <= -20) return 'fill-red-400 stroke-red-300';
     if (evaluation <= -10) return 'fill-orange-400 stroke-orange-300';
     return 'fill-blue-400 stroke-blue-300';
   };
 
+  /**
+   * 평가 점수에 따라 라인 세그먼트의 색상을 결정합니다.
+   * @param {number} evaluation - 평가 점수.
+   * @returns {string} SVG `stroke`에 사용할 Tailwind CSS 클래스.
+   */
   const getSegmentColor = (evaluation: number) => {
     if (evaluation >= 20) return 'stroke-green-400';
     if (evaluation <= -20) return 'stroke-red-400';
@@ -70,7 +112,11 @@ export function ReplayEvaluationGraph({
     return 'stroke-blue-400';
   };
 
-  // Generate SVG path for the evaluation line
+  /**
+   * 평가 데이터 배열을 기반으로 SVG `<path>` 요소의 `d` 속성 문자열을 생성합니다.
+   * (현재는 개별 `<line>` 요소로 대체되어 사용되지 않음)
+   * @type {string}
+   */
   const pathData = evaluationData.reduce((path, eval, index) => {
     const x = (index / (evaluationData.length - 1)) * 100;
     const y = 100 - normalize(eval);

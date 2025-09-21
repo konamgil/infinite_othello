@@ -10,6 +10,18 @@ type StellaLayoutProps = {
   detail?: boolean;
 };
 
+/**
+ * A layout component for the Stella AI mentor feature.
+ *
+ * This component provides a consistent layout for all pages within the Stella feature.
+ * It includes a star canvas background (`StellaCanvas`) and can be adapted for
+ * detail pages, which have a slightly different structure.
+ *
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The content to be rendered within the layout.
+ * @param {boolean} [props.detail=false] - If true, applies a layout variant for detail pages.
+ * @returns {React.ReactElement} The rendered layout component.
+ */
 export function StellaLayout({ children, detail = false }: StellaLayoutProps) {
   const player = useGameStore((state) => state.player);
   const completedMissions = DAILY_MISSIONS.filter(m => m.completed).length;

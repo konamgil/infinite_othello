@@ -7,6 +7,10 @@ import { TowerLayout } from './layouts/TowerLayout';
 import GameScreen from './pages/game/page';
 import TowerScreen from './pages/index/page';
 
+/**
+ * Metadata for the root of the tower feature.
+ * This is used for the main '/tower' route.
+ */
 const TOWER_META: RouteMeta = {
   isRoot: true,
   requiresAuth: false,
@@ -15,12 +19,23 @@ const TOWER_META: RouteMeta = {
   navPath: '/tower',
 };
 
+/**
+ * Metadata for the tower game screen itself.
+ * This route requires authentication.
+ */
 const TOWER_GAME_META: RouteMeta = {
   requiresAuth: true,
   title: '탑 도전',
   icon: Gamepad2,
 };
 
+/**
+ * An error boundary component for the tower feature.
+ *
+ * This is displayed if an error occurs while rendering any of the tower feature's pages.
+ *
+ * @returns {React.ReactElement} The rendered error boundary UI.
+ */
 const TowerErrorBoundary = () => (
   <TowerLayout>
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
@@ -30,6 +45,11 @@ const TowerErrorBoundary = () => (
   </TowerLayout>
 );
 
+/**
+ * A component to display when a specific tower floor is not found.
+ *
+ * @returns {React.ReactElement} The rendered "not found" UI for the tower feature.
+ */
 const TowerNotFound = () => (
   <TowerLayout>
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
@@ -39,6 +59,12 @@ const TowerNotFound = () => (
   </TowerLayout>
 );
 
+/**
+ * The main route object for the tower feature.
+ *
+ * This object defines the layout and all sub-routes for the tower section,
+ * including the main tower screen and the game screen for each floor.
+ */
 export const towerRoute: AppRouteObject = {
   id: 'tower-root',
   path: 'tower',

@@ -4,7 +4,15 @@ import { useOthelloStore } from '../othelloStore';
 import { useNetworkStore } from '../networkStore';
 import { useAppStore } from '../appStore';
 
-// 스토어 간 동기화 훅
+/**
+ * A hook that synchronizes state between different stores.
+ *
+ * This hook contains `useEffect` calls that listen for changes in one store
+ * and dispatch actions in another, ensuring consistency across the application.
+ * For example, it syncs network errors to the global app error state.
+ *
+ * @returns An object with derived boolean flags for common states.
+ */
 export const useStoreIntegration = () => {
   const { activeTab, setActiveTab } = useGameStore();
   const { gameStatus, currentPlayer } = useOthelloStore();
@@ -80,7 +88,14 @@ export const useStoreIntegration = () => {
   };
 };
 
-// 게임 진행을 위한 통합 훅
+/**
+ * A hook that provides a unified API for managing the main game flow.
+ *
+ * It abstracts away the complexity of whether a game is local or online,
+ * providing a single `handleMove` function. It also contains logic for starting new games.
+ *
+ * @returns An object with functions and state for controlling the game flow.
+ */
 export const useGameFlow = () => {
   const { makeMove, gameStatus, currentPlayer } = useOthelloStore();
   const { connection, gameSession } = useNetworkStore();
@@ -138,7 +153,14 @@ export const useGameFlow = () => {
   };
 };
 
-// 테마와 UI 설정을 위한 훅
+/**
+ * A hook for managing theme and UI-related settings.
+ *
+ * It combines theme settings from `gameStore` and performance settings from `appStore`
+ * to provide a unified interface for UI customization.
+ *
+ * @returns An object with the current theme and UI state, and functions to modify them.
+ */
 export const useThemeIntegration = () => {
   const { theme, setTheme } = useGameStore();
   const { ui, updateUISettings } = useGameStore();
@@ -172,7 +194,13 @@ export const useThemeIntegration = () => {
   };
 };
 
-// 전체 상태 리셋을 위한 훅
+/**
+ * A hook that provides functions for resetting parts or all of the application state.
+ *
+ * This is useful for actions like starting a completely new game or logging out.
+ *
+ * @returns An object with `resetAllStores` and `resetGameOnly` functions.
+ */
 export const useStoreReset = () => {
   const resetGame = useOthelloStore((state) => state.resetGame);
   const disconnect = useNetworkStore((state) => state.disconnect);

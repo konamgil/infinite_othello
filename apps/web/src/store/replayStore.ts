@@ -9,7 +9,10 @@ import {
   ReplayStatistics
 } from '../types/replay';
 
-// Mock data generator for replays
+/**
+ * 개발 및 테스트를 위한 `GameReplay` 모의 객체 목록을 생성합니다.
+ * @returns {GameReplay[]} 50개의 모의 게임 리플레이 배열.
+ */
 const generateMockReplays = (): GameReplay[] => {
   const gameModes = ['tower', 'battle', 'casual', 'ai'] as const;
   const aiLevels = ['easy', 'medium', 'hard', 'expert'] as const;
@@ -23,14 +26,14 @@ const generateMockReplays = (): GameReplay[] => {
 
   for (let i = 0; i < 50; i++) {
     const gameMode = gameModes[Math.floor(Math.random() * gameModes.length)];
-    const startTime = Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000; // Last 30 days
-    const duration = 300 + Math.random() * 1800; // 5-35 minutes
+    const startTime = Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000; // 최근 30일
+    const duration = 300 + Math.random() * 1800; // 5-35분
     const endTime = startTime + duration * 1000;
-    const totalMoves = Math.floor(20 + Math.random() * 40); // 20-60 moves
+    const totalMoves = Math.floor(20 + Math.random() * 40); // 20-60수
 
     const isPlayerBlack = Math.random() > 0.5;
     const opponentIsAI = Math.random() > 0.6;
-    const playerWon = Math.random() > 0.4; // 60% win rate
+    const playerWon = Math.random() > 0.4; // 60% 승률
 
     const blackScore = 25 + Math.floor(Math.random() * 15);
     const whiteScore = 64 - blackScore;
@@ -44,7 +47,7 @@ const generateMockReplays = (): GameReplay[] => {
       winner = 'white';
     }
 
-    // Adjust winner based on playerWon if player is involved
+    // 플레이어 승패 결과에 따라 승자 조정
     if (isPlayerBlack && !playerWon && winner === 'black') {
       winner = 'white';
     } else if (!isPlayerBlack && !playerWon && winner === 'white') {
@@ -54,27 +57,24 @@ const generateMockReplays = (): GameReplay[] => {
     const playerRating = 1400 + Math.floor(Math.random() * 600);
     const opponentRating = opponentIsAI ? undefined : 1200 + Math.floor(Math.random() * 800);
 
-    const moves = [];
-    for (let m = 0; m < totalMoves; m++) {
-      moves.push({
+    const moves = Array.from({ length: totalMoves }, (v, m) => ({
+      x: Math.floor(Math.random() * 8),
+      y: Math.floor(Math.random() * 8),
+      player: (m % 2 === 0 ? 'black' : 'white') as 'black' | 'white',
+      timestamp: startTime + (m * (duration * 1000 / totalMoves)),
+      flippedDiscs: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, () => ({
+        x: Math.floor(Math.random() * 8),
+        y: Math.floor(Math.random() * 8)
+      })),
+      moveNumber: m + 1,
+      evaluationScore: Math.floor((Math.random() - 0.5) * 200), // -100 to 100
+      isOptimal: Math.random() > 0.7,
+      alternativeMoves: Array.from({ length: Math.floor(Math.random() * 3) }, () => ({
         x: Math.floor(Math.random() * 8),
         y: Math.floor(Math.random() * 8),
-        player: (m % 2 === 0 ? 'black' : 'white') as 'black' | 'white',
-        timestamp: startTime + (m * (duration * 1000 / totalMoves)),
-        flippedDiscs: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, () => ({
-          x: Math.floor(Math.random() * 8),
-          y: Math.floor(Math.random() * 8)
-        })),
-        moveNumber: m + 1,
-        evaluationScore: Math.floor((Math.random() - 0.5) * 200), // -100 to 100
-        isOptimal: Math.random() > 0.7,
-        alternativeMoves: Array.from({ length: Math.floor(Math.random() * 3) }, () => ({
-          x: Math.floor(Math.random() * 8),
-          y: Math.floor(Math.random() * 8),
-          score: Math.floor((Math.random() - 0.5) * 200)
-        }))
-      });
-    }
+        score: Math.floor((Math.random() - 0.5) * 200)
+      }))
+    }));
 
     replays.push({
       id: `replay_${i.toString().padStart(3, '0')}`,
@@ -135,33 +135,61 @@ const generateMockReplays = (): GameReplay[] => {
     });
   }
 
-  // Sort by start time (newest first)
+  // 최신순으로 정렬
   return replays.sort((a, b) => b.gameInfo.startTime - a.gameInfo.startTime);
 };
 
+/**
+ * @interface ReplayState
+ * 리플레이 기능의 상태 형태를 정의합니다.
+ */
 interface ReplayState {
+  /** @property {GameReplay[]} replays - 필터링되지 않은 모든 리플레이 원본 목록. */
   replays: GameReplay[];
+  /** @property {GameReplay[]} filteredReplays - 필터링 및 정렬이 적용된 후의 리플레이 목록. */
   filteredReplays: GameReplay[];
+  /** @property {ReplayUIState} uiState - 필터, 정렬, 플레이어 컨트롤을 포함한 UI 상태. */
   uiState: ReplayUIState;
+  /** @property {boolean} isLoading - 리플레이를 로드 중일 때 true. */
   isLoading: boolean;
+  /** @property {string | null} error - 리플레이 로딩 또는 처리 중 발생한 에러 메시지. */
   error: string | null;
+  /** @property {ReplayFilters | null} filterMemory - 나중에 복원하기 위한 필터 스냅샷. */
   filterMemory: ReplayFilters | null;
 }
 
+/**
+ * @interface ReplayActions
+ * 리플레이 상태에 대해 수행할 수 있는 액션들을 정의합니다.
+ */
 interface ReplayActions {
+  /** 초기 리플레이 목록을 로드합니다. */
   loadReplays: () => void;
+  /** 리플레이 목록의 보기 모드('list' 또는 'grid')를 설정합니다. */
   setViewMode: (mode: ReplayUIState['viewMode']) => void;
+  /** 현재 선택된 리플레이를 설정합니다. */
   setSelectedReplay: (replay: GameReplay | null) => void;
+  /** 필터를 업데이트하고 리플레이 목록에 다시 적용합니다. */
   updateFilters: (filters: Partial<ReplayFilters>) => void;
+  /** 정렬 옵션을 업데이트하고 리플레이 목록을 다시 정렬합니다. */
   updateSortOptions: (sort: ReplaySortOptions) => void;
+  /** 리플레이 플레이어의 컨트롤 상태를 업데이트합니다. */
   updatePlayerControls: (controls: Partial<ReplayPlayerControls>) => void;
+  /** 검색어를 설정하고 목록을 다시 필터링합니다. */
   setSearchQuery: (query: string) => void;
+  /** 통계 패널의 표시 여부를 토글합니다. */
   toggleStatistics: () => void;
+  /** 모든 필터를 초기 상태로 리셋합니다. */
   clearFilters: () => void;
+  /** 현재 필터링된 리플레이를 기반으로 통계를 계산하여 반환합니다. */
   getStatistics: () => ReplayStatistics;
+  /** 현재 필터링 및 정렬된 리플레이 목록을 반환합니다. */
   getFilteredReplays: () => GameReplay[];
+  /** 미리 정의된 필터셋을 적용합니다. */
   applyQuickFilter: (type: 'recentWins' | 'challengingGames' | 'aiMatches' | 'longGames') => void;
+  /** 현재 필터 상태를 메모리/localStorage에 저장합니다. */
   saveFilterMemory: () => void;
+  /** 메모리/localStorage에서 필터 상태를 불러옵니다. */
   loadFilterMemory: () => void;
 }
 
@@ -207,10 +235,17 @@ const initialUIState: ReplayUIState = {
   searchQuery: ''
 };
 
-// Performance optimization: memoized filter functions
+/**
+ * 리플레이 목록에 필터와 검색어를 적용합니다.
+ * 성능을 위해 이 함수는 스토어 외부에서 순수 함수로 관리될 수 있습니다.
+ * @param {GameReplay[]} replays - 원본 리플레이 배열.
+ * @param {ReplayFilters} filters - 필터 기준.
+ * @param {string} searchQuery - 사용자 검색어.
+ * @returns {GameReplay[]} 필터링된 리플레이 배열.
+ */
 const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, searchQuery: string): GameReplay[] => {
   return replays.filter(replay => {
-    // Search filter
+    // 검색 필터
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchesPlayer =
@@ -223,12 +258,12 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
       if (!matchesPlayer && !matchesMode && !matchesTags) return false;
     }
 
-    // Game mode filter
+    // 게임 모드 필터
     if (filters.gameMode && filters.gameMode.length > 0) {
       if (!filters.gameMode.includes(replay.gameMode)) return false;
     }
 
-    // Result filter
+    // 결과 필터
     if (filters.result && filters.result !== 'any') {
       const isPlayerBlack = replay.playerBlack.name === '우주의 오델로 수호자';
       const playerWon = replay.result.winner === (isPlayerBlack ? 'black' : 'white');
@@ -239,7 +274,7 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
       if (filters.result === 'draw' && !isDraw) return false;
     }
 
-    // Opponent filter
+    // 상대방 필터
     if (filters.opponent && filters.opponent !== 'any') {
       const isPlayerBlack = replay.playerBlack.name === '우주의 오델로 수호자';
       const opponentIsAI = isPlayerBlack ? replay.playerWhite.isAI : replay.playerBlack.isAI;
@@ -248,18 +283,18 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
       if (filters.opponent === 'human' && opponentIsAI) return false;
     }
 
-    // Date range filter
+    // 날짜 범위 필터
     if (filters.dateRange) {
       const gameDate = replay.gameInfo.startTime;
       if (filters.dateRange.start && gameDate < filters.dateRange.start.getTime()) return false;
       if (filters.dateRange.end && gameDate > filters.dateRange.end.getTime()) return false;
     }
 
-    // Duration filters
+    // 게임 시간 필터
     if (filters.minDuration && replay.gameInfo.duration < filters.minDuration) return false;
     if (filters.maxDuration && replay.gameInfo.duration > filters.maxDuration) return false;
 
-    // Rating range filter
+    // 레이팅 범위 필터
     if (filters.ratingRange) {
       const playerRating = replay.playerBlack.name === '우주의 오델로 수호자'
         ? replay.playerBlack.rating
@@ -273,7 +308,7 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
       if (filters.ratingRange.max && maxRating > filters.ratingRange.max) return false;
     }
 
-    // Tags filter
+    // 태그 필터
     if (filters.tags && filters.tags.length > 0) {
       const replayTags = replay.metadata.tags || [];
       const hasMatchingTag = filters.tags.some(tag =>
@@ -288,6 +323,12 @@ const applyFiltersToReplays = (replays: GameReplay[], filters: ReplayFilters, se
   });
 };
 
+/**
+ * 제공된 정렬 옵션에 따라 리플레이 배열을 정렬합니다.
+ * @param {GameReplay[]} replays - 정렬할 리플레이 배열.
+ * @param {ReplaySortOptions} sortOptions - 정렬 기준.
+ * @returns {GameReplay[]} 정렬된 리플레이 배열.
+ */
 const sortReplays = (replays: GameReplay[], sortOptions: ReplaySortOptions): GameReplay[] => {
   return [...replays].sort((a, b) => {
     const { field, direction } = sortOptions;
@@ -321,6 +362,12 @@ const sortReplays = (replays: GameReplay[], sortOptions: ReplaySortOptions): Gam
   });
 };
 
+/**
+ * 게임 리플레이 기능의 상태를 관리하는 Zustand 스토어입니다.
+ *
+ * 이 스토어는 게임 리플레이의 로딩, 필터링, 정렬 및 보기를 처리합니다.
+ * 현재는 모의 데이터를 사용하지만 실제 API와 함께 작동하도록 구성되어 있습니다.
+ */
 export const useReplayStore = create<ReplayStore>()(
   devtools(
     (set, get) => ({
@@ -334,7 +381,7 @@ export const useReplayStore = create<ReplayStore>()(
       loadReplays: () => {
         set({ isLoading: true, error: null });
 
-        // Simulate API call
+        // API 호출 시뮬레이션
         setTimeout(() => {
           try {
             const mockReplays = generateMockReplays();
@@ -349,7 +396,7 @@ export const useReplayStore = create<ReplayStore>()(
             });
           } catch (error) {
             set({
-              error: 'Failed to load replay data',
+              error: '리플레이 데이터 로드 실패',
               isLoading: false
             });
           }
@@ -464,7 +511,7 @@ export const useReplayStore = create<ReplayStore>()(
             break;
           case 'longGames':
             quickFilters = {
-              minDuration: 1800 // 30+ minutes
+              minDuration: 1800 // 30+ 분
             };
             break;
         }
@@ -485,7 +532,7 @@ export const useReplayStore = create<ReplayStore>()(
       saveFilterMemory: () => {
         const state = get();
         set({ filterMemory: state.uiState.filters });
-        // In a real app, you'd save to localStorage here
+        // 실제 앱에서는 여기서 localStorage에 저장
         localStorage.setItem('replayFilterMemory', JSON.stringify(state.uiState.filters));
       },
 
@@ -508,7 +555,7 @@ export const useReplayStore = create<ReplayStore>()(
             });
           }
         } catch (error) {
-          console.warn('Failed to load filter memory:', error);
+          console.warn('필터 메모리 로드 실패:', error);
         }
       },
 
@@ -538,18 +585,18 @@ export const useReplayStore = create<ReplayStore>()(
           };
         }
 
-        // Calculate win rate based on which player is '우주의 오델로 수호자'
+        // '우주의 오델로 수호자' 기준 승률 계산
         const wins = replays.filter(r => {
           const isPlayerBlack = r.playerBlack.name === '우주의 오델로 수호자';
           return r.result.winner === (isPlayerBlack ? 'black' : 'white');
         }).length;
         const winRate = (wins / totalGames) * 100;
 
-        // Calculate averages
+        // 평균 계산
         const totalDuration = replays.reduce((sum, r) => sum + r.gameInfo.duration, 0);
         const totalMoves = replays.reduce((sum, r) => sum + r.gameInfo.totalMoves, 0);
 
-        // Performance by mode
+        // 모드별 성능
         const performanceByMode = replays.reduce((acc, replay) => {
           const mode = replay.gameMode;
           if (!acc[mode]) {
@@ -570,7 +617,7 @@ export const useReplayStore = create<ReplayStore>()(
           delete data.wins;
         });
 
-        // Recent trends
+        // 최근 동향
         const now = Date.now();
         const day = 24 * 60 * 60 * 1000;
 

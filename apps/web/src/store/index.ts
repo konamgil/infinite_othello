@@ -1,4 +1,10 @@
-// 중앙화된 스토어 export
+/**
+ * Centralized export file for all Zustand stores and their associated types.
+ *
+ * This file simplifies imports for components that need to access different parts
+ * of the application's state. Instead of importing from individual store files,
+ * components can import everything they need from this single entry point.
+ */
 export * from './gameStore';
 export * from './appStore';
 export * from './othelloStore';

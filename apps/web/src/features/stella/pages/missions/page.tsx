@@ -4,6 +4,14 @@ import { StellaLayout } from '../../layouts/StellaLayout';
 import { DAILY_MISSIONS } from '../../constants';
 import { Target, CheckCircle } from 'lucide-react';
 
+/**
+ * The daily missions page.
+ *
+ * This component displays a list of all available daily missions for the user.
+ * For each mission, it shows the title, description, rewards, and current progress.
+ *
+ * @returns {React.ReactElement} The rendered daily missions page.
+ */
 export default function StellaMissions() {
   const navigate = useNavigate();
 

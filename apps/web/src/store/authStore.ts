@@ -7,80 +7,106 @@ import { sessionUtils, type SessionConflictInfo } from '../lib/sessionManager';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 import type { Profile } from '../types/supabase';
 
-// 인증 상태 타입 정의
+/**
+ * @interface AuthState
+ * 인증과 관련된 모든 상태의 형태를 정의합니다.
+ */
 export interface AuthState {
-  // 사용자 정보
+  /** @property {User | null} user - 현재 인증된 Supabase 사용자 객체. */
   user: User | null;
+  /** @property {Session | null} session - 현재 Supabase 세션 객체. */
   session: Session | null;
+  /** @property {Profile | null} profile - 'profiles' 테이블에서 가져온 앱 전용 사용자 프로필. */
   profile: Profile | null;
 
-  // 게스트 상태
+  /** @property {Profile | null} guestProfile - 현재 게스트 사용자의 프로필 (게스트 모드일 경우). */
   guestProfile: Profile | null;
+  /** @property {boolean} isGuest - 현재 사용자가 게스트인지 여부를 나타내는 플래그. */
   isGuest: boolean;
 
-  // 인증 상태
+  /** @property {boolean} isLoading - 초기 인증 상태를 확인하는 동안 true. */
   isLoading: boolean;
+  /** @property {boolean} isAuthenticated - 사용자(게스트 또는 정식)가 현재 로그인되어 있으면 true. */
   isAuthenticated: boolean;
+  /** @property {boolean} isInitialized - 초기 인증 확인이 완료되면 true. */
   isInitialized: boolean;
 
-  // 에러 상태
+  /** @property {string | null} error - 인증 관련 에러 메시지를 저장. */
   error: string | null;
 
-  // 가입/로그인 상태
+  /** @property {boolean} signUpLoading - 회원가입 절차가 진행 중일 때 true. */
   signUpLoading: boolean;
+  /** @property {boolean} signInLoading - 로그인 절차가 진행 중일 때 true. */
   signInLoading: boolean;
+  /** @property {boolean} signOutLoading - 로그아웃 절차가 진행 중일 때 true. */
   signOutLoading: boolean;
+  /** @property {boolean} oauthLoading - OAuth 관련 작업이 진행 중일 때 true. */
   oauthLoading: boolean;
 
-  // 연동 상태
+  /** @property {SupportedProvider | null} linkingProvider - 계정 연동에 사용 중인 OAuth 프로바이더. */
   linkingProvider: SupportedProvider | null;
+  /** @property {boolean} showLinkPrompt - 계정 연동 프롬프트의 표시 여부를 제어하는 플래그. */
   showLinkPrompt: boolean;
 
-  // 세션 충돌 상태
+  /** @property {SessionConflictInfo | null} sessionConflict - 감지된 세션 충돌 정보를 저장. */
   sessionConflict: SessionConflictInfo | null;
+  /** @property {boolean} showSessionConflict - 세션 충돌 모달의 표시 여부를 제어하는 플래그. */
   showSessionConflict: boolean;
 }
 
-// 액션 타입 정의
+/**
+ * @interface AuthActions
+ * 인증 상태에 대해 수행할 수 있는 모든 액션을 정의합니다.
+ */
 export interface AuthActions {
-  // 초기화
+  /** 인증 스토어를 초기화하고, 기존 세션을 확인하며, 인증 상태 리스너를 설정합니다. */
   initialize: () => Promise<void>;
 
-  // 게스트 계정
+  /** 새로운 게스트 계정을 생성합니다. */
   createGuestAccount: () => Promise<{ success: boolean; profile?: Profile; error?: string }>;
+  /** 로컬 저장소에 저장된 게스트 계정이 있으면 불러옵니다. */
   loadGuestFromLocal: () => void;
 
-  // OAuth 로그인
+  /** OAuth 프로바이더를 통한 로그인 절차를 시작합니다. */
   signInWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  /** OAuth 제공자로부터 성공적인 로그인 후 콜백을 처리합니다. */
   handleOAuthCallback: () => Promise<{ success: boolean; error?: string }>;
 
-  // 계정 연동
+  /** 현재 게스트 계정을 OAuth 프로바이더에 연동하는 절차를 시작합니다. */
   linkAccountWithOAuth: (provider: SupportedProvider) => Promise<{ success: boolean; error?: string }>;
+  /** 게스트 계정 연동 프롬프트의 표시 여부를 제어합니다. */
   showLinkingPrompt: (show: boolean, context?: string) => void;
 
-  // 로그아웃
+  /** 현재 사용자를 로그아웃시킵니다. */
   signOut: () => Promise<void>;
 
-  // 프로필 업데이트
+  /** 현재 사용자의 프로필 데이터를 업데이트합니다. */
   updateProfile: (updates: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
 
-  // 세션 관리
+  /** 감지된 세션 충돌 정보를 상태에 업데이트하여 처리합니다. */
   handleSessionConflict: (conflictInfo: SessionConflictInfo) => void;
+  /** 현재 사용자의 다른 모든 세션을 강제로 종료합니다. */
   forceEndOtherSessions: () => Promise<{ success: boolean; error?: string }>;
+  /** 사용자의 선택('force' 또는 'cancel')에 따라 세션 충돌을 해결합니다. */
   resolveSessionConflict: (action: 'force' | 'cancel') => Promise<void>;
 
-  // 게스트 유틸리티
+  /** 게스트 사용자에게 계정 연동을 유도할지 여부를 결정합니다. */
   shouldPromptLinking: (context: string) => boolean;
+  /** 게스트 계정의 제한 사항을 가져옵니다. */
   getGuestLimitations: () => ReturnType<typeof guestAuthUtils.getLimitations>;
 
-  // 에러 초기화
+  /** 상태에 저장된 인증 관련 에러를 초기화합니다. */
   clearError: () => void;
 
-  // 내부 상태 업데이트 (인증 리스너용)
+  /** (내부용) 인증 리스너가 사용자 및 세션 상태를 설정하기 위해 사용하는 액션. */
   setAuth: (user: User | null, session: Session | null) => void;
+  /** (내부용) 프로필 상태를 설정하는 액션. */
   setProfile: (profile: Profile | null) => void;
+  /** (내부용) 게스트 프로필 상태를 설정하는 액션. */
   setGuestProfile: (profile: Profile | null) => void;
+  /** (내부용) 에러 상태를 설정하는 액션. */
   setError: (error: string | null) => void;
+  /** (내부용) 로딩 상태를 설정하는 액션. */
   setLoading: (loading: boolean) => void;
 }
 
@@ -107,7 +133,14 @@ const initialState: AuthState = {
   showSessionConflict: false,
 };
 
-// Zustand 스토어 생성
+/**
+ * 인증을 위한 메인 Zustand 스토어입니다.
+ *
+ * 이 스토어는 사용자 데이터, 세션 관리, 게스트 계정, OAuth 흐름 등
+ * 사용자 인증과 관련된 모든 상태와 액션을 캡슐화합니다.
+ * 디버깅을 위해 `devtools`를 사용하고, 사용자가 브라우저 세션 간에 로그인 상태를
+ * 유지할 수 있도록 `persist` 미들웨어를 사용합니다.
+ */
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
@@ -523,7 +556,10 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// 편의 훅들
+/**
+ * 핵심 인증 상태에 쉽게 접근하기 위한 편의성 훅입니다.
+ * 이 훅은 선택된 상태가 변경될 때만 컴포넌트를 리렌더링하도록 최적화되어 있습니다.
+ */
 export const useAuth = () => useAuthStore((state) => ({
   user: state.user,
   session: state.session,
@@ -536,6 +572,10 @@ export const useAuth = () => useAuthStore((state) => ({
   showSessionConflict: state.showSessionConflict,
 }));
 
+/**
+ * 인증 관련 액션에 쉽게 접근하기 위한 편의성 훅입니다.
+ * 이 훅은 상태가 변경되어도 컴포넌트를 리렌더링하지 않습니다.
+ */
 export const useAuthActions = () => useAuthStore((state) => ({
   initialize: state.initialize,
   signUp: state.signUp,
@@ -549,6 +589,9 @@ export const useAuthActions = () => useAuthStore((state) => ({
   resolveSessionConflict: state.resolveSessionConflict,
 }));
 
+/**
+ * 인증과 관련된 다양한 로딩 상태에 접근하기 위한 편의성 훅입니다.
+ */
 export const useAuthLoading = () => useAuthStore((state) => ({
   signUpLoading: state.signUpLoading,
   signInLoading: state.signInLoading,

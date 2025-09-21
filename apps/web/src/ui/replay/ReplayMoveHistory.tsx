@@ -9,13 +9,27 @@ import {
   CheckCircle
 } from 'lucide-react';
 
+/**
+ * @interface ReplayMoveHistoryProps
+ * `ReplayMoveHistory` 컴포넌트의 props를 정의합니다.
+ */
 interface ReplayMoveHistoryProps {
+  /** @property {GameMove[]} moves - 게임의 모든 수에 대한 데이터 배열. */
   moves: GameMove[];
+  /** @property {number} currentMoveIndex - 현재 선택된 수의 인덱스. */
   currentMoveIndex: number;
+  /** @property {(index: number) => void} onMoveSelect - 사용자가 특정 수를 선택했을 때 호출될 콜백. */
   onMoveSelect: (index: number) => void;
+  /** @property {boolean} [showAnalysis=false] - 각 수에 대한 AI 분석 정보를 표시할지 여부. */
   showAnalysis?: boolean;
 }
 
+/**
+ * 게임의 모든 수를 순서대로 나열하는 스크롤 가능한 기록 목록 컴포넌트입니다.
+ * 사용자는 각 수를 클릭하여 리플레이의 해당 시점으로 이동할 수 있습니다.
+ * @param {ReplayMoveHistoryProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 수 기록 목록 UI.
+ */
 export function ReplayMoveHistory({
   moves,
   currentMoveIndex,
@@ -23,29 +37,50 @@ export function ReplayMoveHistory({
   showAnalysis = false
 }: ReplayMoveHistoryProps) {
 
+  /**
+   * 좌표를 'A1'과 같은 대수 표기법으로 변환합니다.
+   * @param {number} x - x 좌표 (0-7).
+   * @param {number} y - y 좌표 (0-7).
+   * @returns {string} 대수 표기법 문자열.
+   */
   const formatPosition = (x: number, y: number) => {
     return `${String.fromCharCode(65 + x)}${y + 1}`;
   };
 
+  /**
+   * 평가 점수에 따라 적절한 아이콘을 반환합니다.
+   * @param {number} [score] - 평가 점수.
+   * @returns {JSX.Element | null} 아이콘 컴포넌트 또는 null.
+   */
   const getEvaluationIcon = (score?: number) => {
-    if (!score) return null;
-
+    if (score === undefined) return null;
     if (score > 20) return <TrendingUp size={12} className="text-green-400" />;
     if (score < -20) return <TrendingDown size={12} className="text-red-400" />;
     if (Math.abs(score) > 10) return <AlertTriangle size={12} className="text-yellow-400" />;
     return <CheckCircle size={12} className="text-blue-400" />;
   };
 
+  /**
+   * 평가 점수와 최적수 여부에 따라 텍스트 색상 클래스를 반환합니다.
+   * @param {number} [score] - 평가 점수.
+   * @param {boolean} [isOptimal] - 최적수 여부.
+   * @returns {string} Tailwind CSS 색상 클래스.
+   */
   const getEvaluationColor = (score?: number, isOptimal?: boolean) => {
     if (isOptimal) return 'text-green-400';
-    if (!score) return 'text-white/60';
-
+    if (score === undefined) return 'text-white/60';
     if (score > 20) return 'text-green-400';
     if (score < -20) return 'text-red-400';
     if (Math.abs(score) > 10) return 'text-yellow-400';
     return 'text-blue-400';
   };
 
+  /**
+   * 타임스탬프를 '분:초' 형식의 문자열로 변환합니다.
+   * @param {number} timestamp - 현재 수의 타임스탬프.
+   * @param {number} startTime - 게임 시작 타임스탬프.
+   * @returns {string} 포맷된 시간 문자열.
+   */
   const formatTime = (timestamp: number, startTime: number) => {
     const elapsed = Math.floor((timestamp - startTime) / 1000);
     const minutes = Math.floor(elapsed / 60);

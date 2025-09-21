@@ -10,6 +10,10 @@ import BattleTournamentScreen from './pages/tournament/page';
 import QuickMatchPage from './pages/quick/page';
 import RankedMatchPage from './pages/ranked/page';
 
+/**
+ * Metadata for the root of the battle feature.
+ * This is used for the main '/battle' route.
+ */
 const BATTLE_ROOT_META: RouteMeta = {
   isRoot: true,
   requiresAuth: false,
@@ -18,6 +22,10 @@ const BATTLE_ROOT_META: RouteMeta = {
   navPath: '/battle',
 };
 
+/**
+ * Base metadata for detail pages within the battle feature.
+ * These pages typically hide the bottom navigation.
+ */
 const BATTLE_DETAIL_META: RouteMeta = {
   requiresAuth: false,
   hideBottomNav: true,
@@ -25,6 +33,9 @@ const BATTLE_DETAIL_META: RouteMeta = {
   icon: Sword,
 };
 
+/**
+ * Metadata for the actual game screen.
+ */
 const GAME_META: RouteMeta = {
   requiresAuth: false,
   hideBottomNav: true,
@@ -32,6 +43,14 @@ const GAME_META: RouteMeta = {
   icon: Gamepad2,
 };
 
+/**
+ * An error boundary component specific to the battle feature.
+ *
+ * This component is rendered when an error is thrown within the battle feature's routes.
+ * It displays a user-friendly message indicating that the battle information could not be loaded.
+ *
+ * @returns {React.ReactElement} The rendered error boundary UI.
+ */
 const BattleErrorBoundary = () => (
   <BattleLayout>
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
@@ -41,6 +60,14 @@ const BattleErrorBoundary = () => (
   </BattleLayout>
 );
 
+/**
+ * A component to display when a specific battle page is not found.
+ *
+ * This is rendered for any paths under '/battle/' that do not match a defined route.
+ * It provides a message guiding the user back to the list of battles.
+ *
+ * @returns {React.ReactElement} The rendered "not found" UI for the battle feature.
+ */
 const BattleNotFound = () => (
   <BattleLayout detail>
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
@@ -51,7 +78,13 @@ const BattleNotFound = () => (
 );
 
 
-
+/**
+ * The main route object for the entire battle feature.
+ *
+ * This object defines the layout and all the sub-routes for the battle section of the app.
+ * It includes routes for the battle home page, quick matches, ranked matches, tournaments,
+ * and a catch-all route for pages that are not found.
+ */
 export const battleRoute: AppRouteObject = {
   id: 'battle-root',
   path: 'battle',

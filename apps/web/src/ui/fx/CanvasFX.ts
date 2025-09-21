@@ -64,6 +64,14 @@ export interface FXLayer {
   active: boolean;
 }
 
+/**
+ * A comprehensive engine for creating and managing multi-layered canvas-based visual effects.
+ *
+ * This class provides a robust system for rendering complex particle animations,
+ * handling different effect types (e.g., starfields, ripples, bursts), and optimizing
+ * performance through features like layer management, particle throttling, and adaptive FPS.
+ * It also includes a simple event bus for decoupling effect triggers from the core logic.
+ */
 export class CanvasFX {
   private layers: Map<string, FXLayer> = new Map();
   private config: FXConfig;
@@ -72,6 +80,10 @@ export class CanvasFX {
   private eventBus: EventTarget;
   private particleCount = 0;
 
+  /**
+   * Initializes a new instance of the CanvasFX engine.
+   * @param {FXConfig} [config=DEFAULT_FX_CONFIG] - The configuration object for the effects engine.
+   */
   constructor(config: FXConfig = DEFAULT_FX_CONFIG) {
     this.config = config;
     this.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // 2x 제한
@@ -79,6 +91,14 @@ export class CanvasFX {
     this.setupEventListeners();
   }
 
+  /**
+   * Creates a new canvas layer and adds it to the specified container.
+   * @param {string} name - A unique name for the layer.
+   * @param {HTMLElement} container - The container element to append the canvas to.
+   * @param {number} width - The logical width of the canvas.
+   * @param {number} height - The logical height of the canvas.
+   * @returns {FXLayer} The newly created layer object.
+   */
   createLayer(name: string, container: HTMLElement, width: number, height: number): FXLayer {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
@@ -142,7 +162,13 @@ export class CanvasFX {
     this.nodeSpark(node.x, node.y);
   }
 
-  // FX 효과 메서드들
+  // --- Public FX Methods ---
+
+  /**
+   * Creates a starfield effect on a specified layer.
+   * @param {string} layerName - The name of the layer to add the effect to.
+   * @param {number} [count=28] - The number of stars to create.
+   */
   starfield(layerName: string, count: number = 28) {   // design-feedback.md 1번: 60→28개
     const layer = this.layers.get(layerName);
     if (!layer) return;
@@ -170,6 +196,10 @@ export class CanvasFX {
     this.particleCount += count;
   }
 
+  /**
+   * Creates a portal ring effect originating from the center of an HTML element.
+   * @param {HTMLElement} element - The element to use as the origin point.
+   */
   portalRing(element: HTMLElement) {
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -218,6 +248,10 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Applies a temporary glow effect to an HTML element using CSS box-shadow.
+   * @param {HTMLElement} element - The element to apply the glow to.
+   */
   glowPulse(element: HTMLElement) {
     const rect = element.getBoundingClientRect();
 
@@ -230,6 +264,12 @@ export class CanvasFX {
     }, 500);
   }
 
+  /**
+   * Creates a particle effect for a flipping disc.
+   * @param {number} x - The x-coordinate of the disc.
+   * @param {number} y - The y-coordinate of the disc.
+   * @param {string} color - The color of the disc.
+   */
   discFlip(x: number, y: number, color: string) {
     // 디스크 뒤집기 애니메이션용 파티클들 (성능 최적화 - 렌더링 부하 감소)
     const flipParticles = 4; // 6 -> 4개로 감소
@@ -265,6 +305,11 @@ export class CanvasFX {
     this.particleCount += newParticles.length;
   }
 
+  /**
+   * Creates a burst of particles, typically used in conjunction with a disc flip.
+   * @param {number} x - The x-coordinate of the burst origin.
+   * @param {number} y - The y-coordinate of the burst origin.
+   */
   flipBurst(x: number, y: number) {
     // design-feedback.md 3번: 파티클 총량 디스크당 36→14
     const burstCount = 10;  // 24→10발 (design-feedback.md 2번)
@@ -296,6 +341,11 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Creates a ripple effect, typically used when a disc is placed on the board.
+   * @param {number} x - The x-coordinate of the ripple origin.
+   * @param {number} y - The y-coordinate of the ripple origin.
+   */
   landingRipple(x: number, y: number) {
     // 착수 지점 리플 효과
     const ripples = 2;
@@ -329,6 +379,11 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Creates a spark effect at a specific point, used for tower map nodes.
+   * @param {number} x - The x-coordinate of the spark origin.
+   * @param {number} y - The y-coordinate of the spark origin.
+   */
   nodeSpark(x: number, y: number) {
     // design-feedback.md 2번: NODE_SPARK 24발→10발
     const sparkCount = 10;
@@ -358,6 +413,11 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Creates a shake animation on an HTML element and a burst of error particles.
+   * This is used to indicate an error or invalid action.
+   * @param {HTMLElement} element - The element to apply the shake effect to.
+   */
   errorShake(element: HTMLElement) {
     // DOM 엘리먼트 쉐이크 + 파티클
     const originalTransform = element.style.transform;
@@ -500,6 +560,11 @@ export class CanvasFX {
     ctx.fill();
   }
 
+  /**
+   * Updates the state of all particles in all active layers.
+   * This is called on each frame of the animation loop.
+   * @param {number} deltaTime - The time elapsed since the last frame.
+   */
   update(deltaTime: number) {
     for (const [name, layer] of this.layers) {
       if (!layer.active) continue;
@@ -522,6 +587,10 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Renders all particles in all active layers to their respective canvases.
+   * This is called on each frame of the animation loop.
+   */
   render() {
     for (const [name, layer] of this.layers) {
       if (!layer.active || layer.particles.length === 0) continue;
@@ -536,6 +605,9 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Starts the main animation loop for the FX engine.
+   */
   start() {
     let lastTime = 0;
     let frameCount = 0;
@@ -581,6 +653,9 @@ export class CanvasFX {
     this.animationFrame = requestAnimationFrame(animate);
   }
 
+  /**
+   * Stops the main animation loop.
+   */
   stop() {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -588,18 +663,39 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Emits an event on the internal event bus to trigger effects.
+   * @param {string} eventName - The name of the event.
+   * @param {any} detail - The data to pass with the event.
+   */
   emit(eventName: string, detail: any) {
     this.eventBus.dispatchEvent(new CustomEvent(eventName, { detail }));
   }
 
+  /**
+   * Registers an event listener on the internal event bus.
+   * @param {string} eventName - The name of the event to listen for.
+   * @param {EventListener} handler - The callback function to execute.
+   */
   on(eventName: string, handler: EventListener) {
     this.eventBus.addEventListener(eventName, handler);
   }
 
+  /**
+   * Removes an event listener from the internal event bus.
+   * @param {string} eventName - The name of the event.
+   * @param {EventListener} handler - The callback function to remove.
+   */
   off(eventName: string, handler: EventListener) {
     this.eventBus.removeEventListener(eventName, handler);
   }
 
+  /**
+   * Activates or deactivates a specific layer.
+   * Inactive layers are not updated or rendered.
+   * @param {string} name - The name of the layer.
+   * @param {boolean} active - The new active state.
+   */
   setLayer(name: string, active: boolean) {
     const layer = this.layers.get(name);
     if (layer) {
@@ -608,6 +704,10 @@ export class CanvasFX {
     }
   }
 
+  /**
+   * Returns statistics about the current state of the FX engine.
+   * @returns An object with particle and layer counts.
+   */
   getStats() {
     return {
       particleCount: this.particleCount,
@@ -616,6 +716,9 @@ export class CanvasFX {
     };
   }
 
+  /**
+   * Stops the engine and removes all created canvas layers from the DOM.
+   */
   destroy() {
     this.stop();
 
@@ -628,5 +731,5 @@ export class CanvasFX {
   }
 }
 
-// 전역 FX 인스턴스
+/** A global singleton instance of the CanvasFX engine. */
 export const fx = new CanvasFX();

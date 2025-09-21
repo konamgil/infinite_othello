@@ -11,24 +11,35 @@ import {
    Types & Interfaces
    ────────────────────────────────────────────────────────────────── */
 
+/**
+ * @interface AnalysisData
+ * AI가 생성한 상세 분석 데이터의 구조를 정의합니다.
+ * 이 데이터는 이 컴포넌트의 핵심 입력값(prop)입니다.
+ */
 export interface AnalysisData {
+  /** @property {number} moveNumber - 현재 수 번호. */
   moveNumber: number;
+  /** @property {number} evaluation - 현재 국면에 대한 AI 평가 점수. */
   evaluation: number;
+  /** @property {object} mobility - 이동성 관련 분석 데이터. */
   mobility: {
     current: number;
     potential: number;
     restricted: number;
   };
+  /** @property {object} frontier - 경계(Frontier) 디스크 관련 분석 데이터. */
   frontier: {
     edgeCount: number;
     stability: number;
     weakSpots: Array<{ x: number; y: number; risk: number }>;
   };
+  /** @property {object} parity - 패리티(홀짝성) 및 템포 관련 분석 데이터. */
   parity: {
     currentParity: 'even' | 'odd';
     parityAdvantage: number;
     tempoControl: number;
   };
+  /** @property {Array} legalMoves - 현재 둘 수 있는 모든 수와 그에 대한 평가. */
   legalMoves: Array<{
     x: number;
     y: number;
@@ -36,6 +47,7 @@ export interface AnalysisData {
     category: 'best' | 'good' | 'neutral' | 'bad' | 'terrible';
     reasoning: string;
   }>;
+  /** @property {object} [whatIf] - 'What-if' 시뮬레이션 결과 데이터 (선택적). */
   whatIf?: {
     alternativeMove: { x: number; y: number };
     projectedOutcome: number;
@@ -43,6 +55,10 @@ export interface AnalysisData {
   };
 }
 
+/**
+ * @interface AnalysisUIState
+ * 분석 시스템 패널의 UI 상태를 관리하는 객체의 타입을 정의합니다.
+ */
 export interface AnalysisUIState {
   activePanel: 'mobility' | 'frontier' | 'parity' | 'moves' | 'simulation' | null;
   panelHeight: 'minimal' | 'compact' | 'expanded' | 'full';
@@ -52,13 +68,21 @@ export interface AnalysisUIState {
   simulationActive: boolean;
 }
 
+/**
+ * @interface AdvancedAnalysisSystemProps
+ * `AdvancedAnalysisSystem` 컴포넌트의 props를 정의합니다.
+ */
 interface AdvancedAnalysisSystemProps {
+  /** @property {AnalysisData | null} analysisData - 표시할 분석 데이터. null이면 데이터 없음 상태를 표시합니다. */
   analysisData: AnalysisData | null;
   currentMoveIndex: number;
   totalMoves: number;
   boardSize: { width: number; height: number };
+  /** @property {(moveIndex: number) => void} onMoveSelect - 사용자가 특정 수를 선택했을 때 호출될 콜백. */
   onMoveSelect: (moveIndex: number) => void;
+  /** @property {(mode: string | null) => void} onBoardOverlay - 보드에 특정 오버레이를 표시하도록 부모에게 요청하는 콜백. */
   onBoardOverlay: (mode: string | null) => void;
+  /** @property {(active: boolean) => void} onSimulationToggle - 시뮬레이션 모드 활성화/비활성화를 부모에게 알리는 콜백. */
   onSimulationToggle: (active: boolean) => void;
   className?: string;
 }
@@ -67,6 +91,12 @@ interface AdvancedAnalysisSystemProps {
    Advanced Analysis System Component
    ────────────────────────────────────────────────────────────────── */
 
+/**
+ * 고급 분석 데이터를 시각화하고 상호작용하는 시스템 컴포넌트입니다.
+ * 화면 하단에 고정된 패널 형태로, 다양한 분석 탭과 보드 오버레이 기능을 제공합니다.
+ * @param {AdvancedAnalysisSystemProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 고급 분석 시스템 UI.
+ */
 export function AdvancedAnalysisSystem({
   analysisData,
   currentMoveIndex,
@@ -77,7 +107,7 @@ export function AdvancedAnalysisSystem({
   onSimulationToggle,
   className = ''
 }: AdvancedAnalysisSystemProps) {
-  // UI State Management
+  /** @state {AnalysisUIState} uiState - 패널의 모든 UI 상태를 관리하는 객체. */
   const [uiState, setUIState] = useState<AnalysisUIState>({
     activePanel: null,
     panelHeight: 'minimal',
@@ -87,34 +117,40 @@ export function AdvancedAnalysisSystem({
     simulationActive: false
   });
 
-  // Panel height presets for different screen sizes
+  /** 패널 높이 상태에 따른 CSS 클래스 프리셋. */
   const heightPresets = {
-    minimal: 'h-16 sm:h-20',        // Just the tabs bar
-    compact: 'h-32 sm:h-40',        // Key metrics visible
-    expanded: 'h-48 sm:h-56 lg:h-64', // Full content visible
-    full: 'h-[60vh] sm:h-[50vh]'     // Maximum analysis space
+    minimal: 'h-16 sm:h-20',        // 탭 바만 표시
+    compact: 'h-32 sm:h-40',        // 핵심 지표 표시
+    expanded: 'h-48 sm:h-56 lg:h-64', // 전체 콘텐츠 표시
+    full: 'h-[60vh] sm:h-[50vh]'     // 최대 분석 공간
   };
 
-  // Dynamic height calculation based on content and screen size
+  /**
+   * 현재 UI 상태와 화면 크기에 따라 동적으로 패널 높이 클래스를 계산합니다.
+   * @type {string}
+   */
   const panelHeight = useMemo(() => {
     if (!uiState.activePanel) return heightPresets.minimal;
-
-    // Mobile: More conservative heights to preserve board space
+    // 모바일에서는 보드 공간 확보를 위해 더 보수적인 높이 사용
     if (window.innerWidth < 1024) {
       return uiState.panelHeight === 'full' ? 'h-[50vh]' : heightPresets[uiState.panelHeight];
     }
-
-    // Desktop: Can use more space
+    // 데스크톱에서는 더 많은 공간 사용
     return heightPresets[uiState.panelHeight];
   }, [uiState.activePanel, uiState.panelHeight]);
 
-  // Panel state handlers
+  // --- 패널 상태 핸들러 ---
+
+  /**
+   * 분석 탭을 클릭했을 때 해당 패널을 열거나 닫습니다.
+   * @param {AnalysisUIState['activePanel']} panel - 토글할 패널의 ID.
+   */
   const togglePanel = (panel: AnalysisUIState['activePanel']) => {
     if (uiState.activePanel === panel) {
-      // Close panel if clicking active tab
+      // 이미 활성화된 탭을 클릭하면 패널을 닫음
       setUIState(prev => ({ ...prev, activePanel: null, panelHeight: 'minimal' }));
     } else {
-      // Open new panel with appropriate height
+      // 새 패널을 적절한 높이로 엶
       const newHeight = panel === 'simulation' ? 'expanded' : 'compact';
       setUIState(prev => ({
         ...prev,
@@ -125,30 +161,37 @@ export function AdvancedAnalysisSystem({
     }
   };
 
+  /**
+   * 패널 높이를 한 단계씩 올리거나 내립니다.
+   * @param {'up' | 'down'} direction - 높이 조절 방향.
+   */
   const adjustHeight = (direction: 'up' | 'down') => {
     const heights: Array<AnalysisUIState['panelHeight']> = ['minimal', 'compact', 'expanded', 'full'];
     const currentIndex = heights.indexOf(uiState.panelHeight);
+    let newIndex = currentIndex;
 
-    let newIndex;
-    if (direction === 'up' && currentIndex < heights.length - 1) {
-      newIndex = currentIndex + 1;
-    } else if (direction === 'down' && currentIndex > 0) {
-      newIndex = currentIndex - 1;
-    } else {
-      return;
-    }
+    if (direction === 'up' && currentIndex < heights.length - 1) newIndex++;
+    else if (direction === 'down' && currentIndex > 0) newIndex--;
+    else return;
 
-    const newHeight = heights[newIndex];
-    setUIState(prev => ({ ...prev, panelHeight: newHeight }));
+    setUIState(prev => ({ ...prev, panelHeight: heights[newIndex] }));
   };
 
+  /**
+   * 보드 오버레이 모드를 토글합니다.
+   * @param {AnalysisUIState['overlayMode']} mode - 토글할 오버레이 모드.
+   */
   const toggleOverlay = (mode: AnalysisUIState['overlayMode']) => {
     const newMode = uiState.overlayMode === mode ? null : mode;
     setUIState(prev => ({ ...prev, overlayMode: newMode, showOverlays: !!newMode }));
     onBoardOverlay(newMode);
   };
 
-  // Get analysis category info
+  /**
+   * 평가 점수에 따라 분석 카테고리 정보(색상, 아이콘, 레이블)를 반환합니다.
+   * @param {number} evaluation - 평가 점수.
+   * @returns {{color: string, bg: string, icon: React.ElementType, label: string}}
+   */
   const getAnalysisCategory = (evaluation: number) => {
     if (evaluation >= 50) return { color: 'text-green-400', bg: 'bg-green-400/20', icon: CheckCircle, label: 'Excellent' };
     if (evaluation >= 20) return { color: 'text-blue-400', bg: 'bg-blue-400/20', icon: TrendingUp, label: 'Good' };

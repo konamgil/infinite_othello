@@ -11,6 +11,16 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * A standard page layout component.
+ *
+ * This component provides a common structure for pages, consisting of a `Header`
+ * and a main content area. It ensures that the content area fills the available
+ * vertical space.
+ *
+ * @param {LayoutProps} props - The component props.
+ * @returns {React.ReactElement} The rendered page layout.
+ */
 export function Layout({
   title,
   showBackButton,

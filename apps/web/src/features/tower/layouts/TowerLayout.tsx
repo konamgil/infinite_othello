@@ -6,6 +6,18 @@ type TowerLayoutProps = {
   detail?: boolean;
 };
 
+/**
+ * A layout component for the tower feature.
+ *
+ * This component provides a consistent layout for all pages within the tower feature.
+ * It includes a cosmic tower canvas background (`CosmicTowerCanvas`) and can be adapted
+ * for detail pages.
+ *
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The content to be rendered within the layout.
+ * @param {boolean} [props.detail=false] - If true, applies a layout variant for detail pages.
+ * @returns {React.ReactElement} The rendered layout component.
+ */
 export function TowerLayout({ children, detail = false }: TowerLayoutProps) {
   const rootClasses = detail
     ? 'min-h-screen w-full overflow-hidden relative flex flex-col'

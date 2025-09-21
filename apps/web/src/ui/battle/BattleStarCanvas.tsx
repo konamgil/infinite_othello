@@ -4,6 +4,23 @@ interface BattleStarCanvasProps {
   className?: string;
 }
 
+/**
+ * A React component that renders a dynamic, animated canvas background for the battle feature.
+ *
+ * This component uses the HTML5 Canvas API to draw a "battle" themed space scene, including:
+ * - A starry background with twinkling stars.
+ * - Nebula effects using radial gradients.
+ * - A central, pulsing energy core.
+ * - Floating, rotating weapon and shield symbols.
+ * - Energetic particle effects.
+ *
+ * The animation is driven by `requestAnimationFrame` for performance and only runs
+ * when the canvas is visible on screen, as determined by the `IntersectionObserver` API.
+ * It also handles resizing to ensure the canvas fills its container.
+ *
+ * @param {BattleStarCanvasProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element.
+ */
 export function BattleStarCanvas({ className = '' }: BattleStarCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();

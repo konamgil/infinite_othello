@@ -13,22 +13,42 @@ import {
    Types & Interfaces
    ────────────────────────────────────────────────────────────────── */
 
+/** @typedef {-1 | 1} Player - 흑돌(1) 또는 백돌(-1)을 나타내는 플레이어 타입. */
 type Player = -1 | 1;
+/** @typedef {-1 | 0 | 1} Disc - 보드 위의 돌 상태. 흑돌(1), 백돌(-1), 빈 칸(0). */
 type Disc = -1 | 0 | 1;
+/** @typedef {{x: number, y: number}} Position - 보드 위의 좌표. */
 interface Position { x: number; y: number; }
+/** @typedef {Disc[][]} Board - 8x8 오델로 보드 상태. */
 type Board = Disc[][];
 
+/**
+ * @interface AdvancedReplayViewerProps
+ * `AdvancedReplayViewer` 컴포넌트의 props를 정의합니다.
+ */
 interface AdvancedReplayViewerProps {
+  /** @property {GameReplay} gameReplay - 표시할 게임 리플레이 데이터. */
   gameReplay: GameReplay;
+  /** @property {() => void} onClose - 리플레이 뷰어를 닫을 때 호출될 콜백 함수. */
   onClose: () => void;
 }
 
+/**
+ * @interface ViewerSettings
+ * 뷰어의 다양한 설정을 관리하는 객체의 타입을 정의합니다.
+ */
 interface ViewerSettings {
+  /** @property {boolean} autoPlay - 자동 재생 활성화 여부. */
   autoPlay: boolean;
+  /** @property {number} playbackSpeed - 재생 속도 배율. */
   playbackSpeed: number;
+  /** @property {boolean} soundEnabled - 효과음 활성화 여부. */
   soundEnabled: boolean;
+  /** @property {boolean} showCoordinates - 보드 좌표 표시 여부. */
   showCoordinates: boolean;
+  /** @property {'slow' | 'normal' | 'fast'} animationSpeed - 애니메이션 속도. */
   animationSpeed: 'slow' | 'normal' | 'fast';
+  /** @property {'classic' | 'cosmic' | 'minimal'} boardTheme - 보드 테마. */
   boardTheme: 'classic' | 'cosmic' | 'minimal';
 }
 
@@ -36,19 +56,33 @@ interface ViewerSettings {
    Advanced Replay Viewer Component
    ────────────────────────────────────────────────────────────────── */
 
+/**
+ * 고급 리플레이 분석 기능을 제공하는 뷰어 컴포넌트입니다.
+ * 보드 오버레이, 시뮬레이션 모드, 상세 분석 시스템 등 다양한 고급 기능을 포함합니다.
+ * @param {AdvancedReplayViewerProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 고급 리플레이 뷰어 UI.
+ */
 export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayViewerProps) {
-  // Core State
+  // --- Core State ---
+  /** @state {number} currentMoveIndex - 현재 수의 인덱스. */
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+  /** @state {boolean} isPlaying - 재생 중인지 여부. */
   const [isPlaying, setIsPlaying] = useState(false);
+  /** @state {boolean} isFullscreen - 전체 화면 모드 여부. */
   const [isFullscreen, setIsFullscreen] = useState(false);
+  /** @state {boolean} showSettings - 설정 패널 표시 여부. */
   const [showSettings, setShowSettings] = useState(false);
 
-  // Analysis State
+  // --- Analysis State ---
+  /** @state {'scores' | 'heatmap' | 'mobility' | 'frontier' | null} overlayMode - 보드에 표시할 분석 오버레이 종류. */
   const [overlayMode, setOverlayMode] = useState<'scores' | 'heatmap' | 'mobility' | 'frontier' | null>(null);
+  /** @state {boolean} simulationMode - 'What-if' 시뮬레이션 모드 활성화 여부. */
   const [simulationMode, setSimulationMode] = useState(false);
+  /** @state {Position | null} simulationMove - 시뮬레이션 중인 수의 위치. */
   const [simulationMove, setSimulationMove] = useState<Position | null>(null);
 
-  // Settings
+  // --- Settings State ---
+  /** @state {ViewerSettings} settings - 뷰어의 전반적인 설정을 담는 객체. */
   const [settings, setSettings] = useState<ViewerSettings>({
     autoPlay: false,
     playbackSpeed: 1,
@@ -58,7 +92,11 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     boardTheme: 'cosmic'
   });
 
-  // Convert replay moves to legacy format
+  /**
+   * `gameReplay` prop으로부터 내부에서 사용할 수 있는 형식의 수(move) 배열을 생성합니다.
+   * 이 변환은 `gameReplay.moves`가 변경될 때만 다시 계산됩니다.
+   * @type {Array<{position: Position; player: Player; timestamp: number; capturedDiscs: Position[]}>}
+   */
   const moves = useMemo(() => {
     return gameReplay.moves.map(move => ({
       position: { x: move.x, y: move.y },
@@ -68,7 +106,11 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     }));
   }, [gameReplay.moves]);
 
-  // Reconstruct board states
+  /**
+   * `moves` 배열을 기반으로 오델로 엔진을 사용하여 게임의 모든 보드 상태를 재구성합니다.
+   * 이 계산은 `moves` 배열이 변경될 때만 다시 실행됩니다.
+   * @type {Board[]}
+   */
   const boardStates = useMemo<Board[]>(() => {
     const engine = new OthelloEngine();
     const engineMoves = moves.map(m => ({
@@ -84,17 +126,23 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     }
   }, [moves]);
 
-  // Current board and move
+  // 현재 보드 상태와 수 정보를 계산합니다.
   const hasInitialState = boardStates.length === moves.length + 1;
   const boardIndex = hasInitialState ? currentMoveIndex + 1 : currentMoveIndex;
   const currentBoard = boardStates[Math.min(Math.max(boardIndex, 0), boardStates.length - 1)] ||
                        Array.from({ length: 8 }, () => Array(8).fill(0) as Disc[]);
   const currentMove = moves[currentMoveIndex];
 
-  // Generate analysis data (enhanced mock data for demonstration)
+  /**
+   * 현재 수를 기반으로 `AdvancedAnalysisSystem`에 전달할 상세 분석 데이터를 생성합니다.
+   * 이 데이터는 데모를 위해 결정론적 의사 난수로 생성된 목(mock) 데이터입니다.
+   * 실제 애플리케이션에서는 AI 분석 엔진으로부터 이 데이터를 받아와야 합니다.
+   * @type {AnalysisData | null}
+   */
   const analysisData = useMemo<AnalysisData | null>(() => {
     if (!currentMove) return null;
 
+    // 결정론적 난수 생성을 위한 시드 생성
     const seedBase = (currentMove.position.x + 1) * 31 + (currentMove.position.y + 1) * 131 +
                      (currentMove.player === 1 ? 997 : 499) + currentMoveIndex * 17;
 
@@ -105,7 +153,7 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
 
     const evaluation = Math.floor(seededRand(seedBase) * 100) - 50;
 
-    // Generate legal moves with scores
+    // 둘 수 있는 위치와 점수를 포함한 목 데이터 생성
     const legalMoves = [];
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
@@ -126,6 +174,7 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
       }
     }
 
+    // 최종 분석 데이터 객체
     return {
       moveNumber: currentMoveIndex + 1,
       evaluation,
@@ -157,7 +206,10 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     };
   }, [currentMoveIndex, currentMove, currentBoard, simulationMove]);
 
-  // Auto-play functionality
+  /**
+   * 자동 재생 기능을 처리하는 `useEffect` 훅입니다.
+   * `isPlaying` 상태가 true일 때 `settings.playbackSpeed`에 맞춰 다음 수로 넘어갑니다.
+   */
   useEffect(() => {
     if (!isPlaying || moves.length === 0) return;
     if (currentMoveIndex >= moves.length - 1) {
@@ -178,7 +230,10 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     return () => clearInterval(interval);
   }, [isPlaying, currentMoveIndex, moves.length, settings.playbackSpeed]);
 
-  // Keyboard shortcuts
+  /**
+   * 키보드 단축키를 처리하는 `useEffect` 훅입니다.
+   * Space: 재생/일시정지, ←/→: 이전/다음 수, Home/End: 처음/끝, Esc: 닫기/전체화면 해제.
+   */
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
@@ -216,39 +271,47 @@ export function AdvancedReplayViewer({ gameReplay, onClose }: AdvancedReplayView
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [moves.length, isFullscreen, onClose]);
 
-  // Control handlers
+  // --- Control Handlers ---
+  /** 재생/일시정지 상태를 토글합니다. */
   const handlePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
+  /** 한 수 뒤로 이동하고 재생을 멈춥니다. */
   const handleStepBackward = useCallback(() => {
     setCurrentMoveIndex(prev => Math.max(0, prev - 1));
     setIsPlaying(false);
   }, []);
+  /** 한 수 앞으로 이동하고 재생을 멈춥니다. */
   const handleStepForward = useCallback(() => {
     setCurrentMoveIndex(prev => Math.min(moves.length - 1, prev + 1));
     setIsPlaying(false);
   }, [moves.length]);
+  /** 게임의 처음으로 이동합니다. */
   const handleGoToStart = useCallback(() => {
     setCurrentMoveIndex(0);
     setIsPlaying(false);
   }, []);
+  /** 게임의 마지막으로 이동합니다. */
   const handleGoToEnd = useCallback(() => {
     setCurrentMoveIndex(Math.max(0, moves.length - 1));
     setIsPlaying(false);
   }, [moves.length]);
 
+  /** 보드 오버레이 모드를 설정합니다. */
   const handleBoardOverlay = useCallback((mode: string | null) => {
     setOverlayMode(mode as any);
   }, []);
 
+  /** 시뮬레이션 모드를 토글합니다. */
   const handleSimulationToggle = useCallback((active: boolean) => {
     setSimulationMode(active);
     if (!active) setSimulationMove(null);
   }, []);
 
+  /** 시뮬레이션 할 수를 설정합니다. */
   const handleSimulationMove = useCallback((x: number, y: number) => {
     setSimulationMove({ x, y });
   }, []);
 
-  // Progress calculation
+  // UI 렌더링에 필요한 계산된 값들
   const currentMoveNumber = moves.length > 0 ? currentMoveIndex + 1 : 0;
   const progressPercent = moves.length > 0 ? ((currentMoveIndex + 1) / moves.length) * 100 : 0;
 

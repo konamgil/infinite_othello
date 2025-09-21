@@ -38,15 +38,38 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 /** 보드 사다리꼴 코너 */
 type Pt = { x: number; y: number };
+/**
+ * Linearly interpolates between two points.
+ * @private
+ */
 const lerp = (a: Pt, b: Pt, t: number): Pt => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 
-/** u:[0,1] 가로, v:[0,1] 세로 → 사다리꼴 내부 픽셀 좌표 */
+/**
+ * Performs bilinear interpolation within a quadrilateral defined by four points.
+ * This is used to map a 2D coordinate (u, v) from a unit square to a point within the trapezoidal board.
+ * @private
+ */
 function quadLerp(TL: Pt, TR: Pt, BR: Pt, BL: Pt, u: number, v: number): Pt {
   const top = lerp(TL, TR, u);
   const bot = lerp(BL, BR, u);
   return lerp(top, bot, v);
 }
 
+/**
+ * A React component that renders a stylized, animated 3D-perspective Othello board on a canvas.
+ *
+ * This component creates a visually rich scene of an Othello board floating in space.
+ * It includes:
+ * - A starfield background with twinkling stars and light rays.
+ * - A game board rendered with a trapezoidal perspective effect.
+ * - Styled game discs with lighting and shadow effects.
+ *
+ * The component is highly configurable, allowing for adjustments to scale, perspective,
+ * and performance (via an FPS cap).
+ *
+ * @param {OthelloStarCanvasProps} props - The component props.
+ * @returns {React.ReactElement} The rendered canvas element.
+ */
 const OthelloStarCanvas: React.FC<OthelloStarCanvasProps> = ({
   width = 390,
   height = 300,

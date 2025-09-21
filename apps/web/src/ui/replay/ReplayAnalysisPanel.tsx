@@ -15,21 +15,45 @@ import {
   Eye
 } from 'lucide-react';
 
+/**
+ * @interface ReplayAnalysisPanelProps
+ * `ReplayAnalysisPanel` 컴포넌트의 props를 정의합니다.
+ */
 interface ReplayAnalysisPanelProps {
+  /** @property {GameAnalysis} analysis - 게임 전체에 대한 AI 분석 데이터 객체. */
   analysis: GameAnalysis;
+  /** @property {GameMove} [currentMove] - 현재 선택된 수에 대한 정보. */
   currentMove?: GameMove;
+  /** @property {number} currentMoveIndex - 현재 선택된 수의 인덱스. */
   currentMoveIndex: number;
 }
 
+/**
+ * 게임 리플레이에 대한 AI 분석 결과를 탭 형식으로 보여주는 패널 컴포넌트입니다.
+ * '현재 수', '전체', '단계별' 분석 탭을 제공합니다.
+ * @param {ReplayAnalysisPanelProps} props - 컴포넌트 props
+ * @returns {JSX.Element} AI 분석 패널 UI
+ */
 export function ReplayAnalysisPanel({
   analysis,
   currentMove,
   currentMoveIndex
 }: ReplayAnalysisPanelProps) {
+  /** @state {'current' | 'overall' | 'phases'} activeTab - 현재 활성화된 탭을 관리하는 상태. */
   const [activeTab, setActiveTab] = useState<'current' | 'overall' | 'phases'>('current');
 
+  /**
+   * 정확도 숫자를 퍼센트 문자열로 포맷합니다.
+   * @param {number} accuracy - 정확도 값.
+   * @returns {string} 포맷된 퍼센트 문자열 (예: "85%").
+   */
   const formatAccuracy = (accuracy: number) => `${Math.round(accuracy)}%`;
 
+  /**
+   * 정확도 값에 따라 적절한 Tailwind CSS 텍스트 색상 클래스를 반환합니다.
+   * @param {number} accuracy - 정확도 값.
+   * @returns {string} Tailwind CSS 색상 클래스.
+   */
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 90) return 'text-green-400';
     if (accuracy >= 80) return 'text-yellow-400';
@@ -37,6 +61,11 @@ export function ReplayAnalysisPanel({
     return 'text-red-400';
   };
 
+  /**
+   * 수의 평가 점수에 따라 품질(레이블, 색상, 아이콘)을 반환합니다.
+   * @param {GameMove} [move] - 분석할 수 정보.
+   * @returns {{label: string, color: string, icon: React.ElementType} | null} 수 품질 정보 객체 또는 null.
+   */
   const getMoveQuality = (move?: GameMove) => {
     if (!move || move.evaluationScore === undefined) return null;
 
@@ -52,6 +81,11 @@ export function ReplayAnalysisPanel({
     return { label: '평균', color: 'text-white/70', icon: Target };
   };
 
+  /**
+   * 분석 패널 내에서 사용되는 탭 버튼을 위한 내부 컴포넌트입니다.
+   * @param {{id: typeof activeTab, label: string, icon: React.ElementType}} props - 탭 버튼 props
+   * @returns {JSX.Element} 탭 버튼 UI
+   */
   const TabButton = ({ id, label, icon: Icon }: {
     id: typeof activeTab,
     label: string,

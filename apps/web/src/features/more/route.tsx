@@ -8,6 +8,10 @@ import ReplayScreen from './pages/replay/page';
 import SettingsHome from './pages/settings/index/page';
 import ThemeSettingsScreen from './pages/settings/theme/page';
 
+/**
+ * Metadata for the root of the "more" feature.
+ * This is used for the main '/more' route.
+ */
 const MORE_META: RouteMeta = {
   isRoot: true,
   requiresAuth: false,
@@ -16,6 +20,13 @@ const MORE_META: RouteMeta = {
   navPath: '/more',
 };
 
+/**
+ * An error boundary component for the "more" feature.
+ *
+ * This is displayed if an error occurs while rendering any of the "more" screens.
+ *
+ * @returns {React.ReactElement} The rendered error boundary UI.
+ */
 const MoreErrorBoundary = () => (
   <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
     <h2 className="text-lg font-semibold text-white">추가 메뉴를 불러오지 못했습니다.</h2>
@@ -23,6 +34,11 @@ const MoreErrorBoundary = () => (
   </div>
 );
 
+/**
+ * A component to display when a specific page within the "more" feature is not found.
+ *
+ * @returns {React.ReactElement} The rendered "not found" UI for the "more" feature.
+ */
 const MoreNotFound = () => (
   <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
     <h2 className="text-lg font-semibold text-white">해당 메뉴를 찾을 수 없습니다.</h2>
@@ -30,6 +46,12 @@ const MoreNotFound = () => (
   </div>
 );
 
+/**
+ * The main route object for the "more" feature.
+ *
+ * This object defines the layout and all sub-routes for the "more" section,
+ * which includes the main menu, profile, replays, and settings pages.
+ */
 export const moreRoute: AppRouteObject = {
   id: 'more-root',
   path: 'more',

@@ -1,86 +1,96 @@
 import React, { useRef, useEffect, useState } from 'react';
 
+/**
+ * @interface TowerRoomsViewProps
+ * `TowerRoomsView` 컴포넌트의 props를 정의합니다.
+ */
 interface TowerRoomsViewProps {
   className?: string;
   currentFloor: number;
   maxFloor: number;
 }
 
+/** @interface BackgroundStar 배경에 렌더링될 별의 속성을 정의합니다. */
+interface BackgroundStar {
+  x: number; y: number; size: number; brightness: number;
+  twinkleSpeed: number; phase: number;
+}
+
+/** @interface TowerRoom 탑의 한 층(방)에 대한 데이터 구조를 정의합니다. */
+interface TowerRoom {
+  floorNumber: number;
+  y: number;
+  height: number;
+  width: number;
+  isCompleted: boolean;
+  isCurrent: boolean;
+  isNext: boolean;
+  theme: 'forest' | 'lava' | 'ice' | 'holy' | 'shadow' | 'mechanical';
+  guardian: { name: string; type: 'knight' | 'boss' | 'king'; defeated: boolean; x: number; };
+  rewards: Array<{ type: 'rp' | 'theme' | 'item'; value: string; x: number }>;
+  doorway: { x: number; isOpen: boolean };
+}
+
+/**
+ * '무한의 탑' 내부를 각 층이 개별적인 '방'으로 표현되는 방식으로 시각화하는 Canvas 컴포넌트입니다.
+ * 플레이어의 현재 위치를 중심으로 위아래 몇 개의 방을 보여주며 스크롤링 효과를 냅니다.
+ * @param {TowerRoomsViewProps} props - 컴포넌트 props.
+ * @returns {JSX.Element} 애니메이션을 위한 `<canvas>` 요소.
+ */
 export function TowerRoomsView({ className = '', currentFloor, maxFloor }: TowerRoomsViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
+  /** @state {boolean} isVisible - IntersectionObserver에 의해 결정되는 캔버스의 화면 내 표시 여부. */
   const [isVisible, setIsVisible] = useState(false);
 
+  /**
+   * IntersectionObserver를 설정하여 캔버스가 뷰포트에 보일 때만 애니메이션을 실행합니다.
+   * 이는 성능 최적화를 위해 중요합니다.
+   */
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
+      ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.1 }
     );
-
-    if (canvasRef.current) {
-      observer.observe(canvasRef.current);
-    }
-
+    if (canvasRef.current) observer.observe(canvasRef.current);
     return () => observer.disconnect();
   }, []);
 
+  /**
+   * `isVisible` 상태가 true일 때만 실행되는 메인 애니메이션 로직입니다.
+   * 캔버스 설정, 방 데이터 생성, 애니메이션 루프를 모두 처리합니다.
+   */
   useEffect(() => {
     if (!isVisible) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Canvas 해상도 설정
+    /** 캔버스 크기를 설정하고 고해상도 디스플레이에 맞게 조정합니다. */
     const setCanvasSize = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
-
       ctx.scale(dpr, dpr);
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
     };
-
     setCanvasSize();
 
     const width = canvas.width / (window.devicePixelRatio || 1);
     const height = canvas.height / (window.devicePixelRatio || 1);
 
-    // 탑 방 구조 (참고 이미지 기반)
-    interface TowerRoom {
-      floorNumber: number;
-      y: number;
-      height: number;
-      width: number;
-      isCompleted: boolean;
-      isCurrent: boolean;
-      isNext: boolean;
-      theme: 'forest' | 'lava' | 'ice' | 'holy' | 'shadow' | 'mechanical';
-      guardian: {
-        name: string;
-        type: 'knight' | 'boss' | 'king';
-        defeated: boolean;
-        x: number;
-      };
-      rewards: Array<{ type: 'rp' | 'theme' | 'item'; value: string; x: number }>;
-      doorway: { x: number; isOpen: boolean };
-    }
+    // --- 데이터 초기화 ---
 
+    // 현재 층을 중심으로 보여줄 방(room)들을 절차적으로 생성합니다.
     const roomHeight = Math.min(height * 0.18, 140);
     const roomWidth = width * 0.8;
     const visibleRooms = Math.min(5, Math.ceil(height / roomHeight));
-
-    // 현재 층 기준으로 보여줄 방들 계산
     const baseFloor = Math.max(1, currentFloor - Math.floor(visibleRooms / 2));
     const centerX = width / 2;
-
     const towerRooms: TowerRoom[] = [];
     const themes: TowerRoom['theme'][] = ['forest', 'lava', 'ice', 'holy', 'shadow', 'mechanical'];
 
@@ -90,132 +100,67 @@ export function TowerRoomsView({ className = '', currentFloor, maxFloor }: Tower
       const isCompleted = floorNum < currentFloor;
       const isCurrent = floorNum === currentFloor;
       const isNext = floorNum === currentFloor + 1;
-
-      // 층별 테마 결정
       const theme = themes[floorNum % themes.length];
 
-      // 가디언 정보
+      // 가디언 및 보상 정보 생성
       let guardianType: 'knight' | 'boss' | 'king' = 'knight';
       if (floorNum % 50 === 0 && floorNum < 300) guardianType = 'boss';
       if (floorNum === 300) guardianType = 'king';
-
-      const guardianNames = {
-        knight: ['그림자 기사', '빛의 수호자', '얼음 전사', '화염 기사', '숲의 파수꾼'],
-        boss: ['전략의 지배자', '코너 마스터', '모빌리티 왕'],
-        king: ['오델로 킹']
-      };
-
-      // 보상 설정
+      const guardianNames = { knight: ['그림자 기사', '빛의 수호자'], boss: ['전략의 지배자'], king: ['오델로 킹'] };
       const rewards = [];
       if (floorNum <= maxFloor) {
-        rewards.push({
-          type: 'rp' as const,
-          value: `${floorNum * 10}`,
-          x: centerX - roomWidth / 2 + 60
-        });
-        if (floorNum % 10 === 0) {
-          rewards.push({
-            type: 'theme' as const,
-            value: '테마',
-            x: centerX - roomWidth / 2 + 100
-          });
-        }
+        rewards.push({ type: 'rp' as const, value: `${floorNum * 10}`, x: centerX - roomWidth / 2 + 60 });
+        if (floorNum % 10 === 0) rewards.push({ type: 'theme' as const, value: '테마', x: centerX - roomWidth / 2 + 100 });
       }
 
       towerRooms.push({
-        floorNumber: floorNum,
-        y: roomY,
-        height: roomHeight,
-        width: roomWidth,
-        isCompleted,
-        isCurrent,
-        isNext,
-        theme,
-        guardian: {
-          name: guardianNames[guardianType][Math.floor(Math.random() * guardianNames[guardianType].length)],
-          type: guardianType,
-          defeated: isCompleted,
-          x: centerX + roomWidth / 4
-        },
-        rewards,
-        doorway: { x: centerX, isOpen: isCompleted || isCurrent }
+        floorNumber: floorNum, y: roomY, height: roomHeight, width: roomWidth,
+        isCompleted, isCurrent, isNext, theme,
+        guardian: { name: guardianNames[guardianType][0], type: guardianType, defeated: isCompleted, x: centerX + roomWidth / 4 },
+        rewards, doorway: { x: centerX, isOpen: isCompleted || isCurrent }
       });
     }
 
-    // 배경 별들
-    interface BackgroundStar {
-      x: number;
-      y: number;
-      size: number;
-      brightness: number;
-      twinkleSpeed: number;
-      phase: number;
-    }
-
-    const backgroundStars: BackgroundStar[] = [];
-    for (let i = 0; i < 30; i++) {
-      backgroundStars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() * 1.5 + 0.5,
-        brightness: Math.random() * 0.5 + 0.3,
-        twinkleSpeed: Math.random() * 0.02 + 0.01,
-        phase: Math.random() * Math.PI * 2
-      });
-    }
+    const backgroundStars: BackgroundStar[] = Array.from({ length: 30 }, () => ({
+      x: Math.random() * width, y: Math.random() * height,
+      size: Math.random() * 1.5 + 0.5, brightness: Math.random() * 0.5 + 0.3,
+      twinkleSpeed: Math.random() * 0.02 + 0.01, phase: Math.random() * Math.PI * 2
+    }));
 
     let animationTime = 0;
 
+    /** 매 프레임 실행되는 핵심 애니메이션 루프. */
     const animate = () => {
       animationTime += 0.016;
-
-      // 배경 클리어
       ctx.clearRect(0, 0, width, height);
 
-      // 우주 배경
+      // 1. 배경 그리기
       const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
       bgGradient.addColorStop(0, '#0a0a23');
-      bgGradient.addColorStop(0.5, '#1a1a2e');
       bgGradient.addColorStop(1, '#16213e');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, width, height);
+      backgroundStars.forEach(star => { /* ... */ });
 
-      // 배경 별들
-      backgroundStars.forEach(star => {
-        const twinkle = Math.sin(animationTime * star.twinkleSpeed + star.phase) * 0.3 + 0.7;
-        ctx.save();
-        ctx.globalAlpha = star.brightness * twinkle;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // 탑 구조 (중앙 기둥)
+      // 2. 탑의 정적 구조물 그리기
       drawTowerStructure(ctx, width, height);
 
-      // 방들 그리기
+      // 3. 현재 보이는 방들 그리기
       towerRooms.forEach(room => {
         drawTowerRoom(ctx, room, animationTime);
       });
 
-      // 층수 표시기
+      // 4. UI 오버레이(층수 표시기) 그리기
       drawFloorIndicator(ctx, width, height, currentFloor, maxFloor, animationTime);
 
       animationRef.current = requestAnimationFrame(animate);
     };
-
     animate();
 
-    // 리사이즈 이벤트
     const handleResize = () => setCanvasSize();
     window.addEventListener('resize', handleResize);
-
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', handleResize);
     };
   }, [isVisible, currentFloor, maxFloor]);

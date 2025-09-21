@@ -4,6 +4,15 @@ import { BattleLayout } from '../../layouts/BattleLayout';
 import { TOURNAMENTS } from '../../constants';
 import { Users, Clock, Trophy } from 'lucide-react';
 
+/**
+ * A page that displays a list of available tournaments.
+ *
+ * This component fetches tournament data from the `TOURNAMENTS` constant and
+ * renders a card for each tournament, showing details like the name, rank requirements,
+ * rewards, and number of participants. It also provides a button to join each tournament.
+ *
+ * @returns {React.ReactElement} The rendered tournament list page.
+ */
 export default function BattleTournamentPage() {
   const navigate = useNavigate();
 

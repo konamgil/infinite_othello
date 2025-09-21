@@ -3,135 +3,181 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 인피니트 탑 글로벌 스타일 */
+/**
+ * ==================================================================
+ * 인피니트 탑: 글로벌 스타일시트 (globals.css)
+ * ==================================================================
+ * 이 파일은 Tailwind CSS를 기반으로 애플리케이션 전체의 기본 스타일,
+ * 커스텀 컴포넌트 클래스, 유틸리티 클래스를 정의합니다.
+ * '우주', '밤하늘', '별빛'을 테마로 한 디자인 시스템입니다.
+ *
+ * @layer base: 브라우저 기본 스타일을 초기화하고 앱의 기본 뼈대를 설정합니다.
+ * @layer components: 재사용 가능한 컴포넌트 클래스(예: .card, .btn)를 정의합니다.
+ * @layer utilities: 특정 기능을 수행하는 작은 유틸리티 클래스를 정의합니다.
+ * ==================================================================
+ */
 
 @layer base {
-  /* 기본 폰트 및 레이아웃 - 우주 밤하늘 스타일 */
+  /**
+   * ------------------------------------------------------------------
+   * 기본 HTML 및 Body 스타일
+   * ------------------------------------------------------------------
+   * '우주 밤하늘' 테마의 배경과 기본 폰트, 모바일 환경 최적화를 설정합니다.
+   */
   html, body {
     width: 100%;
-    height: 100dvh; /* 동적 뷰포트 높이 우선 */
-    height: 100vh; /* 폴백 */
+    height: 100dvh; /* iOS/Android 등에서 주소창을 고려한 동적 뷰포트 높이 */
+    height: 100vh;  /* dvh 미지원 브라우저를 위한 폴백(fallback) */
     margin: 0;
     padding: 0;
-    font-family: 'IBM Plex Sans KR', 'Exo 2', system-ui, sans-serif;
+    font-family: 'IBM Plex Sans KR', 'Exo 2', system-ui, sans-serif; /* 가독성 좋은 한글/영문 폰트 스택 */
+    /* 여러 개의 그라데이션을 겹쳐 깊이감 있는 우주 배경 생성 */
     background:
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15), transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2), transparent 50%),
-      linear-gradient(180deg, #000003 0%, #02020e 50%, #050514 100%);
-    color: #ffffff; /* 별빛 텍스트 */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow: hidden; /* 전체 페이지 스크롤 방지 - 모바일 앱 스타일 */
-    overflow-x: hidden; /* 가로 스크롤 완전 차단 */
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%), /* 좌하단 보라색 성운 */
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15), transparent 50%), /* 우상단 밝은 별빛 */
+      radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2), transparent 50%), /* 중앙 보라색 성운 */
+      linear-gradient(180deg, #000003 0%, #02020e 50%, #050514 100%); /* 기본 어두운 우주 배경 */
+    color: #ffffff; /* 기본 텍스트 색상을 별빛처럼 하얗게 설정 */
+    -webkit-font-smoothing: antialiased; /* 폰트 렌더링을 부드럽게 (macOS/iOS) */
+    -moz-osx-font-smoothing: grayscale; /* 폰트 렌더링을 선명하게 (Firefox) */
+    overflow: hidden; /* 전체 페이지 스크롤을 막아 모바일 앱처럼 보이게 함 */
+    overflow-x: hidden; /* 가로 스크롤은 어떤 경우에도 발생하지 않도록 차단 */
 
-    /* 모바일 확대/축소 완전 방지 */
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
+    /**
+     * 모바일 사용자 경험(UX) 향상을 위한 설정
+     */
+    touch-action: manipulation; /* 더블 탭으로 인한 확대 방지 */
+    -webkit-touch-callout: none; /* 길게 눌렀을 때 메뉴 나오는 것 방지 */
+    -webkit-user-select: none;   /* 텍스트 선택 방지 */
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent; /* 터치 시 반짝이는 효과 제거 */
 
-    /* 모바일 브라우저 UI 최적화 */
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
+    /* 스크롤 및 화면 전환 관련 최적화 */
+    -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤링 활성화 */
+    overscroll-behavior: none; /* 페이지 끝에서 당겼을 때 새로고침되는 동작 방지 */
   }
 
+  /* React 앱의 루트 요소. 화면 전체를 채우도록 설정 */
   #root {
     height: 100%;
   }
 
+  /* 모든 요소의 크기 계산 방식을 border-box로 통일하여 레이아웃 예측을 쉽게 함 */
   * {
     box-sizing: border-box;
   }
 
-  /* 모든 요소에서 가로 스크롤 방지 */
+  /* 모든 요소와 가상 요소에서 의도치 않은 가로 스크롤바가 생기는 것을 방지 */
   *, *::before, *::after {
     max-width: 100%;
   }
 
-  /* 반응형 앱 셸 - 우주 탑 올라가기 */
+  /**
+   * ------------------------------------------------------------------
+   * 앱 셸 (App Shell)
+   * ------------------------------------------------------------------
+   * 앱의 주요 콘텐츠가 표시되는 중앙 컨테이너입니다.
+   */
   .app-shell {
     width: 100%;
-    max-width: 430px; /* 대형 폰까지 대응 */
-    min-width: 320px;  /* 최소 폰 사이즈 */
-    min-height: 100vh;
-    margin: 0 auto;
+    max-width: 430px; /* iPhone 14 Pro Max 등 대형 스마트폰 너비에 맞춤 */
+    min-width: 320px;  /* iPhone SE 등 작은 스마트폰 최소 너비 지원 */
+    min-height: 100vh; /* 항상 화면 전체 높이를 차지하도록 설정 */
+    margin: 0 auto;    /* 화면 중앙에 위치 */
     background:
-      radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.05), transparent 40%),
-      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.08), transparent 30%),
-      linear-gradient(180deg, rgba(0, 0, 3, 0.9) 0%, rgba(2, 2, 14, 0.95) 100%);
+      radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.05), transparent 40%), /* 상단 은은한 빛 */
+      radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.08), transparent 30%), /* 좌하단 보라색 빛 */
+      linear-gradient(180deg, rgba(0, 0, 3, 0.9) 0%, rgba(2, 2, 14, 0.95) 100%); /* 반투명한 어두운 배경 */
     position: relative;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); /* 뒷 배경을 흐리게 하여 입체감 부여 */
   }
 
-  /* 데스크톱에서만 그림자 효과 */
+  /* 데스크톱(태블릿 포함) 환경에서 앱 셸에 그림자 효과를 주어 입체감을 강조 */
   @media (min-width: 768px) {
     .app-shell {
-      max-width: 390px;
+      max-width: 390px; /* 데스크톱에서는 표준 스마트폰 크기로 고정 */
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
     }
   }
 
-  /* 데스크톱 좌우 배경 - 신비로운 무한 탑 분위기 강화 */
+  /**
+   * ------------------------------------------------------------------
+   * 거터 (Gutters)
+   * ------------------------------------------------------------------
+   * 데스크톱에서 앱 셸 좌우에 보이는 배경 영역입니다.
+   * 신비로운 분위기를 강화하는 역할을 합니다.
+   */
   .gutters {
     position: fixed;
-    inset: 0;
+    inset: 0; /* 화면 전체를 덮도록 설정 */
     background:
       radial-gradient(50% 60% at 50% -10%, rgba(231, 177, 66, 0.08), transparent 70%),
       radial-gradient(80% 100% at 20% 100%, rgba(124, 106, 240, 0.12), transparent 60%),
       radial-gradient(60% 80% at 80% 20%, rgba(99, 102, 241, 0.06), transparent 50%),
       linear-gradient(180deg, theme('colors.tower.deep.200') 0%, theme('colors.tower.deep.300') 60%, theme('colors.tower.deep.200') 100%);
-    pointer-events: none;
-    z-index: -1;
+    pointer-events: none; /* 클릭 등 마우스 이벤트를 통과시킴 */
+    z-index: -1; /* 앱 셸보다 뒤에 위치하도록 설정 */
   }
 
-  /* 세이프 에리어 대응 */
+  /**
+   * ------------------------------------------------------------------
+   * 세이프 에리어 (Safe Area) 대응
+   * ------------------------------------------------------------------
+   * iPhone의 노치(Notch)나 하단 홈 인디케이터 같은 영역을 피하기 위한 패딩입니다.
+   */
   .safe-area-bottom {
+    /* 하단에 최소 16px의 패딩을 주거나, 기기의 세이프 에리어 값을 사용 */
     padding-bottom: max(16px, env(safe-area-inset-bottom));
   }
 
   .safe-area-top {
+    /* 상단에 최소 12px의 패딩을 주거나, 기기의 세이프 에리어 값을 사용 */
     padding-top: max(12px, env(safe-area-inset-top));
   }
 
-  /* 스크롤바 완전히 숨기기 */
+  /* 모든 종류의 브라우저에서 스크롤바를 완전히 숨겨 깔끔한 UI를 유지 */
   ::-webkit-scrollbar {
-    display: none;
+    display: none; /* Chrome, Safari */
   }
-
   * {
     scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    -ms-overflow-style: none; /* IE, Edge */
   }
 }
 
 @layer components {
-  /* 카드 컴포넌트 - 우주 별빛 스타일 */
+  /**
+   * ------------------------------------------------------------------
+   * 카드 (Card) 컴포넌트
+   * ------------------------------------------------------------------
+   * '우주 별빛' 테마의 기본 컨테이너 스타일입니다.
+   */
   .card {
-    @apply rounded-xl p-6;
+    @apply rounded-xl p-6; /* Tailwind 유틸리티: 둥근 모서리와 패딩 */
+    /* 여러 배경 효과를 중첩하여 유리 같은 반투명 효과와 깊이감 연출 */
     background:
-      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1), transparent 40%),
-      linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(10, 10, 26, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1); /* 별빛 테두리 */
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1), transparent 40%), /* 좌상단 하이라이트 */
+      linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(10, 10, 26, 0.9) 100%); /* 기본 반투명 배경 */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 별빛처럼 빛나는 얇은 테두리 */
     box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 0 30px rgba(99, 102, 241, 0.05); /* 성운 글로우 */
-    backdrop-filter: blur(15px);
-    transition: all 0.3s ease;
+      0 4px 20px rgba(0, 0, 0, 0.3), /* 기본 그림자 */
+      inset 0 1px 0 rgba(255, 255, 255, 0.1), /* 안쪽 상단 하이라이트 */
+      0 0 30px rgba(99, 102, 241, 0.05); /* 성운 같은 보라색 글로우 */
+    backdrop-filter: blur(15px); /* 뒷 배경을 흐리게 하여 카드 부각 */
+    transition: all 0.3s ease; /* 호버 효과를 위한 부드러운 전환 */
   }
 
   .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-4px); /* 마우스를 올리면 살짝 떠오르는 효과 */
     box-shadow:
       0 8px 30px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      0 0 40px rgba(139, 92, 246, 0.15); /* 은하 글로우 강화 */
+      0 0 40px rgba(139, 92, 246, 0.15); /* 은하수처럼 더 강한 글로우 효과 */
   }
 
+  /* 클릭 가능한 카드에 대한 호버 및 액티브 상태 스타일 */
   .card-hover {
     @apply card active:from-tower-deep-50 active:to-tower-deep-100 transition-all duration-150 cursor-pointer;
     &:active {
@@ -141,27 +187,31 @@
     }
   }
 
-  /* 버튼 스타일 - 별빛 유성 느낌 */
+  /**
+   * ------------------------------------------------------------------
+   * 버튼 (Button) 스타일
+   * ------------------------------------------------------------------
+   * '별빛 유성' 테마의 다양한 버튼 스타일입니다.
+   */
   .btn-primary {
-    @apply px-6 py-3 font-medium
-           active:scale-95 transition-all duration-300
-           disabled:opacity-50 disabled:cursor-not-allowed;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+    @apply px-6 py-3 font-medium active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%); /* 금색 그라데이션 */
     color: #ffffff;
-    font-family: 'Orbitron', system-ui, sans-serif;
+    font-family: 'Orbitron', system-ui, sans-serif; /* 미래적인 느낌의 폰트 */
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.05em; /* 자간을 넓혀 가독성 확보 */
     border-radius: 12px;
     border: 1px solid rgba(245, 158, 11, 0.3);
     box-shadow:
-      0 4px 15px rgba(245, 158, 11, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      0 0 25px rgba(245, 158, 11, 0.2); /* 유성 글로우 */
+      0 4px 15px rgba(245, 158, 11, 0.3), /* 금색 그림자 */
+      inset 0 1px 0 rgba(255, 255, 255, 0.2), /* 내부 하이라이트 */
+      0 0 25px rgba(245, 158, 11, 0.2); /* 유성 같은 글로우 */
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* 내부 효과가 밖으로 나가지 않도록 함 */
   }
 
   .btn-primary:active {
+    /* 클릭했을 때 그림자를 줄여 눌리는 느낌 표현 */
     box-shadow:
       0 2px 8px rgba(245, 158, 11, 0.4),
       inset 0 1px 2px rgba(0, 0, 0, 0.1),
@@ -169,225 +219,183 @@
   }
 
   .btn-secondary {
-    @apply bg-tower-silver-500 text-tower-silver-100 px-4 py-2 rounded-lg font-semibold
-           active:bg-tower-silver-400 active:scale-95 transition-all duration-150
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-tower-silver-500 text-tower-silver-100 px-4 py-2 rounded-lg font-semibold active:bg-tower-silver-400 active:scale-95 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply bg-tower-danger-500 text-white px-4 py-2 rounded-lg font-semibold
-           active:bg-tower-danger-400 active:scale-95 transition-all duration-150
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-tower-danger-500 text-white px-4 py-2 rounded-lg font-semibold active:bg-tower-danger-400 active:scale-95 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* 입력 필드 - 보더 제거, 그림자와 배경으로 구분 */
+  /* 입력 필드: 테두리 없이 그림자와 배경색으로만 구분하여 미니멀한 디자인 구현 */
   .input-field {
-    @apply bg-tower-deep-200 rounded-lg px-3 py-2 shadow-inner
-           text-tower-silver-100 placeholder-tower-silver-400
-           focus:bg-tower-deep-100 focus:shadow-lg focus:outline-none
-           transition-all duration-200;
+    @apply bg-tower-deep-200 rounded-lg px-3 py-2 shadow-inner text-tower-silver-100 placeholder-tower-silver-400 focus:bg-tower-deep-100 focus:shadow-lg focus:outline-none transition-all duration-200;
   }
 
-  /* 헤더 스타일 - 미니멀 우주 */
+  /**
+   * ------------------------------------------------------------------
+   * 네비게이션 (Header, Bottom Nav)
+   * ------------------------------------------------------------------
+   * '미니멀 우주' 테마의 상단 및 하단 네비게이션 바 스타일입니다.
+   */
   .header {
     @apply h-14 flex items-center justify-between px-4 safe-area-top;
-    background: transparent;
+    background: transparent; /* 배경을 투명하게 하여 콘텐츠와 어우러지게 함 */
     border: none;
-    backdrop-filter: none;
+    backdrop-filter: none; /* 헤더는 블러 효과 없음 */
   }
 
   .header h1 {
-    font-family: 'Rajdhani', system-ui, sans-serif;
+    font-family: 'Rajdhani', system-ui, sans-serif; /* 기계적이고 미래적인 폰트 */
     font-weight: 600;
     font-size: 1.2rem;
     letter-spacing: 0.05em;
     color: rgba(255, 255, 255, 0.95);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* 텍스트에 네온 효과 */
     text-transform: uppercase;
   }
 
-  /* 바텀 네비게이션 - 미니멀 우주 */
   .bottom-nav {
     @apply flex items-center justify-around;
-    background: rgba(0, 0, 3, 0.8);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 3, 0.8); /* 반투명 배경 */
+    backdrop-filter: blur(20px); /* 강한 블러 효과로 콘텐츠와 구분 */
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* 상단에 미세한 경계선 */
     height: 70px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px); /* 하단 세이프 에리어 대응 */
   }
 
-  /* 터치 타겟 */
+  /* 터치 영역을 충분히 확보하기 위한 클래스 */
   .touch-target {
     @apply min-w-12 min-h-12 flex items-center justify-center;
   }
 
-  /* 탭 버튼 - 미니멀 우주 스타일 */
+  /* 하단 네비게이션 탭 버튼 스타일 */
   .tab-button {
-    @apply touch-target flex flex-col items-center gap-1 text-xs font-medium
-           text-white/40 active:text-white/70 transition-colors duration-200;
+    @apply touch-target flex flex-col items-center gap-1 text-xs font-medium text-white/40 active:text-white/70 transition-colors duration-200;
     font-family: 'Rajdhani', system-ui, sans-serif;
     font-weight: 500;
     letter-spacing: 0.05em;
   }
 
   .tab-button.active {
-    @apply text-yellow-400;
+    @apply text-yellow-400; /* 활성화된 탭은 금색으로 강조 */
   }
 
-  /* 글로우 효과 제거 - 고요한 기본 원칙 */
-  .glow-effect {
-    @apply shadow-md;
-  }
-
-  .glow-effect-strong {
-    @apply shadow-lg;
-  }
+  /* 글로우 효과: 기본 그림자로 대체하여 차분한 느낌을 줌 */
+  .glow-effect { @apply shadow-md; }
+  .glow-effect-strong { @apply shadow-lg; }
 }
 
 @layer utilities {
-  /* 터치/제스처 관련 */
+  /**
+   * ------------------------------------------------------------------
+   * 유틸리티 클래스
+   * ------------------------------------------------------------------
+   * 애니메이션, 그라데이션 등 재사용 가능한 스타일 조각들입니다.
+   */
+
+  /* 터치 제스처 관련 유틸리티 */
   .touch-manipulation {
     touch-action: manipulation;
-    overscroll-behavior: contain;
+    overscroll-behavior: contain; /* 요소 내부 스크롤이 부모로 전파되지 않도록 함 */
   }
 
-  /* 애니메이션 유틸리티 - 고요한 기본 + 순간 피크 */
+  /* 느리게 깜빡이는 애니메이션 */
   .animate-pulse-slow {
     animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  /* 히어로 전용 호흡 애니메이션 (유일한 지속 애니메이션) */
+  /* 히어로 캐릭터 등이 숨 쉬는 듯한 미세한 움직임 */
   .animate-breath {
     animation: breath 2.5s ease-in-out infinite;
   }
-
   @keyframes breath {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 0.8;
-    }
-    50% {
-      transform: scale(1.02);
-      opacity: 1;
-    }
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.02); opacity: 1; }
   }
 
-  /* 순간 피크 - 버튼 press 전용 */
+  /* 버튼을 눌렀을 때 순간적으로 퍼져나가는 링 효과 */
   .animate-peak-ring {
     animation: peak-ring 180ms ease-out;
   }
-
   @keyframes peak-ring {
-    0% {
-      transform: scale(0.8);
-      opacity: 0.8;
-    }
-    50% {
-      transform: scale(1.1);
-      opacity: 0.4;
-    }
-    100% {
-      transform: scale(1.2);
-      opacity: 0;
-    }
+    0% { transform: scale(0.8); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 0.4; }
+    100% { transform: scale(1.2); opacity: 0; }
   }
 
-  /* 그라데이션 유틸리티 */
-  .bg-tower-gradient {
-    background: linear-gradient(180deg, theme('colors.tower.deep.100') 0%, theme('colors.tower.deep.200') 100%);
-  }
+  /* 그라데이션 배경 유틸리티 */
+  .bg-tower-gradient { background: linear-gradient(180deg, theme('colors.tower.deep.100') 0%, theme('colors.tower.deep.200') 100%); }
+  .bg-victory-gradient { background: radial-gradient(circle, rgba(252, 211, 77, 0.2) 0%, transparent 70%); }
+  .bg-defeat-gradient { background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%); }
 
-  .bg-victory-gradient {
-    background: radial-gradient(circle, rgba(252, 211, 77, 0.2) 0%, transparent 70%);
-  }
+  /* '일본 미니멀리즘'에서 영감을 받은 여백 유틸리티 */
+  .content-padding { @apply px-8; }
+  .section-spacing { @apply py-8; }
+  .japanese-spacing { @apply my-12; } /* 섹션 간의 넓은 여백으로 시각적 편안함 제공 */
 
-  .bg-defeat-gradient {
-    background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
-  }
+  /* 금색 글로우 효과 */
+  .glow-gold { box-shadow: 0 0 20px rgba(250, 204, 21, 0.3); }
 
-  /* 반응형 유틸리티 (390px 고정이지만 컨텐츠용) */
-  /* 일본 미니멀 여백의 미 */
-  .content-padding {
-    @apply px-8; /* 더 넓은 좌우 여백 */
-  }
+  /* 탑 시각화 관련 스타일 */
+  .tower-visual { width: 120px; height: 120px; position: relative; display: flex; flex-direction: column-reverse; justify-content: center; align-items: center; }
+  .tower-floor { transition: all 0.3s ease; }
 
-  .section-spacing {
-    @apply py-8; /* 더 넓은 상하 여백 */
-  }
-
-  .japanese-spacing {
-    @apply my-12; /* 섹션간 큰 여백으로 여백의 미 구현 */
-  }
-
-  /* Glow effects */
-  .glow-gold {
-    box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
-  }
-
-  /* Tower visual */
-  .tower-visual {
-    width: 120px;
-    height: 120px;
-    position: relative;
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .tower-floor {
-    transition: all 0.3s ease;
-  }
-
-  /* 별 패턴 배경 - 밤하늘 우주 */
+  /* 여러 개의 배경 이미지를 겹쳐 별이 빛나는 밤하늘을 표현 */
   .space-starfield {
     background-image:
-      radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent), /* 크고 작은 별들 */
       radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
       radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.9), transparent),
       radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.4), transparent),
       radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.7), transparent),
-      url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpolygon points='100,0 120,80 200,80 140,126 160,200 100,154 40,200 60,126 0,80 80,80'/%3E%3C/g%3E%3C/svg%3E");
+      url("data:image/svg+xml,..."); /* SVG로 만든 희미한 별 패턴 */
     background-repeat: repeat;
-    background-size: 200px 200px, 180px 180px, 300px 300px, 250px 250px, 400px 400px, 200px 200px;
+    background-size: 200px 200px, 180px 180px, 300px 300px, 250px 250px, 400px 400px, 200px 200px; /* 각 배경 이미지의 크기를 다르게 하여 자연스러움 연출 */
   }
 
+  /* SVG로 만든 별자리 패턴 배경 */
   .space-constellation {
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3Ccircle cx='80' cy='30' r='1.5'/%3E%3Ccircle cx='50' cy='60' r='1'/%3E%3Ccircle cx='30' cy='80' r='2'/%3E%3Ccircle cx='70' cy='70' r='1'/%3E%3Cline x1='20' y1='20' x2='80' y2='30' stroke='%23ffffff' stroke-opacity='0.05' stroke-width='0.5'/%3E%3Cline x1='50' y1='60' x2='30' y2='80' stroke='%23ffffff' stroke-opacity='0.05' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,...");
   }
 
-  /* 가디언 애니메이션 (매우 차분하게) */
+  /* 가디언 캐릭터 등이 부드럽게 떠다니는 애니메이션 */
   @keyframes gentle-float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-2px); }
   }
-
   .animate-gentle-float {
     animation: gentle-float 4s ease-in-out infinite;
   }
 
-  /* Range slider styling for replay filters */
+  /**
+   * ------------------------------------------------------------------
+   * Range Input (슬라이더) 스타일
+   * ------------------------------------------------------------------
+   * 리플레이 필터 등에서 사용되는 슬라이더의 기본 스타일을 커스터마이징합니다.
+   */
   input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
+    -webkit-appearance: none; /* 브라우저 기본 스타일 제거 (Chrome, Safari) */
+    appearance: none;         /* 브라우저 기본 스타일 제거 (Firefox, 등) */
     background: transparent;
     cursor: pointer;
   }
 
+  /* 슬라이더 트랙(배경 막대) 스타일 - Webkit 계열 */
   input[type="range"]::-webkit-slider-track {
     background: rgba(0, 0, 0, 0.3);
     height: 8px;
     border-radius: 4px;
   }
 
+  /* 슬라이더 썸(핸들) 스타일 - Webkit 계열 */
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: #facc15; /* yellow-400 */
-    border: 2px solid #fde047; /* yellow-300 */
+    background: #facc15; /* Tailwind yellow-400 */
+    border: 2px solid #fde047; /* Tailwind yellow-300 */
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -397,6 +405,7 @@
     transform: scale(1.1);
   }
 
+  /* 슬라이더 트랙 스타일 - Mozilla(Firefox) */
   input[type="range"]::-moz-range-track {
     background: rgba(0, 0, 0, 0.3);
     height: 8px;
@@ -404,6 +413,7 @@
     border: none;
   }
 
+  /* 슬라이더 썸 스타일 - Mozilla(Firefox) */
   input[type="range"]::-moz-range-thumb {
     height: 16px;
     width: 16px;
