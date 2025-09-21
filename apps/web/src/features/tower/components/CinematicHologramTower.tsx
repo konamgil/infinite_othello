@@ -130,22 +130,33 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
   const towerBottom = height - 30;
   const towerTop = 40;
   const towerHeight = towerBottom - towerTop;
-  const sections = 10; // 10개 섹션 (간격 넓히기)
+  const sections = 20; // 20개 섹션으로 늘려 더 부드러운 피라미드
 
   // 타워 베이스 플랫폼 제거됨
 
-  for (let i = 0; i < sections; i++) {
+  // 위에서 아래로 그려서 아래층이 위층을 가리도록 함
+  for (let i = sections - 1; i >= 0; i--) {
     const sectionProgress = (i + 1) / sections;
     const isActive = progress >= sectionProgress;
     const isCurrent = Math.floor(progress * sections) === i;
     const isSpecial = (i + 1) % 3 === 0; // 3섹션마다 특별
     const isBoss = (i + 1) % 6 === 0; // 6섹션마다 보스
 
-    // 3D 원근감 계산
+    // 피라미드형 3D 원근감 계산 - 위로 갈수록 더 뾰족하게
     const sectionY = towerBottom - (i / sections) * towerHeight;
-    const perspectiveScale = 1 - (i / sections) * 0.25; // 위로 갈수록 작아짐 (더 완만하게)
-    const baseWidth = 140 * perspectiveScale; // 기본 폭 더 증가
-    const sectionHeight = 25 * perspectiveScale; // 모든 층 동일한 높이
+    // i=0이 가장 아래층(1층), i=19가 가장 위층(300층)
+    const heightRatio = i / sections; // 0 (아래) ~ 0.95 (위)
+    
+    // 삼각형 형태: 직선적으로 일정하게 축소
+    const linearScale = 1.0 - heightRatio * 0.8; // 1.0 (아래) → 0.2 (위) 직선적 축소
+    const baseWidth = 180 * linearScale; // 현재 층의 아래 폭
+    
+    // 다음 층(위층)의 폭 계산 - 현재 층의 위 폭이 됨 (직선적)
+    const nextHeightRatio = (i + 1) / sections;
+    const nextLinearScale = 1.0 - nextHeightRatio * 0.8;
+    const topWidth = i < sections - 1 ? 180 * nextLinearScale : baseWidth * 0.8; // 최상층도 직선적으로
+    
+    const sectionHeight = (towerHeight / sections) * 0.9; // 각 층 높이를 균등하게
 
     // 색상 시스템
     let primaryColor, secondaryColor, glowIntensity;
@@ -193,16 +204,16 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
       }
     }
 
-    // 3D 섹션 그리기
-    drawTowerSection(ctx, centerX, sectionY, baseWidth, sectionHeight, primaryColor, secondaryColor, glowIntensity, time, i, isActive);
+    // 3D 섹션 그리기 - topWidth 추가 전달
+    drawTowerSection(ctx, centerX, sectionY, baseWidth, topWidth, sectionHeight, primaryColor, secondaryColor, glowIntensity, time, i, isActive);
 
     // 홀로그램 데이터 링크
     if (isActive && i > 0) {
       drawDataLink(ctx, centerX, sectionY + sectionHeight, sectionY + sectionHeight + (towerHeight / sections), primaryColor, time, i);
     }
 
-    // 층수 홀로그램 라벨
-    if (isActive) {
+    // 층수 홀로그램 라벨 - 5개 섹션마다만 표시
+    if (isActive && (i + 1) % 5 === 0) {
       const floorNumber = Math.floor(((i + 1) / sections) * 300); // maxFloor 대신 300 직접 사용
       drawFloorLabel(ctx, centerX + baseWidth/2 + 20, sectionY + sectionHeight/2, floorNumber, primaryColor, time);
     }
@@ -214,39 +225,51 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
   }
 }
 
-// 3D 타워 섹션 그리기
-function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: number, width: number, height: number, 
-                        primaryColor: number[], secondaryColor: number[], glowIntensity: number, time: number, index: number, isActive: boolean) {
+// 피라미드형 3D 타워 섹션 그리기
+function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: number, 
+                        baseWidth: number, topWidth: number, height: number, 
+                        primaryColor: number[], secondaryColor: number[], glowIntensity: number, 
+                        time: number, index: number, isActive: boolean) {
+  
+  // topWidth는 이미 메인 루프에서 계산되어 전달됨
+  const width = baseWidth; // 가독성을 위해
   
   // 3D 원근감을 위한 기울기
-  const skew = width * 0.1;
+  const skew = width * 0.08;
   
-  // 메인 면 (정면)
-  const frontGradient = ctx.createLinearGradient(centerX - width/2, y, centerX + width/2, y);
-  frontGradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.3})`);
-  frontGradient.addColorStop(0.5, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.6})`);
-  frontGradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.3})`);
+  // 메인 면 (정면) - 사다리꼴 형태
+  const frontGradient = ctx.createLinearGradient(centerX - width/2, y + height, centerX + width/2, y + height);
+  frontGradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.2})`);
+  frontGradient.addColorStop(0.5, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.7})`);
+  frontGradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.2})`);
   
   ctx.fillStyle = frontGradient;
-  ctx.fillRect(centerX - width/2, y, width, height);
-
-  // 측면 (3D 효과)
-  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.4})`;
   ctx.beginPath();
-  ctx.moveTo(centerX + width/2, y);
-  ctx.lineTo(centerX + width/2 + skew, y - skew);
-  ctx.lineTo(centerX + width/2 + skew, y + height - skew);
-  ctx.lineTo(centerX + width/2, y + height);
+  // 사다리꼴 (아래가 넓고 위가 좁음)
+  ctx.moveTo(centerX - width/2, y + height);        // 왼쪽 아래
+  ctx.lineTo(centerX - topWidth/2, y);              // 왼쪽 위
+  ctx.lineTo(centerX + topWidth/2, y);              // 오른쪽 위
+  ctx.lineTo(centerX + width/2, y + height);        // 오른쪽 아래
   ctx.closePath();
   ctx.fill();
 
-  // 윗면 (3D 효과)
-  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.5})`;
+  // 측면 (3D 효과) - 피라미드 형태 반영
+  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.4})`;
   ctx.beginPath();
-  ctx.moveTo(centerX - width/2, y);
-  ctx.lineTo(centerX - width/2 + skew, y - skew);
-  ctx.lineTo(centerX + width/2 + skew, y - skew);
-  ctx.lineTo(centerX + width/2, y);
+  ctx.moveTo(centerX + width/2, y + height);                    // 오른쪽 아래
+  ctx.lineTo(centerX + topWidth/2, y);                          // 오른쪽 위
+  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);            // 3D 오른쪽 위
+  ctx.lineTo(centerX + width/2 + skew, y + height - skew);      // 3D 오른쪽 아래
+  ctx.closePath();
+  ctx.fill();
+
+  // 윗면 (3D 효과) - 위쪽 면이 더 좁음
+  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.6})`;
+  ctx.beginPath();
+  ctx.moveTo(centerX - topWidth/2, y);                          // 왼쪽 위
+  ctx.lineTo(centerX - topWidth/2 + skew, y - skew);            // 3D 왼쪽 위
+  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);            // 3D 오른쪽 위
+  ctx.lineTo(centerX + topWidth/2, y);                          // 오른쪽 위
   ctx.closePath();
   ctx.fill();
 
@@ -254,26 +277,30 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
   ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.6})`;
   ctx.lineWidth = 1;
   
-  // 수직 그리드 + 전기 흐름
+  // 피라미드형 수직 그리드 + 전기 흐름
   for (let gridIndex = 0; gridIndex <= 6; gridIndex++) {
-    const x = centerX - width/2 + (gridIndex * width/6);
+    const ratio = gridIndex / 6; // 0~1
+    const bottomX = centerX - width/2 + (ratio * width);
+    const topX = centerX - topWidth/2 + (ratio * topWidth);
     
-    // 기본 그리드 선
+    // 사다리꼴 그리드 선
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y + height);
+    ctx.moveTo(topX, y);
+    ctx.lineTo(bottomX, y + height);
     ctx.stroke();
     
   }
   
-  // 수평 그리드 + 전기 흐름
+  // 피라미드형 수평 그리드 + 전기 흐름
   for (let gridIndex = 0; gridIndex <= 3; gridIndex++) {
     const gridY = y + (gridIndex * height/3);
+    const ratio = gridIndex / 3; // 0 (위) ~ 1 (아래)
+    const currentWidth = topWidth + (width - topWidth) * ratio;
     
-    // 기본 그리드 선
+    // 각 높이에서의 폭에 맞는 수평선
     ctx.beginPath();
-    ctx.moveTo(centerX - width/2, gridY);
-    ctx.lineTo(centerX + width/2, gridY);
+    ctx.moveTo(centerX - currentWidth/2, gridY);
+    ctx.lineTo(centerX + currentWidth/2, gridY);
     ctx.stroke();
     
   }

@@ -11,6 +11,24 @@
     <linearGradient id="board_grad" x1="50%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#0c8237"/><stop offset="100%" stop-color="#085c25"/></linearGradient>
     <radialGradient id="w_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#e0e0e0"/></radialGradient>
     <radialGradient id="b_disk" cx="50%" cy="50%" r="50%" fx="40%" fy="40%"><stop offset="0%" stop-color="#333"/><stop offset="100%" stop-color="#0a0a0a"/></radialGradient>
+    
+    <!-- 홀로그램 돌 그라디언트 -->
+    <radialGradient id="hologram_disk" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#00ffff"/>
+      <stop offset="30%" stop-color="#06b6d4"/>
+      <stop offset="70%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#0c4a6e"/>
+    </radialGradient>
+    
+    <!-- 홀로그램 글로우 필터 -->
+    <filter id="hologramGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="3" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/></filter>
     <clipPath id="clip"><path d="M 50,12 C 12,12 12,12 12,50 L 12,206 C 12,244 12,244 50,244 L 206,244 C 244,244 244,244 244,206 L 244,50 C 244,12 244,12 206,12 Z"/></clipPath>
   </defs>
@@ -23,8 +41,35 @@
       <line x1="0" y1="128" x2="256" y2="128"/><line x1="0" y1="48" x2="256" y2="48"/><line x1="0" y1="208" x2="256" y2="208"/>
       <line x1="128" y1="0" x2="128" y2="256"/><line x1="48" y1="0" x2="48" y2="256"/><line x1="208" y1="0" x2="208" y2="256"/>
     </g>
-    <g filter="url(#shadow)" transform="translate(-12, -12)">
-      <circle cx="88" cy="88" r="32" fill="url(#w_disk)"/><circle cx="168" cy="88" r="32" fill="url(#b_disk)"/><circle cx="88" cy="168" r="32" fill="url(#b_disk)"/><circle cx="168" cy="168" r="32" fill="url(#w_disk)"/>
+    <g transform="translate(-12, -12)">
+      <!-- 좌상단 하얀돌 -->
+      <circle cx="88" cy="88" r="32" fill="url(#w_disk)" filter="url(#shadow)"/>
+      
+      <!-- 우상단 검은돌 -->
+      <circle cx="168" cy="88" r="32" fill="url(#b_disk)" filter="url(#shadow)"/>
+      
+      <!-- 좌하단 검은돌 -->
+      <circle cx="88" cy="168" r="32" fill="url(#b_disk)" filter="url(#shadow)"/>
+      
+      <!-- 우하단 홀로그램 돌 -->
+      <g filter="url(#hologramGlow)">
+        <circle cx="168" cy="168" r="32" fill="url(#hologram_disk)"/>
+        
+        <!-- 홀로그램 내부 패턴 -->
+        <circle cx="168" cy="168" r="20" fill="none" stroke="#00ffff" stroke-width="2" opacity="0.8"/>
+        <circle cx="168" cy="168" r="10" fill="none" stroke="#00ffff" stroke-width="1.5" opacity="0.6"/>
+        
+        <!-- 홀로그램 중심점 -->
+        <circle cx="168" cy="168" r="3" fill="#ffffff" opacity="0.9"/>
+      </g>
+      
+      <!-- 홀로그램 에너지 파티클들 -->
+      <g filter="url(#hologramGlow)" opacity="0.8">
+        <circle cx="168" cy="168" r="1.5" fill="#00ffff"/>
+        <circle cx="180" cy="175" r="2" fill="#06b6d4"/>
+        <circle cx="156" cy="175" r="1.5" fill="#00ffff"/>
+        <circle cx="168" cy="155" r="2" fill="#06b6d4"/>
+      </g>
     </g>
   </g>
 </svg>

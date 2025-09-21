@@ -3,6 +3,8 @@ import { Outlet, useLocation, useMatches, useNavigation } from 'react-router-dom
 
 import { AppShell } from '../../ui/layout/AppShell';
 import { BottomNav } from '../../ui/navigation/BottomNav';
+import { PWAInstallPrompt } from '../../components/PWAInstallPrompt';
+import { PWAUpdatePrompt } from '../../components/PWAUpdatePrompt';
 import type { RouteHandle, RouteMeta, RootRouteMeta } from './meta';
 import { rootNavItems } from './rootRoutes';
 
@@ -143,6 +145,8 @@ export function RootLayout() {
           </div>
         )}
       </div>
+      <PWAUpdatePrompt />
+      <PWAInstallPrompt />
     </AppShell>
   );
 }
