@@ -2,13 +2,13 @@ import React from 'react';
 import type { AppRouteObject, RouteMeta } from '../../app/router/meta';
 import { Swords, Sword, Trophy, Gamepad2 } from 'lucide-react';
 
-import { protectedLoader } from '../../app/router/loaders';
 import { BattleLayout } from './layouts/BattleLayout';
 import BattleHome from './pages/index/page';
 import BattleMatchScreen from './pages/match/page';
 import BattleTournamentScreen from './pages/tournament/page';
 import QuickMatchPage from './pages/quick/page';
 import RankedMatchPage from './pages/ranked/page';
+import { createFeatureErrorBoundary, createFeatureNotFound, createFeatureRoute } from '../../app/router/routeFactories';
 
 /**
  * Metadata for the root of the battle feature.
@@ -51,14 +51,7 @@ const GAME_META: RouteMeta = {
  *
  * @returns {React.ReactElement} The rendered error boundary UI.
  */
-const BattleErrorBoundary = () => (
-  <BattleLayout>
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
-      <h2 className="text-lg font-semibold text-white">전투 정보를 불러오지 못했습니다.</h2>
-      <p className="text-sm text-white/60">잠시 후 다시 시도하거나 네트워크 상태를 확인해 주세요.</p>
-    </div>
-  </BattleLayout>
-);
+const BattleErrorBoundary = createFeatureErrorBoundary(BattleLayout, '전투 정보를 불러오지 못했습니다.');
 
 /**
  * A component to display when a specific battle page is not found.
@@ -68,14 +61,7 @@ const BattleErrorBoundary = () => (
  *
  * @returns {React.ReactElement} The rendered "not found" UI for the battle feature.
  */
-const BattleNotFound = () => (
-  <BattleLayout detail>
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
-      <h2 className="text-lg font-semibold text-white/90">해당 전투 페이지를 찾을 수 없습니다.</h2>
-      <p className="text-sm text-white/60">목록으로 돌아가 다시 시도해 주세요.</p>
-    </div>
-  </BattleLayout>
-);
+const BattleNotFound = createFeatureNotFound(BattleLayout, '해당 전투 페이지를 찾을 수 없습니다.');
 
 
 /**
@@ -85,39 +71,20 @@ const BattleNotFound = () => (
  * It includes routes for the battle home page, quick matches, ranked matches, tournaments,
  * and a catch-all route for pages that are not found.
  */
-export const battleRoute: AppRouteObject = {
+export const battleRoute: AppRouteObject = createFeatureRoute({
   id: 'battle-root',
   path: 'battle',
-  handle: { meta: BATTLE_ROOT_META },
-  errorElement: <BattleErrorBoundary />,
+  meta: BATTLE_ROOT_META,
+  layout: BattleLayout,
+  errorBoundary: BattleErrorBoundary,
   children: [
-    {
-      index: true,
-      element: <BattleHome />,
-      handle: { meta: BATTLE_ROOT_META },
-    },
-    {
-      path: 'quick',
-      element: <QuickMatchPage />,
-      handle: { meta: { ...BATTLE_DETAIL_META, title: '빠른 매치' } },
-    },
-    {
-      path: 'ranked',
-      element: <RankedMatchPage />,
-      handle: { meta: { ...BATTLE_DETAIL_META, title: '랭크 매치' } },
-    },
-    {
-      path: 'tournament',
-      element: <BattleTournamentScreen />,
-      handle: { meta: { ...BATTLE_DETAIL_META, title: '토너먼트', icon: Trophy } },
-    },
-    {
-      path: '*',
-      element: <BattleNotFound />,
-      handle: { meta: { ...BATTLE_DETAIL_META, title: '전투 없음' } },
-    },
+    { index: true, element: <BattleHome /> },
+    { path: 'quick', element: <QuickMatchPage />, meta: { ...BATTLE_DETAIL_META, title: '빠른 매치' } },
+    { path: 'ranked', element: <RankedMatchPage />, meta: { ...BATTLE_DETAIL_META, title: '랭크 매치' } },
+    { path: 'tournament', element: <BattleTournamentScreen />, meta: { ...BATTLE_DETAIL_META, title: '토너먼트', icon: Trophy } },
   ],
-};
+  catchAll: { element: BattleNotFound, meta: { ...BATTLE_DETAIL_META, title: '전투 없음' } },
+});
 
 export default battleRoute;
 

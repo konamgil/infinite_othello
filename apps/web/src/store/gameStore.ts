@@ -77,8 +77,8 @@ const initialState: GameState = {
     name: 'Stella',
     rating: 1500,
     rank: 'Bronze',
-    currentFloor: 1,
-    towerProgress: 1, // 1층으로 초기화
+    currentFloor: 300,
+    towerProgress: 300,
     wins: 45,
     losses: 12,
     winStreak: 3,

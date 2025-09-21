@@ -60,7 +60,7 @@ export function BottomNav({ items, activePath }: BottomNavProps) {
 
   return (
     <nav
-      className="relative px-4 py-3 bg-gradient-to-t from-slate-800/60 via-purple-900/25 to-transparent backdrop-blur-3xl
+      className="relative px-4 py-2 bg-gradient-to-t from-slate-800/60 via-purple-900/25 to-transparent backdrop-blur-3xl
                  before:absolute before:top-0 before:inset-x-0 before:h-px
                  before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
       role="navigation"
@@ -109,14 +109,7 @@ export function BottomNav({ items, activePath }: BottomNavProps) {
         ))}
       </div>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.2; }
-          25% { transform: translateY(-4px) translateX(2px); opacity: 0.6; }
-          50% { transform: translateY(-2px) translateX(-1px); opacity: 0.8; }
-          75% { transform: translateY(-6px) translateX(3px); opacity: 0.4; }
-        }
-      `}</style>
+      {/* 공통 애니메이션 CSS는 ui/effects/animations.css로 분리됨 */}
 
       <div className="relative flex justify-around items-center">
         {items.map((item) => {

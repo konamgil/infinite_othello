@@ -28,7 +28,7 @@ export function NavItem({ path, label, icon: Icon, isActive, onNavigate, badge }
   return (
     <button
       onClick={handleClick}
-      className={`relative flex flex-col items-center justify-center w-16 h-16 rounded-2xl
+      className={`relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl
                   group select-none
                   transition-transform duration-200
                   active:scale-90 active:bg-white/10
@@ -69,9 +69,9 @@ export function NavItem({ path, label, icon: Icon, isActive, onNavigate, badge }
              style={{ animationDuration: '3s' }} />
       )}
 
-      <div className="relative mb-1.5 z-10">
+      <div className="relative mb-1 z-10">
         <Icon
-          size={20}
+          size={18}
           strokeWidth={2}
           className={`transition-all duration-200 ${
             isActive

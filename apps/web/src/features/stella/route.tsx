@@ -7,6 +7,7 @@ import StellaHome from './pages/index/page';
 import StellaMissions from './pages/missions/page';
 import StellaStrategy from './pages/strategy/page';
 import StellaPractice from './pages/practice/page';
+import { createFeatureErrorBoundary, createFeatureNotFound, createFeatureRoute } from '../../app/router/routeFactories';
 
 /**
  * Metadata for the root of the Stella AI mentor feature.
@@ -39,14 +40,7 @@ const STELLA_DETAIL_META: RouteMeta = {
  *
  * @returns {React.ReactElement} The rendered error boundary UI.
  */
-const StellaErrorBoundary = () => (
-  <StellaLayout>
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
-      <h2 className="text-lg font-semibold text-white">스텔라 학습 데이터를 불러오지 못했습니다.</h2>
-      <p className="text-sm text-white/60">잠시 후 다시 시도해 주세요.</p>
-    </div>
-  </StellaLayout>
-);
+const StellaErrorBoundary = createFeatureErrorBoundary(StellaLayout, '스텔라 학습 데이터를 불러오지 못했습니다.');
 
 /**
  * The main route object for the Stella AI mentor feature.
@@ -54,39 +48,20 @@ const StellaErrorBoundary = () => (
  * This object defines the layout and all sub-routes for the Stella section,
  * which includes the main hub, missions, strategy lessons, and practice mode.
  */
-export const stellaRoute: AppRouteObject = {
+export const stellaRoute: AppRouteObject = createFeatureRoute({
   id: 'stella-root',
   path: 'stella',
-  handle: { meta: STELLA_META },
-  errorElement: <StellaErrorBoundary />,
+  meta: STELLA_META,
+  layout: StellaLayout,
+  errorBoundary: StellaErrorBoundary,
   children: [
-    {
-      index: true,
-      element: <StellaHome />,
-      handle: { meta: STELLA_META },
-    },
-    {
-      path: 'missions',
-      element: <StellaMissions />,
-      handle: { meta: { ...STELLA_DETAIL_META, title: '미션', icon: Target } },
-    },
-    {
-      path: 'strategy',
-      element: <StellaStrategy />,
-      handle: { meta: { ...STELLA_DETAIL_META, title: '전략 연구', icon: Lightbulb } },
-    },
-    {
-      path: 'practice',
-      element: <StellaPractice />,
-      handle: { meta: { ...STELLA_DETAIL_META, title: '연습 모드', icon: Wand2 } },
-    },
-    {
-      path: '*',
-      element: <StellaHome />,
-      handle: { meta: { ...STELLA_DETAIL_META, title: '스텔라 안내' } },
-    },
+    { index: true, element: <StellaHome /> },
+    { path: 'missions', element: <StellaMissions />, meta: { ...STELLA_DETAIL_META, title: '미션', icon: Target } },
+    { path: 'strategy', element: <StellaStrategy />, meta: { ...STELLA_DETAIL_META, title: '전략 연구', icon: Lightbulb } },
+    { path: 'practice', element: <StellaPractice />, meta: { ...STELLA_DETAIL_META, title: '연습 모드', icon: Wand2 } },
   ],
-};
+  catchAll: { element: <StellaHome />, meta: { ...STELLA_DETAIL_META, title: '스텔라 안내' } },
+});
 
 export default stellaRoute;
 

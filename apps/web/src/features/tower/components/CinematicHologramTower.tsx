@@ -21,9 +21,9 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
       canvas.width = 320 * dpr;
-      canvas.height = 380 * dpr;
+      canvas.height = 420 * dpr;
       ctx.scale(dpr, dpr);
-      return { width: 320, height: 380 };
+      return { width: 320, height: 420 };
     };
 
     const { width, height } = resizeCanvas();
@@ -40,14 +40,13 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
       const progress = Math.min(currentFloor / maxFloor, 1);
 
 
-      // 3. 메인 타워 (3D 원근감)
+      // 1. 메인 타워 (3D 원근감)
       drawCinematicTower(ctx, centerX, height, progress, time);
 
-      // 4. 파티클 시스템
+      // 2. 파티클 시스템
       updateAndDrawParticles(ctx, particles, width, height, time);
 
-
-      // 6. 홀로그램 노이즈 효과
+      // 3. 홀로그램 노이즈 효과
       drawHologramNoise(ctx, width, height, time);
 
       animationFrameId = requestAnimationFrame(animate);
@@ -66,7 +65,7 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
     <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-[320px] h-[380px] block"
+        className="w-[320px] h-[420px] block"
         style={{ imageRendering: 'auto' }}
       />
     </div>
@@ -129,7 +128,7 @@ function drawEnergyField(ctx: CanvasRenderingContext2D, width: number, height: n
 // 영화적 3D 석탑
 function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, height: number, progress: number, time: number) {
   const towerBottom = height - 30;
-  const towerTop = 5;
+  const towerTop = 40;
   const towerHeight = towerBottom - towerTop;
   const sections = 10; // 10개 섹션 (간격 넓히기)
 
@@ -211,7 +210,7 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
 
   // 정상 크리스탈 (완료 시)
   if (progress >= 1) {
-    drawVictoryCrystal(ctx, centerX, towerTop + 5, time);
+    drawVictoryCrystal(ctx, centerX, towerTop - 15, time);
   }
 }
 
