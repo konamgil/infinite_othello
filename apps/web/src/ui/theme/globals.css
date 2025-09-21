@@ -194,7 +194,7 @@
    * '별빛 유성' 테마의 다양한 버튼 스타일입니다.
    */
   .btn-primary {
-    @apply px-6 py-3 font-medium active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-6 py-3 font-medium btn-press-fast disabled:opacity-50 disabled:cursor-not-allowed;
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%); /* 금색 그라데이션 */
     color: #ffffff;
     font-family: 'Orbitron', system-ui, sans-serif; /* 미래적인 느낌의 폰트 */
@@ -219,11 +219,11 @@
   }
 
   .btn-secondary {
-    @apply bg-tower-silver-500 text-tower-silver-100 px-4 py-2 rounded-lg font-semibold active:bg-tower-silver-400 active:scale-95 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-tower-silver-500 text-tower-silver-100 px-4 py-2 rounded-lg font-semibold btn-press-fast active:bg-tower-silver-400 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply bg-tower-danger-500 text-white px-4 py-2 rounded-lg font-semibold active:bg-tower-danger-400 active:scale-95 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-tower-danger-500 text-white px-4 py-2 rounded-lg font-semibold btn-press-fast active:bg-tower-danger-400 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* 입력 필드: 테두리 없이 그림자와 배경색으로만 구분하여 미니멀한 디자인 구현 */
@@ -270,7 +270,7 @@
 
   /* 하단 네비게이션 탭 버튼 스타일 */
   .tab-button {
-    @apply touch-target flex flex-col items-center gap-1 text-xs font-medium text-white/40 active:text-white/70 transition-colors duration-200;
+    @apply touch-target flex flex-col items-center gap-1 text-xs font-medium text-white/40 btn-press-fast active:text-white/70;
     font-family: 'Rajdhani', system-ui, sans-serif;
     font-weight: 500;
     letter-spacing: 0.05em;
@@ -422,6 +422,53 @@
     border: 2px solid #fde047;
     cursor: pointer;
     border: none;
+  }
+}
+
+@layer utilities {
+  /**
+   * ------------------------------------------------------------------
+   * 버튼 애니메이션 유틸리티
+   * ------------------------------------------------------------------
+   */
+
+  /* 즉각적 피드백을 위한 유틸리티 클래스 */
+  .btn-press-fast {
+    will-change: transform;
+    transition: transform 0ms; /* 즉시 반응 */
+    transform: translateZ(0); /* GPU 가속 */
+  }
+
+  .btn-press-fast:active {
+    transform: translateZ(0) scale(0.92);
+    transition: none; /* 완전히 즉각적 반응 */
+  }
+
+  .btn-press-instant {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .btn-press-instant:active {
+    transform: translateZ(0) scale(0.95);
+    transition: none; /* 즉각적 반응 */
+  }
+
+  /* 챌린지 플로우 애니메이션 클래스 */
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.5s ease-out;
   }
 }
 

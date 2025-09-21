@@ -67,18 +67,21 @@ export const EnergyBar: React.FC<EnergyBarProps> = ({
 				</button>
 			</div>
 			
-			{/* 상태 텍스트 - 별도 행으로 분리 */}
-			<div className="mt-1 text-right text-[10px] text-white/60 font-display">
-				{isFull ? (isCollecting ? '수집 중...' : '100% 충전됨') : `${Math.round(progressPercent)}%`}
-			</div>
-
-			{/* 에너지 수집 안내 텍스트 - 고정 높이로 덜컥거림 방지 */}
-			<div className="mt-2 text-center h-4 flex items-center justify-center">
-				{isFull && !isCollecting && (
-					<span className="text-xs text-yellow-400/80 font-display animate-pulse transition-opacity duration-300">
-						⚡ 에너지를 수집하세요! (+150 RP)
-					</span>
-				)}
+			{/* 통합 상태/안내 텍스트 - 고정 높이로 덜컥거림 방지 */}
+			<div className="mt-1 h-5 flex items-center justify-between">
+				{/* 왼쪽: 상태 텍스트 */}
+				<div className="text-[10px] text-white/60 font-display">
+					{isFull ? (isCollecting ? '수집 중...' : '100% 충전됨') : `${Math.round(progressPercent)}%`}
+				</div>
+				
+				{/* 오른쪽: 수집 안내 (에너지 가득찰 때만) */}
+				<div className="flex items-center">
+					{isFull && !isCollecting && (
+						<span className="text-xs text-yellow-400/80 font-display animate-pulse transition-opacity duration-300">
+							⚡ 수집하세요! (+150 RP)
+						</span>
+					)}
+				</div>
 			</div>
 		</div>
 	);

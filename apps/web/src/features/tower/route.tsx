@@ -1,11 +1,12 @@
 import React from 'react';
 import type { AppRouteObject, RouteMeta } from '../../app/router/meta';
-import { Castle, Gamepad2 } from 'lucide-react';
+import { Castle, Gamepad2, Target } from 'lucide-react';
 
 import { protectedLoader } from '../../app/router/loaders';
 import { TowerLayout } from './layouts/TowerLayout';
 import GameScreen from './pages/game/page';
 import TowerScreen from './pages/index/page';
+import TowerChallengeScreen from './pages/challenge/page';
 
 /**
  * Metadata for the root of the tower feature.
@@ -27,6 +28,17 @@ const TOWER_GAME_META: RouteMeta = {
   requiresAuth: true,
   title: '탑 도전',
   icon: Gamepad2,
+};
+
+/**
+ * Metadata for the tower challenge preparation screen.
+ * This route requires authentication and hides bottom navigation.
+ */
+const TOWER_CHALLENGE_META: RouteMeta = {
+  requiresAuth: true,
+  title: '도전 준비',
+  icon: Target,
+  hideBottomNav: true,
 };
 
 /**
@@ -75,6 +87,11 @@ export const towerRoute: AppRouteObject = {
       index: true,
       element: <TowerScreen />,
       handle: { meta: TOWER_META },
+    },
+    {
+      path: ':floor/challenge',
+      element: <TowerChallengeScreen />,
+      handle: { meta: TOWER_CHALLENGE_META },
     },
     {
       path: ':floor',

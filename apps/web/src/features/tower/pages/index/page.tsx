@@ -130,18 +130,28 @@ export default function TowerPage() {
     collect();
   };
 
-  /** Handles the start of a new tower challenge, navigating to the game screen. */
+  /** Handles the start of a new tower challenge, navigating to the challenge preparation screen. */
   const handleChallengeStart = () => {
+    // 300층 정복 완료 체크
     if (currentFloor > maxFloor) {
       haptic.gameWin();
       alert('🎉 축하합니다! 무한의 탑을 완전히 정복하셨습니다!');
       return;
     }
+    
+    // 현재 층이 실제 진행도를 넘는지 체크
+    if (currentFloor > player.towerProgress) {
+      alert('아직 도전할 수 없는 층입니다.');
+      return;
+    }
+
     haptic.bossEncounter();
     if (navigator.vibrate) {
       navigator.vibrate([50, 30, 50]); // 강한 진동으로 도전감 강조
     }
-    navigate(`/tower/${currentFloor}`, {
+    
+    // 새로운 챌린지 플로우로 이동
+    navigate(`/tower/${currentFloor}/challenge`, {
       state: {
         mode: 'tower',
         towerFloor: currentFloor,
@@ -230,19 +240,46 @@ export default function TowerPage() {
           <button
             id="challenge-start-btn"
             onClick={handleChallengeStart}
-            className="relative w-full py-3 px-4 rounded-xl bg-gradient-to-b from-purple-600/30 to-indigo-700/30 border border-purple-400/60 shadow-[0_4px_16px_rgba(147,51,234,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] active:shadow-[0_2px_8px_rgba(147,51,234,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] active:translate-y-0.5 transition-all duration-150 group overflow-hidden"
+            disabled={currentFloor > player.towerProgress}
+            className={`relative w-full py-3 px-4 rounded-xl transition-all duration-150 group overflow-hidden ${
+              currentFloor > player.towerProgress
+                ? 'bg-gradient-to-b from-gray-600/30 to-gray-700/30 border border-gray-400/40 opacity-50 cursor-not-allowed'
+                : 'bg-gradient-to-b from-purple-600/30 to-indigo-700/30 border border-purple-400/60 shadow-[0_4px_16px_rgba(147,51,234,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] active:shadow-[0_2px_8px_rgba(147,51,234,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] active:translate-y-0.5'
+            }`}
           >
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+            <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent ${
+              currentFloor > player.towerProgress ? 'opacity-30' : ''
+            }`} />
             <div className="flex items-center justify-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg group-active:scale-95 transition-transform duration-150">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shadow-lg transition-transform duration-150 ${
+                currentFloor > player.towerProgress
+                  ? 'bg-gradient-to-br from-gray-500 to-gray-600'
+                  : 'bg-gradient-to-br from-purple-500 to-indigo-600 group-active:scale-95'
+              }`}>
                 <Target size={18} className="text-white" />
               </div>
               <div className="text-center">
-                <div className="font-display text-purple-200 font-bold text-lg tracking-wide group-active:scale-98 transition-transform duration-150">
-                  {currentFloor <= maxFloor ? `${currentFloor}층 도전하기` : '탑 정복 완료!'}
+                <div className={`font-display font-bold text-lg tracking-wide transition-transform duration-150 ${
+                  currentFloor > player.towerProgress
+                    ? 'text-gray-300'
+                    : 'text-purple-200 group-active:scale-98'
+                }`}>
+                  {currentFloor > maxFloor 
+                    ? '탑 정복 완료!' 
+                    : currentFloor > player.towerProgress
+                    ? '잠겨있는 층'
+                    : `${currentFloor}층 도전하기`
+                  }
                 </div>
-                <div className="text-xs text-purple-300/70 font-display">
-                  전투 준비 완료
+                <div className={`text-xs font-display ${
+                  currentFloor > player.towerProgress
+                    ? 'text-gray-400'
+                    : 'text-purple-300/70'
+                }`}>
+                  {currentFloor > player.towerProgress
+                    ? `${player.towerProgress}층까지 클리어 필요`
+                    : '전투 준비 완료'
+                  }
                 </div>
               </div>
             </div>

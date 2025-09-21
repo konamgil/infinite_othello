@@ -39,14 +39,19 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
       const centerX = width / 2;
       const progress = Math.min(currentFloor / maxFloor, 1);
 
+      // 0. 고급 배경 효과
+      drawEnhancedBackground(ctx, width, height, time);
 
       // 1. 메인 타워 (3D 원근감)
       drawCinematicTower(ctx, centerX, height, progress, time);
 
-      // 2. 파티클 시스템
+      // 2. 강화된 파티클 시스템
       updateAndDrawParticles(ctx, particles, width, height, time);
 
-      // 3. 홀로그램 노이즈 효과
+      // 3. 타워 주변 에너지 오라
+      drawTowerAura(ctx, centerX, height, progress, time);
+
+      // 4. 홀로그램 노이즈 효과
       drawHologramNoise(ctx, width, height, time);
 
       animationFrameId = requestAnimationFrame(animate);
@@ -194,13 +199,13 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
       }
     } else {
       if (isFinalFloor) {
-        primaryColor = [120, 100, 40]; // 어두운 황금 (비활성 300층)
-        secondaryColor = [140, 120, 60];
-        glowIntensity = 0.3;
+        primaryColor = [150, 130, 60]; // 더 밝은 어두운 황금 (비활성 300층)
+        secondaryColor = [170, 150, 80];
+        glowIntensity = 0.45;
       } else {
-        primaryColor = [60, 80, 120]; // 어두운 파란색 (비활성)
-        secondaryColor = [80, 100, 140];
-        glowIntensity = 0.2;
+        primaryColor = [80, 100, 150]; // 더 밝은 어두운 파란색 (비활성)
+        secondaryColor = [100, 120, 170];
+        glowIntensity = 0.35; // 0.2에서 0.35로 증가
       }
     }
 
@@ -237,72 +242,170 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
   // 3D 원근감을 위한 기울기
   const skew = width * 0.08;
   
-  // 메인 면 (정면) - 사다리꼴 형태
-  const frontGradient = ctx.createLinearGradient(centerX - width/2, y + height, centerX + width/2, y + height);
-  frontGradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.2})`);
-  frontGradient.addColorStop(0.5, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.7})`);
-  frontGradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.2})`);
+  // 고급 메인 면 (정면) - 다층 그라디언트와 질감
   
-  ctx.fillStyle = frontGradient;
-  ctx.beginPath();
-  // 사다리꼴 (아래가 넓고 위가 좁음)
-  ctx.moveTo(centerX - width/2, y + height);        // 왼쪽 아래
-  ctx.lineTo(centerX - topWidth/2, y);              // 왼쪽 위
-  ctx.lineTo(centerX + topWidth/2, y);              // 오른쪽 위
-  ctx.lineTo(centerX + width/2, y + height);        // 오른쪽 아래
-  ctx.closePath();
-  ctx.fill();
-
-  // 측면 (3D 효과) - 피라미드 형태 반영
-  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.4})`;
-  ctx.beginPath();
-  ctx.moveTo(centerX + width/2, y + height);                    // 오른쪽 아래
-  ctx.lineTo(centerX + topWidth/2, y);                          // 오른쪽 위
-  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);            // 3D 오른쪽 위
-  ctx.lineTo(centerX + width/2 + skew, y + height - skew);      // 3D 오른쪽 아래
-  ctx.closePath();
-  ctx.fill();
-
-  // 윗면 (3D 효과) - 위쪽 면이 더 좁음
-  ctx.fillStyle = `rgba(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]}, ${glowIntensity * 0.6})`;
-  ctx.beginPath();
-  ctx.moveTo(centerX - topWidth/2, y);                          // 왼쪽 위
-  ctx.lineTo(centerX - topWidth/2 + skew, y - skew);            // 3D 왼쪽 위
-  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);            // 3D 오른쪽 위
-  ctx.lineTo(centerX + topWidth/2, y);                          // 오른쪽 위
-  ctx.closePath();
-  ctx.fill();
-
-  // 홀로그램 그리드 라인
-  ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.6})`;
-  ctx.lineWidth = 1;
+  // 1. 베이스 메탈릭 레이어
+  const metallicGradient = ctx.createLinearGradient(centerX - width/2, y, centerX + width/2, y + height);
+  metallicGradient.addColorStop(0, `rgba(${secondaryColor[0] * 0.3}, ${secondaryColor[1] * 0.3}, ${secondaryColor[2] * 0.3}, ${glowIntensity * 0.8})`);
+  metallicGradient.addColorStop(0.3, `rgba(${primaryColor[0] * 0.6}, ${primaryColor[1] * 0.6}, ${primaryColor[2] * 0.6}, ${glowIntensity * 0.4})`);
+  metallicGradient.addColorStop(0.7, `rgba(${primaryColor[0] * 0.8}, ${primaryColor[1] * 0.8}, ${primaryColor[2] * 0.8}, ${glowIntensity * 0.6})`);
+  metallicGradient.addColorStop(1, `rgba(${secondaryColor[0] * 0.4}, ${secondaryColor[1] * 0.4}, ${secondaryColor[2] * 0.4}, ${glowIntensity * 0.3})`);
   
-  // 피라미드형 수직 그리드 + 전기 흐름
-  for (let gridIndex = 0; gridIndex <= 6; gridIndex++) {
-    const ratio = gridIndex / 6; // 0~1
+  ctx.fillStyle = metallicGradient;
+  ctx.beginPath();
+  ctx.moveTo(centerX - width/2, y + height);
+  ctx.lineTo(centerX - topWidth/2, y);
+  ctx.lineTo(centerX + topWidth/2, y);
+  ctx.lineTo(centerX + width/2, y + height);
+  ctx.closePath();
+  ctx.fill();
+  
+  // 2. 발광 오버레이 레이어
+  const glowGradient = ctx.createRadialGradient(centerX, y + height/2, 0, centerX, y + height/2, width/2);
+  glowGradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.4})`);
+  glowGradient.addColorStop(0.6, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.2})`);
+  glowGradient.addColorStop(1, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, 0)`);
+  
+  ctx.fillStyle = glowGradient;
+  ctx.beginPath();
+  ctx.moveTo(centerX - width/2, y + height);
+  ctx.lineTo(centerX - topWidth/2, y);
+  ctx.lineTo(centerX + topWidth/2, y);
+  ctx.lineTo(centerX + width/2, y + height);
+  ctx.closePath();
+  ctx.fill();
+  
+  // 3. 하이라이트 반사 효과
+  const highlightGradient = ctx.createLinearGradient(centerX - width/4, y, centerX + width/4, y + height/3);
+  highlightGradient.addColorStop(0, `rgba(255, 255, 255, ${glowIntensity * 0.3})`);
+  highlightGradient.addColorStop(0.5, `rgba(255, 255, 255, ${glowIntensity * 0.1})`);
+  highlightGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+  
+  ctx.fillStyle = highlightGradient;
+  ctx.beginPath();
+  ctx.moveTo(centerX - width/3, y + height);
+  ctx.lineTo(centerX - topWidth/3, y);
+  ctx.lineTo(centerX, y);
+  ctx.lineTo(centerX, y + height);
+  ctx.closePath();
+  ctx.fill();
+
+  // 고급 측면 (3D 효과) - 그라디언트와 음영
+  const sideGradient = ctx.createLinearGradient(centerX + width/2, y + height, centerX + width/2 + skew, y - skew);
+  sideGradient.addColorStop(0, `rgba(${secondaryColor[0] * 0.4}, ${secondaryColor[1] * 0.4}, ${secondaryColor[2] * 0.4}, ${glowIntensity * 0.6})`);
+  sideGradient.addColorStop(0.5, `rgba(${primaryColor[0] * 0.3}, ${primaryColor[1] * 0.3}, ${primaryColor[2] * 0.3}, ${glowIntensity * 0.4})`);
+  sideGradient.addColorStop(1, `rgba(${secondaryColor[0] * 0.2}, ${secondaryColor[1] * 0.2}, ${secondaryColor[2] * 0.2}, ${glowIntensity * 0.3})`);
+  
+  ctx.fillStyle = sideGradient;
+  ctx.beginPath();
+  ctx.moveTo(centerX + width/2, y + height);
+  ctx.lineTo(centerX + topWidth/2, y);
+  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);
+  ctx.lineTo(centerX + width/2 + skew, y + height - skew);
+  ctx.closePath();
+  ctx.fill();
+
+  // 고급 윗면 (3D 효과) - 방사형 그라디언트
+  const topGradient = ctx.createRadialGradient(centerX, y - skew/2, 0, centerX, y - skew/2, topWidth/2 + skew);
+  topGradient.addColorStop(0, `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.8})`);
+  topGradient.addColorStop(0.7, `rgba(${secondaryColor[0] * 0.8}, ${secondaryColor[1] * 0.8}, ${secondaryColor[2] * 0.8}, ${glowIntensity * 0.5})`);
+  topGradient.addColorStop(1, `rgba(${secondaryColor[0] * 0.4}, ${secondaryColor[1] * 0.4}, ${secondaryColor[2] * 0.4}, ${glowIntensity * 0.3})`);
+  
+  ctx.fillStyle = topGradient;
+  ctx.beginPath();
+  ctx.moveTo(centerX - topWidth/2, y);
+  ctx.lineTo(centerX - topWidth/2 + skew, y - skew);
+  ctx.lineTo(centerX + topWidth/2 + skew, y - skew);
+  ctx.lineTo(centerX + topWidth/2, y);
+  ctx.closePath();
+  ctx.fill();
+
+  // 고급 홀로그램 그리드 시스템
+  
+  // 1. 기본 그리드 (얇은 선)
+  ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.3})`;
+  ctx.lineWidth = 0.5;
+  
+  // 피라미드형 수직 그리드
+  for (let gridIndex = 0; gridIndex <= 8; gridIndex++) {
+    const ratio = gridIndex / 8;
     const bottomX = centerX - width/2 + (ratio * width);
     const topX = centerX - topWidth/2 + (ratio * topWidth);
     
-    // 사다리꼴 그리드 선
     ctx.beginPath();
     ctx.moveTo(topX, y);
     ctx.lineTo(bottomX, y + height);
     ctx.stroke();
-    
   }
   
-  // 피라미드형 수평 그리드 + 전기 흐름
-  for (let gridIndex = 0; gridIndex <= 3; gridIndex++) {
-    const gridY = y + (gridIndex * height/3);
-    const ratio = gridIndex / 3; // 0 (위) ~ 1 (아래)
+  // 피라미드형 수평 그리드
+  for (let gridIndex = 0; gridIndex <= 4; gridIndex++) {
+    const gridY = y + (gridIndex * height/4);
+    const ratio = gridIndex / 4;
     const currentWidth = topWidth + (width - topWidth) * ratio;
     
-    // 각 높이에서의 폭에 맞는 수평선
     ctx.beginPath();
     ctx.moveTo(centerX - currentWidth/2, gridY);
     ctx.lineTo(centerX + currentWidth/2, gridY);
     ctx.stroke();
+  }
+  
+  // 2. 강조 그리드 (굵은 선)
+  ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${glowIntensity * 0.7})`;
+  ctx.lineWidth = 1.5;
+  
+  // 중앙 수직선
+  ctx.beginPath();
+  ctx.moveTo(centerX, y);
+  ctx.lineTo(centerX, y + height);
+  ctx.stroke();
+  
+  // 중앙 수평선
+  const midY = y + height/2;
+  const midWidth = topWidth + (width - topWidth) * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(centerX - midWidth/2, midY);
+  ctx.lineTo(centerX + midWidth/2, midY);
+  ctx.stroke();
+  
+  // 3. 에너지 펄스 효과
+  if (isActive) {
+    const pulseIntensity = Math.sin(time / 300 + index) * 0.5 + 0.5;
+    ctx.strokeStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${pulseIntensity * glowIntensity * 0.8})`;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${pulseIntensity * 0.5})`;
+    ctx.shadowBlur = 8;
     
+    // 펄싱 테두리
+    ctx.beginPath();
+    ctx.moveTo(centerX - width/2, y + height);
+    ctx.lineTo(centerX - topWidth/2, y);
+    ctx.lineTo(centerX + topWidth/2, y);
+    ctx.lineTo(centerX + width/2, y + height);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.shadowBlur = 0; // 그림자 리셋
+  }
+  
+  // 4. 데이터 노드 (교차점에 작은 점들)
+  if (isActive) {
+    for (let vIndex = 1; vIndex <= 7; vIndex += 2) {
+      for (let hIndex = 1; hIndex <= 3; hIndex += 2) {
+        const vRatio = vIndex / 8;
+        const hRatio = hIndex / 4;
+        
+        const nodeX = centerX - (topWidth + (width - topWidth) * hRatio)/2 + vRatio * (topWidth + (width - topWidth) * hRatio);
+        const nodeY = y + hRatio * height;
+        
+        const nodeIntensity = Math.sin(time / 200 + vIndex + hIndex) * 0.3 + 0.7;
+        ctx.fillStyle = `rgba(${primaryColor[0]}, ${primaryColor[1]}, ${primaryColor[2]}, ${nodeIntensity * glowIntensity})`;
+        
+        ctx.beginPath();
+        ctx.arc(nodeX, nodeY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
 
   // 에너지 코어 및 아크 (제거됨)
@@ -386,14 +489,25 @@ function drawVictoryCrystal(ctx: CanvasRenderingContext2D, centerX: number, y: n
   }
 }
 
-// 파티클 시스템
+// 강화된 파티클 시스템
 function updateAndDrawParticles(ctx: CanvasRenderingContext2D, particles: Particle[], 
                                width: number, height: number, time: number) {
-  particles.forEach(particle => {
+  particles.forEach((particle, index) => {
     // 파티클 업데이트
     particle.x += particle.vx;
     particle.y += particle.vy;
     particle.life++;
+    
+    // 타워 중심 근처에서는 약간 끌려감
+    const centerX = width / 2;
+    const centerY = height - 30;
+    const distToCenter = Math.sqrt((particle.x - centerX) ** 2 + (particle.y - centerY) ** 2);
+    
+    if (distToCenter < 100) {
+      const pullStrength = (100 - distToCenter) / 100 * 0.02;
+      particle.vx += (centerX - particle.x) * pullStrength * 0.01;
+      particle.vy += (centerY - particle.y) * pullStrength * 0.01;
+    }
     
     // 경계 체크
     if (particle.x < 0 || particle.x > width || particle.y < 0 || particle.y > height || 
@@ -401,22 +515,104 @@ function updateAndDrawParticles(ctx: CanvasRenderingContext2D, particles: Partic
       Object.assign(particle, createParticle(width, height));
     }
     
-    // 파티클 그리기
+    // 고급 파티클 렌더링
     const lifeRatio = 1 - (particle.life / particle.maxLife);
-    ctx.fillStyle = `rgba(0, 255, 255, ${particle.alpha * lifeRatio})`;
+    const pulseSize = particle.size * (1 + Math.sin(time / 300 + index) * 0.3);
+    const alpha = particle.alpha * lifeRatio;
+    
+    // 글로우 효과
+    ctx.shadowColor = `rgba(0, 255, 255, ${alpha})`;
+    ctx.shadowBlur = 6;
+    
+    ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`;
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    ctx.arc(particle.x, particle.y, pulseSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 내부 하이라이트
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, pulseSize * 0.4, 0, Math.PI * 2);
     ctx.fill();
   });
+  
+  ctx.shadowBlur = 0; // 그림자 리셋
 }
 
 // 영화적 HUD (제거됨 - HTML UI로 대체)
 
+// 고급 배경 효과
+function drawEnhancedBackground(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+  // 1. 기본 그라디언트 배경
+  const bgGradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height)/2);
+  bgGradient.addColorStop(0, 'rgba(0, 10, 20, 0.8)');
+  bgGradient.addColorStop(0.5, 'rgba(0, 5, 15, 0.6)');
+  bgGradient.addColorStop(1, 'rgba(0, 0, 10, 0.4)');
+  
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+  
+  // 2. 움직이는 에너지 링
+  for (let i = 0; i < 3; i++) {
+    const ringRadius = 50 + i * 30 + Math.sin(time / 1000 + i) * 10;
+    const ringAlpha = (Math.sin(time / 800 + i * 2) * 0.3 + 0.4) * 0.3;
+    
+    ctx.strokeStyle = `rgba(0, 150, 255, ${ringAlpha})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(width/2, height/2, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// 타워 주변 에너지 오라
+function drawTowerAura(ctx: CanvasRenderingContext2D, centerX: number, height: number, progress: number, time: number) {
+  const auraIntensity = Math.sin(time / 500) * 0.3 + 0.7;
+  const auraRadius = 120 + progress * 50;
+  
+  // 외부 오라
+  const outerAura = ctx.createRadialGradient(centerX, height - 30, 0, centerX, height - 30, auraRadius);
+  outerAura.addColorStop(0, `rgba(0, 255, 255, ${auraIntensity * 0.2})`);
+  outerAura.addColorStop(0.7, `rgba(0, 150, 255, ${auraIntensity * 0.1})`);
+  outerAura.addColorStop(1, 'rgba(0, 100, 200, 0)');
+  
+  ctx.fillStyle = outerAura;
+  ctx.fillRect(0, 0, centerX * 2, height);
+  
+  // 내부 오라 (더 밝음)
+  const innerAura = ctx.createRadialGradient(centerX, height - 30, 0, centerX, height - 30, auraRadius * 0.6);
+  innerAura.addColorStop(0, `rgba(255, 255, 255, ${auraIntensity * 0.1})`);
+  innerAura.addColorStop(0.5, `rgba(0, 255, 255, ${auraIntensity * 0.15})`);
+  innerAura.addColorStop(1, 'rgba(0, 200, 255, 0)');
+  
+  ctx.fillStyle = innerAura;
+  ctx.fillRect(0, 0, centerX * 2, height);
+}
+
 // 홀로그램 노이즈 효과
 function drawHologramNoise(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
-  // 스캔라인
+  // 1. 스캔라인
   const scanY = (Math.sin(time / 3000) * 0.5 + 0.5) * height;
   ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
   ctx.fillRect(0, scanY - 1, width, 3);
+  
+  // 2. 랜덤 픽셀 노이즈
+  for (let i = 0; i < 20; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const intensity = Math.random() * 0.3;
+    
+    ctx.fillStyle = `rgba(0, 255, 255, ${intensity})`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+  
+  // 3. 글리치 효과
+  if (Math.random() < 0.02) {
+    const glitchY = Math.random() * height;
+    const glitchHeight = 5 + Math.random() * 10;
+    ctx.fillStyle = 'rgba(255, 0, 255, 0.1)';
+    ctx.fillRect(0, glitchY, width, glitchHeight);
+  }
 }
 

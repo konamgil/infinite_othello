@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { GameBoard, BoardState } from './GameBoard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { RotateCcw, Play, Pause, Home, ArrowLeft } from 'lucide-react';
+import { useTowerProgress } from '../../features/tower/hooks/useTowerProgress';
 
 interface GameControllerProps {
   title?: string;
@@ -98,6 +99,25 @@ function getValidMoves(board: number[][], player: 'black' | 'white'): Array<{ x:
 }
 
 /**
+ * Calculates the current score of the game.
+ * @param {number[][]} board - The current board state.
+ * @returns An object with black and white scores.
+ */
+function calculateScore(board: number[][]): { black: number; white: number } {
+  let black = 0;
+  let white = 0;
+  
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      if (board[y][x] === 1) black++;
+      else if (board[y][x] === -1) white++;
+    }
+  }
+  
+  return { black, white };
+}
+
+/**
  * Executes a move for a player, returning the new board state and a list of flipped discs.
  * @param {number[][]} board - The current board state.
  * @param {number} x - The x-coordinate of the move.
@@ -158,7 +178,14 @@ function makeMove(board: number[][], x: number, y: number, player: 'black' | 'wh
  * @param {GameControllerProps} props - The component props.
  * @returns {React.ReactElement} The rendered game screen.
  */
-export function GameController({ title = "게임", opponent = 'ai', difficulty = 'medium' }: GameControllerProps) {
+export function GameController({ title = "게임", opponent = 'ai', difficulty = 'medium', towerFloor }: GameControllerProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { clearFloor, failFloor } = useTowerProgress();
+  
+  // 타워 모드인지 확인
+  const isTowerMode = location.pathname.includes('/tower/') && towerFloor;
+  
   const [gameState, setGameState] = useState<BoardState>(() => createInitialBoard());
   const [gameStatus, setGameStatus] = useState<'playing' | 'paused' | 'finished'>('playing');
   const [moveHistory, setMoveHistory] = useState<Array<{ x: number; y: number; player: 'black' | 'white' }>>([]);
@@ -168,7 +195,38 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
   useEffect(() => {
     const validMoves = getValidMoves(gameState.board, gameState.currentPlayer);
     setGameState(prev => ({ ...prev, validMoves }));
-  }, [gameState.board, gameState.currentPlayer]);
+    
+    // 게임 종료 체크
+    if (validMoves.length === 0) {
+      const oppositePlayer = gameState.currentPlayer === 'black' ? 'white' : 'black';
+      const oppositeValidMoves = getValidMoves(gameState.board, oppositePlayer);
+      
+      if (oppositeValidMoves.length === 0) {
+        // 게임 종료
+        setGameStatus('finished');
+        
+        // 타워 모드에서 게임 종료 시 진행도 업데이트
+        if (isTowerMode && towerFloor) {
+          const score = calculateScore(gameState.board);
+          const isVictory = score.black > score.white; // 플레이어는 항상 흑돌
+          
+          setTimeout(() => {
+            if (isVictory) {
+              const result = clearFloor(towerFloor, true);
+              console.log('🏆 타워 층 클리어!', result);
+              // 승리 시 타워 메인으로 돌아가기
+              setTimeout(() => navigate('/tower'), 2000);
+            } else {
+              const result = failFloor(towerFloor);
+              console.log('💀 타워 도전 실패!', result);
+              // 패배 시 타워 메인으로 돌아가기
+              setTimeout(() => navigate('/tower'), 2000);
+            }
+          }, 1000);
+        }
+      }
+    }
+  }, [gameState.board, gameState.currentPlayer, isTowerMode, towerFloor, clearFloor, failFloor, navigate]);
 
   // 셀 클릭 핸들러
   const handleCellClick = (x: number, y: number) => {
@@ -216,8 +274,6 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
   };
 
   const score = getScore();
-
-  const navigate = useNavigate();
 
   return (
     <div className="h-full w-full overflow-hidden relative bg-black/90">
