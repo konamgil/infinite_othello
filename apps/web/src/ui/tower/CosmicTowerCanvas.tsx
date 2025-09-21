@@ -85,23 +85,7 @@ export function CosmicTowerCanvas({ currentFloor, maxFloor, className = '' }: Co
       ctx.fillRect(towerX - towerWidth / 2, 0, towerWidth, height);
       ctx.globalAlpha = 1.0;
 
-      // 4. Draw player progress ring
-      const progress = Math.min(currentFloor / maxFloor, 1);
-      const ringY = height - (progress * height * 0.8) - (height * 0.1);
-      const pulse = Math.sin(time / 400) * 0.5 + 0.5;
-
-      ctx.beginPath();
-      ctx.arc(towerX, ringY, 10, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(251, 191, 36, ${pulse * 0.8 + 0.2})`;
-      ctx.shadowColor = '#fbbf24';
-      ctx.shadowBlur = 20 * pulse;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.beginPath();
-      ctx.arc(towerX, ringY, 5, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
+      // 4. 플레이어 진행률 링 제거됨 (타워와 겹침 방지)
 
       animationFrameId = requestAnimationFrame(animate);
     };

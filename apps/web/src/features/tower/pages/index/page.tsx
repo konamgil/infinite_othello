@@ -8,37 +8,11 @@ import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, TrendingUp, Target, Star, Battery } from 'lucide-react';
 
-function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
-  if (floor >= 300) {
-    return ['마침내 정상에 도달했군요. 당신의 실력은 이제 전설이 되었습니다.'];
-  }
-
-  if (isEnergyFull) {
-    return [
-      '탑의 기운이 충만합니다. 이제 도전할 때입니다.',
-      '우주의 힘이 당신과 함께하고 있습니다.',
-      '완벽한 준비가 되었군요. 망설이지 마십시오.',
-    ];
-  }
-
-  if (floor % 50 === 0) {
-    return [
-      `${floor}층의 보스가 기다리고 있습니다.`,
-      '더 많은 기운을 모아 도전하십시오.',
-    ];
-  }
-
-  return [
-    '오델로의 탑에 온 것을 환영합니다.',
-    '탑의 기운을 모아 힘을 기르십시오.',
-    '전략과 인내가 승리의 열쇠입니다.',
-  ];
-}
 
 export default function TowerPage() {
   const navigate = useNavigate();
   const { player, updatePlayer } = useGameStore();
-  const currentFloor = 200; // 테스트용으로 50층 설정
+  const currentFloor =300; // player.towerProgress;
   // player.towerProgress
   const maxFloor = 300;
 
@@ -156,7 +130,6 @@ export default function TowerPage() {
     });
   };
 
-  const guardianMessages = getGuardianSpeech(currentFloor, isEnergyFull);
 
   // 상단 통계 데이터 구성
   const statsData: StatItem[] = [
@@ -203,8 +176,8 @@ export default function TowerPage() {
         <StatsDisplay stats={statsData} className="top-6 right-4" />
       </div>
 
-      {/* Main Content Area - 가디언 + 홀로그램 타워 */}
-      <div className="flex-1 flex flex-col items-center justify-between px-4 pt-4 pb-0 relative">
+      {/* Main Content Area - 홀로그램 타워 */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-8 pb-0 relative">
         
         {/* 영화적 홀로그램 타워 */}
         <div className="relative z-10">
@@ -228,37 +201,43 @@ export default function TowerPage() {
             <span className="text-xs text-yellow-400/80 font-display">예상 보상: +150 RP</span>
           </div>
 
-          {/* 메인 도전 버튼 */}
+          {/* 메인 도전 버튼 - 3D 컴팩트 */}
           <button
             id="challenge-start-btn"
             onClick={handleChallengeStart}
-            className="w-full py-3 px-6 rounded-2xl
-                     backdrop-blur-md
-                     border-2 border-cyan-400/60
-                     hover:border-cyan-400/80
-                     active:scale-95 transition-all duration-300
-                     group"
+            className="relative w-full py-2.5 px-4 rounded-xl
+                     bg-gradient-to-b from-cyan-500/20 to-blue-600/20
+                     border border-cyan-400/50
+                     shadow-[0_4px_12px_rgba(6,182,212,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]
+                     active:shadow-[0_2px_6px_rgba(6,182,212,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]
+                     active:translate-y-0.5 transition-all duration-150
+                     group overflow-hidden"
           >
-              <div className="flex items-center justify-center gap-3">
-                {/* 아이콘 */}
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg group-active:scale-90 transition-transform">
-                  <Zap size={20} className="text-white" />
+              {/* 3D 상단 하이라이트 */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              
+              <div className="flex items-center justify-center gap-2.5">
+                {/* 컴팩트 아이콘 */}
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 
+                              flex items-center justify-center shadow-md
+                              group-active:scale-95 transition-transform duration-150">
+                  <Zap size={16} className="text-white" />
                 </div>
                 
-                {/* 텍스트 */}
+                {/* 컴팩트 텍스트 */}
                 <div className="text-center">
-                  <div className="font-display text-cyan-400 font-bold text-lg tracking-wide group-active:scale-95 transition-transform">
+                  <div className="font-display text-cyan-300 font-bold text-base tracking-wide 
+                                group-active:scale-98 transition-transform duration-150">
                     {currentFloor <= maxFloor ? `${currentFloor}층 도전하기` : '탑 정복 완료!'}
                   </div>
                 </div>
               </div>
 
-              {/* 에너지 파티클 */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-                <div className="absolute top-2 right-4 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping delay-100" />
-                <div className="absolute bottom-3 left-6 w-1 h-1 bg-blue-400 rounded-full animate-ping delay-500" />
-                <div className="absolute top-4 left-1/4 w-1 h-1 bg-white rounded-full animate-ping delay-1000" />
-                <div className="absolute bottom-2 right-1/3 w-0.5 h-0.5 bg-cyan-300 rounded-full animate-ping delay-700" />
+              {/* 미니 파티클 */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                <div className="absolute top-1 right-3 w-1 h-1 bg-cyan-400 rounded-full animate-ping delay-200" />
+                <div className="absolute bottom-1 left-4 w-0.5 h-0.5 bg-blue-400 rounded-full animate-ping delay-600" />
+                <div className="absolute top-2 left-1/3 w-0.5 h-0.5 bg-white rounded-full animate-ping delay-800" />
               </div>
 
           </button>

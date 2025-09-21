@@ -39,10 +39,6 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
       const centerX = width / 2;
       const progress = Math.min(currentFloor / maxFloor, 1);
 
-      // 1. 배경 에너지 필드
-    //   drawEnergyField(ctx, width, height, time);
-
-      // 2. 홀로그램 UI 프레임 (제거됨)
 
       // 3. 메인 타워 (3D 원근감)
       drawCinematicTower(ctx, centerX, height, progress, time);
@@ -50,7 +46,6 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
       // 4. 파티클 시스템
       updateAndDrawParticles(ctx, particles, width, height, time);
 
-      // 5. HUD 정보 (제거됨 - HTML로 대체)
 
       // 6. 홀로그램 노이즈 효과
       drawHologramNoise(ctx, width, height, time);
@@ -133,13 +128,12 @@ function drawEnergyField(ctx: CanvasRenderingContext2D, width: number, height: n
 
 // 영화적 3D 석탑
 function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, height: number, progress: number, time: number) {
-  const towerBottom = height - 50;
+  const towerBottom = height - 30;
   const towerTop = 5;
   const towerHeight = towerBottom - towerTop;
   const sections = 10; // 10개 섹션 (간격 넓히기)
 
-  // 타워 베이스 플랫폼 (미래적)
-  drawTowerBase(ctx, centerX, towerBottom + 12, time);
+  // 타워 베이스 플랫폼 제거됨
 
   for (let i = 0; i < sections; i++) {
     const sectionProgress = (i + 1) / sections;
@@ -152,13 +146,22 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
     const sectionY = towerBottom - (i / sections) * towerHeight;
     const perspectiveScale = 1 - (i / sections) * 0.25; // 위로 갈수록 작아짐 (더 완만하게)
     const baseWidth = 140 * perspectiveScale; // 기본 폭 더 증가
-    const sectionHeight = (isBoss ? 35 : isSpecial ? 28 : 22) * perspectiveScale; // 높이 더 증가
+    const sectionHeight = 25 * perspectiveScale; // 모든 층 동일한 높이
 
     // 색상 시스템
     let primaryColor, secondaryColor, glowIntensity;
+    const isFinalFloor = i === sections - 1; // 마지막 섹션 (300층)
     
     if (isActive) {
-      if (isBoss) {
+      if (isFinalFloor) {
+        primaryColor = [255, 215, 0]; // 황금빛 (300층)
+        secondaryColor = [255, 235, 100];
+        glowIntensity = 1.2;
+        
+        // 최종 층 특별 펄스
+        const pulse = Math.sin(time / 200) * 0.5 + 0.7;
+        glowIntensity *= pulse;
+      } else if (isBoss) {
         primaryColor = [255, 100, 100]; // 빨간색 (보스)
         secondaryColor = [255, 150, 150];
         glowIntensity = 0.9;
@@ -180,9 +183,15 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
         glowIntensity = 0.5;
       }
     } else {
-      primaryColor = [60, 80, 120]; // 어두운 파란색 (비활성)
-      secondaryColor = [80, 100, 140];
-      glowIntensity = 0.2;
+      if (isFinalFloor) {
+        primaryColor = [120, 100, 40]; // 어두운 황금 (비활성 300층)
+        secondaryColor = [140, 120, 60];
+        glowIntensity = 0.3;
+      } else {
+        primaryColor = [60, 80, 120]; // 어두운 파란색 (비활성)
+        secondaryColor = [80, 100, 140];
+        glowIntensity = 0.2;
+      }
     }
 
     // 3D 섹션 그리기
@@ -202,7 +211,7 @@ function drawCinematicTower(ctx: CanvasRenderingContext2D, centerX: number, heig
 
   // 정상 크리스탈 (완료 시)
   if (progress >= 1) {
-    drawVictoryCrystal(ctx, centerX, towerTop - 30, time);
+    drawVictoryCrystal(ctx, centerX, towerTop + 5, time);
   }
 }
 
@@ -273,45 +282,6 @@ function drawTowerSection(ctx: CanvasRenderingContext2D, centerX: number, y: num
   // 에너지 코어 및 아크 (제거됨)
 }
 
-// 타워 베이스 플랫폼
-function drawTowerBase(ctx: CanvasRenderingContext2D, centerX: number, y: number, time: number) {
-  const baseWidth = 150;
-  const baseHeight = 18;
-  const skew = 15;
-  
-  // 메인 플랫폼
-  const gradient = ctx.createLinearGradient(centerX - baseWidth/2, y, centerX + baseWidth/2, y);
-  gradient.addColorStop(0, 'rgba(0, 255, 255, 0.3)');
-  gradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.7)');
-  gradient.addColorStop(1, 'rgba(0, 255, 255, 0.3)');
-  
-  ctx.fillStyle = gradient;
-  ctx.fillRect(centerX - baseWidth/2, y, baseWidth, baseHeight);
-
-  // 3D 측면
-  ctx.fillStyle = 'rgba(0, 200, 255, 0.5)';
-  ctx.beginPath();
-  ctx.moveTo(centerX + baseWidth/2, y);
-  ctx.lineTo(centerX + baseWidth/2 + skew, y - skew);
-  ctx.lineTo(centerX + baseWidth/2 + skew, y + baseHeight - skew);
-  ctx.lineTo(centerX + baseWidth/2, y + baseHeight);
-  ctx.closePath();
-  ctx.fill();
-
-  // 에너지 코어들
-  for (let i = 0; i < 5; i++) {
-    const coreX = centerX - baseWidth/2 + 20 + i * 20;
-    const corePulse = Math.sin(time / 400 + i) * 0.5 + 0.5;
-    
-    ctx.fillStyle = `rgba(255, 255, 255, ${corePulse * 0.8})`;
-    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(coreX, y + baseHeight/2, 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-}
 
 // 데이터 링크 (층간 연결)
 function drawDataLink(ctx: CanvasRenderingContext2D, centerX: number, startY: number, endY: number, 
@@ -356,26 +326,32 @@ function drawFloorLabel(ctx: CanvasRenderingContext2D, x: number, y: number, flo
 
 // 승리 크리스탈
 function drawVictoryCrystal(ctx: CanvasRenderingContext2D, centerX: number, y: number, time: number) {
-  const pulse = Math.sin(time / 400) * 0.5 + 0.5;
-  const crystalSize = 20 + pulse * 5;
+  const pulse = Math.sin(time / 500) * 0.4 + 0.6;
+  const crystalSize = 16 + pulse * 4; // 크기 키움
   
-  // 크리스탈 코어
+  // 크리스탈 코어 (더 밝고 선명하게)
   ctx.fillStyle = `rgba(255, 215, 0, ${0.8 + pulse * 0.2})`;
   ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
-  ctx.shadowBlur = 25;
+  ctx.shadowBlur = 20; // 그림자 강화
   ctx.beginPath();
   ctx.arc(centerX, y, crystalSize/2, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // 승리 광선들
+  // 내부 하이라이트
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + pulse * 0.2})`;
+  ctx.beginPath();
+  ctx.arc(centerX - 2, y - 2, crystalSize/4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 승리 광선들 (더 눈에 띄게)
   for (let i = 0; i < 8; i++) {
-    const angle = (i * Math.PI * 2 / 8) + time / 1000;
-    const beamLength = 30 + Math.sin(time / 600 + i) * 10;
+    const angle = (i * Math.PI * 2 / 8) + time / 1200;
+    const beamLength = 25 + Math.sin(time / 700 + i) * 8;
     const beamX = centerX + Math.cos(angle) * beamLength;
     const beamY = y + Math.sin(angle) * beamLength;
     
-    ctx.strokeStyle = `rgba(255, 215, 0, ${Math.sin(time / 400 + i) * 0.4 + 0.3})`;
+    ctx.strokeStyle = `rgba(255, 215, 0, ${Math.sin(time / 500 + i) * 0.4 + 0.4})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(centerX, y);
