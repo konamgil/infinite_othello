@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameReplay } from '../../types/replay';
+import { GameReplay } from '../../../types/replay';
 import { useReplayStore } from '../../store/replayStore';
 import {
   Trophy,

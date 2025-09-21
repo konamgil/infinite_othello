@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { BattleStarCanvas } from '../../../ui/battle/BattleStarCanvas';
+import { BattleStarCanvas } from '../components/BattleStarCanvas';
 import { useGameStore } from '../../../store/gameStore';
 import { StatsDisplay, type StatItem } from '../../../ui/stats';
 import { Star, Crown } from 'lucide-react';

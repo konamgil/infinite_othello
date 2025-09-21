@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameMove } from '../../types/replay';
+import { GameMove } from '../../../types/replay';
 import {
   Circle,
   Target,

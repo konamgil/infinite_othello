@@ -7,6 +7,7 @@ interface GameControllerProps {
   title?: string;
   opponent?: 'ai' | 'human' | 'stella';
   difficulty?: 'easy' | 'medium' | 'hard' | 'nightmare';
+  towerFloor?: number;
 }
 
 /**

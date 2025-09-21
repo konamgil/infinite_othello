@@ -1,8 +1,8 @@
 import React, { Suspense, useEffect, useMemo } from 'react';
 import { Outlet, useLocation, useMatches, useNavigation } from 'react-router-dom';
 
-import { AppShell } from '../../ui/common/AppShell';
-import { BottomNav } from '../../ui/bottom-nav/BottomNav';
+import { AppShell } from '../../ui/layout/AppShell';
+import { BottomNav } from '../../ui/navigation/BottomNav';
 import type { RouteHandle, RouteMeta, RootRouteMeta } from './meta';
 import { rootNavItems } from './rootRoutes';
 

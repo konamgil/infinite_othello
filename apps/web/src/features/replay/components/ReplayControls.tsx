@@ -22,7 +22,7 @@ import {
   FastForward,
   Rewind
 } from 'lucide-react';
-import { ReplayPlayerControls, GameMove } from '../../types/replay';
+import { ReplayPlayerControls, GameMove } from '../../../types/replay';
 
 /**
  * @interface ReplayControlsProps

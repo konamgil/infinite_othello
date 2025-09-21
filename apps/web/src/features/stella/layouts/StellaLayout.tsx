@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { StellaCanvas } from '../../../ui/stella/StellaCanvas';
+import { StellaCanvas } from '../components/StellaCanvas';
 import { useGameStore } from '../../../store/gameStore';
 import { DAILY_MISSIONS } from '../constants';
 import { StatsDisplay, type StatItem } from '../../../ui/stats';

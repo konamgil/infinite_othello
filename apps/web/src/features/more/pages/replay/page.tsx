@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ReplayStarCanvas } from '../../../../ui/replay/ReplayStarCanvas';
-import { ReplayViewer } from '../../../../ui/replay/ReplayViewer';
+import { ReplayStarCanvas } from '../../../replay/components/ReplayStarCanvas';
+import { ReplayViewer } from '../../../replay/components/ReplayViewer';
 import { useReplayStore } from '../../../../store/replayStore';
 import type { ReplaySortOptions } from '../../../../types/replay';
 import { GameReplay } from '../../../../types/replay';
-import { ReplayFilters } from '../../../../ui/replay/ReplayFilters';
+import { ReplayFilters } from '../../../replay/components/ReplayFilters';
 import {
   Clock,
   Search,

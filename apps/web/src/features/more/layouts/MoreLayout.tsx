@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { MoreStarCanvas } from '../../../ui/more/MoreStarCanvas';
+import { MoreStarCanvas } from '../components/MoreStarCanvas';
 
 type MoreLayoutProps = {
   children: ReactNode;

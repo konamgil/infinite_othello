@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { GameReplay } from '../../types/replay';
+import { GameReplay } from '../../../types/replay';
 import {
   Download, FileText, Image, Video, Share2, Copy, Check,
   Loader2, X, Settings, Eye, Camera, Film, Database

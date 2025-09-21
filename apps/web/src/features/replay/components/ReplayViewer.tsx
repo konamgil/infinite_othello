@@ -1,7 +1,7 @@
 // components/ReplayViewer.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { GameReplay, GameMove as ReplayGameMove } from '../../types/replay';
-import { OthelloEngine } from '../../utils/othelloEngine';
+import { GameReplay, GameMove as ReplayGameMove } from '../../../types/replay';
+import { OthelloEngine } from '../../../utils/othelloEngine';
 import { MobileAnalysisPanel } from './MobileAnalysisPanel';
 import { FloatingMinimap } from './FloatingMinimap';
 import {

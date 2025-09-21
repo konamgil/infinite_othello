@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreStarCanvas } from '../../../../ui/more/MoreStarCanvas';
+import { MoreStarCanvas } from '../../components/MoreStarCanvas';
 import { useGameStore } from '../../../../store/gameStore';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock, Star, Crown, Zap } from 'lucide-react';

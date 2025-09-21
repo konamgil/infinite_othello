@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { GameReplay, GameMove as ReplayGameMove } from '../../types/replay';
-import { OthelloEngine } from '../../utils/othelloEngine';
-import { useReplaySounds } from '../../hooks/useReplaySounds';
-import { analyzeMoveQuality, generateEvaluationGraph } from '../../utils/moveAnalysis';
+import { GameReplay, GameMove as ReplayGameMove } from '../../../types/replay';
+import { OthelloEngine } from '../../../utils/othelloEngine';
+import { useReplaySounds } from '../../../hooks/useReplaySounds';
+import { analyzeMoveQuality, generateEvaluationGraph } from '../../../utils/moveAnalysis';
 import { ReplayControls } from './ReplayControls';
 import { ReplayEvaluationGraph } from './ReplayEvaluationGraph';
 import { ReplayMoveAnnotation } from './ReplayMoveAnnotation';

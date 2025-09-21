@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StellaLayout } from '../../layouts/StellaLayout';
 import { STELLA_WISDOMS, DAILY_MISSIONS, STRATEGY_LESSONS, PRACTICE_SCENARIOS } from '../../constants';
-import { TypewriterText } from '../../../../ui/stella/TypewriterText';
+import { TypewriterText } from '../../components/TypewriterText';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { Target, Brain, RotateCcw, ChevronRight, Sparkles, Calendar, CheckCircle, BookOpen, Swords, Star, Zap } from 'lucide-react';
 

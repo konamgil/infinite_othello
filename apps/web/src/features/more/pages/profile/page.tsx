@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
-import { ProfileStarCanvas } from '../../../../ui/profile/ProfileStarCanvas';
+import { ProfileStarCanvas } from '../../components/ProfileStarCanvas';
 import { ArrowLeft, Trophy, Star } from 'lucide-react';
 
 /**

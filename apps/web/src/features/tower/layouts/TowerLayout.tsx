@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { CosmicTowerCanvas } from '../../../ui/tower/CosmicTowerCanvas';
+import { CosmicTowerCanvas } from '../components/CosmicTowerCanvas';
 
 type TowerLayoutProps = {
   children: ReactNode;

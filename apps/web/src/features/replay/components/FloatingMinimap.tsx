@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GameMove } from '../../types/replay';
-import { OthelloEngine } from '../../utils/othelloEngine';
+import { GameMove } from '../../../types/replay';
+import { OthelloEngine } from '../../../utils/othelloEngine';
 import { 
   Move, 
   GripVertical, 

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { CosmicTowerCanvas } from '../../../../ui/tower/CosmicTowerCanvas';
-import { CinematicHologramTower } from '../../../../ui/tower/CinematicHologramTower';
-import { TowerStatsCard } from '../../../../ui/tower/TowerStatsCard';
+import { CosmicTowerCanvas } from '../../../tower/components/CosmicTowerCanvas';
+import { CinematicHologramTower } from '../../../tower/components/CinematicHologramTower';
+import { TowerStatsCard } from '../../../tower/components/TowerStatsCard';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, TrendingUp, Target, Star, Battery } from 'lucide-react';
 
@@ -69,6 +69,13 @@ export default function TowerPage() {
   const [animatingRp, setAnimatingRp] = useState(player.rp);
   const [previousRp, setPreviousRp] = useState(player.rp);
   const [showFlyingRp, setShowFlyingRp] = useState(false);
+
+  // 타워 에너지 시스템 상태
+  const [energyProgress, setEnergyProgress] = useState(0);
+  const [isEnergyFull, setIsEnergyFull] = useState(false);
+  const [lastEnergyTime, setLastEnergyTime] = useState(Date.now());
+  const [isCollecting, setIsCollecting] = useState(false);
+  const energyBonus = 150;
 
 
   // --- State and Effects ---

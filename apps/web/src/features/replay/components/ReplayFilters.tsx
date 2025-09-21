@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   ReplayFilters as IReplayFilters,
   ReplaySortOptions
-} from '../../types/replay';
+} from '../../../types/replay';
 import {
   Filter, X, Calendar, Trophy, Brain, Users, Castle, Swords, Clock,
   SortAsc, SortDesc, Target, Timer, Search, Star, Zap, TrendingUp,
