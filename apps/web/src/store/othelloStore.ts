@@ -1,28 +1,43 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import {
+  createInitialBoard,
+  getValidMoves,
+  makeMove as makeOthelloMove,
+  calculateScore as calcScore,
+  isGameFinished as checkGameFinished,
+  getWinner as determineWinner,
+  shouldPass,
+  type ValidMove,
+  type Board,
+  type Player
+} from '../utils/othelloLogic';
 
 /**
  * @interface OthelloState
  * 핵심 오델로 게임 상태의 형태를 정의합니다.
  */
 export interface OthelloState {
-  /** @property {Array<Array<'black' | 'white' | null>>} board - 게임 보드를 나타내는 2차원 배열. */
-  board: Array<Array<'black' | 'white' | null>>;
+  /** @property {Board} board - 게임 보드를 나타내는 2차원 배열. */
+  board: Board;
   /** @property {number} boardSize - 보드의 크기 (예: 표준 8x8 보드의 경우 8). */
   boardSize: number;
 
   /** @property {'waiting' | 'playing' | 'paused' | 'finished'} gameStatus - 현재 게임의 상태. */
   gameStatus: 'waiting' | 'playing' | 'paused' | 'finished';
-  /** @property {'black' | 'white'} currentPlayer - 현재 턴인 플레이어. */
-  currentPlayer: 'black' | 'white';
-  /** @property {Array<{ row: number; col: number }>} validMoves - 현재 플레이어가 둘 수 있는 유효한 수의 좌표 배열. */
-  validMoves: Array<{ row: number; col: number }>;
+  /** @property {Player} currentPlayer - 현재 턴인 플레이어. */
+  currentPlayer: Player;
+  /** @property {ValidMove[]} validMoves - 현재 플레이어가 둘 수 있는 유효한 수의 배열. */
+  validMoves: ValidMove[];
+  /** @property {boolean} mustPass - 현재 플레이어가 패스해야 하는지 여부. */
+  mustPass: boolean;
 
   /** @property {Array} history - 현재 게임에서 이루어진 모든 수의 기록. */
   history: Array<{
-    board: Array<Array<'black' | 'white' | null>>;
-    player: 'black' | 'white';
+    board: Board;
+    player: Player;
     move: { row: number; col: number };
+    flippedCount: number;
     timestamp: number;
   }>;
 
@@ -79,7 +94,9 @@ export interface OthelloActions {
   finishGame: () => void;
 
   /** 주어진 플레이어에 대한 유효한 수의 목록을 계산하고 업데이트합니다. */
-  calculateValidMoves: (player: 'black' | 'white') => Array<{ row: number; col: number }>;
+  calculateValidMoves: (player: Player) => ValidMove[];
+  /** 현재 플레이어가 패스합니다. */
+  passMove: () => void;
 
   /** AI의 생각 중 상태를 설정합니다. */
   setAIThinking: (thinking: boolean) => void;
@@ -104,26 +121,16 @@ export type OthelloStore = OthelloState & OthelloActions;
  * @param {number} [size=8] - 보드의 크기 (예: 8x8 보드의 경우 8).
  * @returns {Array<Array<'black' | 'white' | null>>} 새 보드를 나타내는 2차원 배열.
  */
-const createEmptyBoard = (size: number = 8): Array<Array<'black' | 'white' | null>> => {
-  const board = Array(size).fill(null).map(() => Array(size).fill(null));
-
-  // 초기 돌 배치 (가운데 4개)
-  const center = Math.floor(size / 2);
-  board[center - 1][center - 1] = 'white';
-  board[center - 1][center] = 'black';
-  board[center][center - 1] = 'black';
-  board[center][center] = 'white';
-
-  return board;
-};
+// createEmptyBoard 함수는 이제 othelloLogic.ts의 createInitialBoard를 사용
 
 // 초기 상태
 const initialState: OthelloState = {
-  board: createEmptyBoard(8),
+  board: createInitialBoard(),
   boardSize: 8,
   gameStatus: 'waiting',
   currentPlayer: 'black',
   validMoves: [],
+  mustPass: false,
   history: [],
   score: { black: 2, white: 2 },
   gameMode: 'single',
@@ -152,14 +159,17 @@ export const useOthelloStore = create<OthelloStore>()(
 
       // 게임 초기화
       initializeGame: (size = 8) => {
-        const board = createEmptyBoard(size);
+        const board = createInitialBoard();
+        const validMoves = getValidMoves(board, 'black');
+
         set(
           {
             board,
             boardSize: size,
             gameStatus: 'playing',
             currentPlayer: 'black',
-            validMoves: [],
+            validMoves,
+            mustPass: validMoves.length === 0,
             history: [],
             score: { black: 2, white: 2 },
             aiThinking: false,
@@ -173,9 +183,6 @@ export const useOthelloStore = create<OthelloStore>()(
           false,
           'initializeGame'
         );
-
-        // 초기 유효 이동 계산
-        get().calculateValidMoves('black');
       },
 
       resetGame: () => {
@@ -187,53 +194,74 @@ export const useOthelloStore = create<OthelloStore>()(
         const state = get();
 
         if (state.gameStatus !== 'playing') return false;
-        if (state.board[row][col] !== null) return false;
+        if (state.aiThinking) return false;
 
         // 유효한 이동인지 확인
-        const isValidMove = state.validMoves.some(move => move.row === row && move.col === col);
-        if (!isValidMove) return false;
+        const validMove = state.validMoves.find(move => move.row === row && move.col === col);
+        if (!validMove) return false;
 
-        // 이동 실행 로직 (실제 오셀로 규칙 구현 필요)
-        const newBoard = state.board.map(row => [...row]);
-        newBoard[row][col] = state.currentPlayer;
+        // 실제 오델로 로직으로 돌 놓기
+        const newBoard = makeOthelloMove(state.board, row, col, state.currentPlayer);
+        if (!newBoard) return false;
 
         // 히스토리 추가
         const newHistory = [
           ...state.history,
           {
-            board: state.board.map(row => [...row]),
+            board: state.board,
             player: state.currentPlayer,
             move: { row, col },
+            flippedCount: validMove.flipsCount,
             timestamp: Date.now(),
           }
         ];
 
+        // 점수 계산
+        const newScore = calcScore(newBoard);
+
         // 다음 플레이어로 전환
         const nextPlayer = state.currentPlayer === 'black' ? 'white' : 'black';
+        const nextValidMoves = getValidMoves(newBoard, nextPlayer);
+        const nextMustPass = nextValidMoves.length === 0;
 
         set(
           {
             board: newBoard,
             currentPlayer: nextPlayer,
+            validMoves: nextValidMoves,
+            mustPass: nextMustPass,
             history: newHistory,
+            score: newScore,
             stats: {
               ...state.stats,
               totalMoves: state.stats.totalMoves + 1,
+              captures: {
+                black: newScore.black - 2, // 초기 2개 제외
+                white: newScore.white - 2,
+              },
             },
           },
           false,
           'makeMove'
         );
 
-        // 점수 계산
-        get().calculateScore();
-
-        // 다음 플레이어의 유효 이동 계산
-        get().calculateValidMoves(nextPlayer);
-
         // 게임 종료 체크
-        if (get().isGameFinished()) {
+        if (checkGameFinished(newBoard)) {
           get().finishGame();
+        } else if (nextMustPass) {
+          // 상대가 패스해야 하는 경우, 다시 현재 플레이어 턴
+          const currentPlayerMoves = getValidMoves(newBoard, state.currentPlayer);
+          if (currentPlayerMoves.length === 0) {
+            // 양쪽 모두 패스 -> 게임 종료
+            get().finishGame();
+          } else {
+            // 상대 패스, 현재 플레이어 다시 턴
+            set({
+              currentPlayer: state.currentPlayer,
+              validMoves: currentPlayerMoves,
+              mustPass: false,
+            });
+          }
         }
 
         return true;
@@ -282,23 +310,35 @@ export const useOthelloStore = create<OthelloStore>()(
         'finishGame'
       ),
 
-      // 유효한 이동 계산 (간단한 구현, 실제로는 더 복잡한 로직 필요)
+      // 유효한 이동 계산
       calculateValidMoves: (player) => {
         const state = get();
-        const validMoves: Array<{ row: number; col: number }> = [];
+        const validMoves = getValidMoves(state.board, player);
+        const mustPass = validMoves.length === 0;
 
-        // TODO: 실제 오셀로 규칙에 따른 유효 이동 계산 로직 구현
-        for (let row = 0; row < state.boardSize; row++) {
-          for (let col = 0; col < state.boardSize; col++) {
-            if (state.board[row][col] === null) {
-              // 임시로 모든 빈 칸을 유효한 이동으로 처리
-              validMoves.push({ row, col });
-            }
-          }
-        }
-
-        set({ validMoves }, false, 'calculateValidMoves');
+        set({ validMoves, mustPass }, false, 'calculateValidMoves');
         return validMoves;
+      },
+
+      // 패스 처리
+      passMove: () => {
+        const state = get();
+        if (!state.mustPass) return;
+
+        const nextPlayer = state.currentPlayer === 'black' ? 'white' : 'black';
+        const nextValidMoves = getValidMoves(state.board, nextPlayer);
+
+        if (nextValidMoves.length === 0) {
+          // 양쪽 모두 패스 -> 게임 종료
+          get().finishGame();
+        } else {
+          // 상대방 턴
+          set({
+            currentPlayer: nextPlayer,
+            validMoves: nextValidMoves,
+            mustPass: false,
+          });
+        }
       },
 
       // AI 관련
@@ -313,14 +353,53 @@ export const useOthelloStore = create<OthelloStore>()(
         // AI 이동 지연 시뮬레이션
         await new Promise(resolve => setTimeout(resolve, state.aiMoveDelay));
 
-        // 간단한 AI 로직 (랜덤 이동)
-        const validMoves = state.validMoves;
-        if (validMoves.length > 0) {
-          const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
-          get().makeMove(randomMove.row, randomMove.col);
-        }
+        try {
+          // 패스해야 하는 경우
+          if (state.mustPass) {
+            get().passMove();
+            return;
+          }
 
-        set({ aiThinking: false }, false, 'makeAIMove');
+          // 간단한 AI 로직 (가장 많이 뒤집는 수 선택)
+          const validMoves = state.validMoves;
+          if (validMoves.length > 0) {
+            // 난이도에 따른 AI 전략
+            let selectedMove: ValidMove;
+
+            switch (state.difficulty) {
+              case 'easy':
+                // 랜덤 이동
+                selectedMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                break;
+              case 'medium':
+                // 가장 많이 뒤집는 수
+                selectedMove = validMoves.reduce((best, current) =>
+                  current.flipsCount > best.flipsCount ? current : best
+                );
+                break;
+              case 'hard':
+              case 'expert':
+                // 모서리 우선, 그 다음 많이 뒤집는 수
+                const cornerMoves = validMoves.filter(move =>
+                  (move.row === 0 || move.row === 7) && (move.col === 0 || move.col === 7)
+                );
+                if (cornerMoves.length > 0) {
+                  selectedMove = cornerMoves[0];
+                } else {
+                  selectedMove = validMoves.reduce((best, current) =>
+                    current.flipsCount > best.flipsCount ? current : best
+                  );
+                }
+                break;
+              default:
+                selectedMove = validMoves[0];
+            }
+
+            get().makeMove(selectedMove.row, selectedMove.col);
+          }
+        } finally {
+          set({ aiThinking: false }, false, 'makeAIMove');
+        }
       },
 
       // 설정 업데이트
@@ -334,42 +413,20 @@ export const useOthelloStore = create<OthelloStore>()(
       // 보드 상태 계산
       calculateScore: () => {
         const state = get();
-        let black = 0;
-        let white = 0;
-
-        for (let row = 0; row < state.boardSize; row++) {
-          for (let col = 0; col < state.boardSize; col++) {
-            if (state.board[row][col] === 'black') black++;
-            else if (state.board[row][col] === 'white') white++;
-          }
-        }
-
-        const score = { black, white };
+        const score = calcScore(state.board);
         set({ score }, false, 'calculateScore');
         return score;
       },
 
       isGameFinished: () => {
         const state = get();
-
-        // 보드가 꽉 찬 경우
-        const isBoardFull = state.board.every(row =>
-          row.every(cell => cell !== null)
-        );
-
-        // 양쪽 플레이어 모두 이동할 수 없는 경우 (간단한 체크)
-        const hasValidMoves = state.validMoves.length > 0;
-
-        return isBoardFull || !hasValidMoves;
+        return checkGameFinished(state.board);
       },
 
       getWinner: () => {
         const state = get();
-        const score = state.score;
-
-        if (score.black > score.white) return 'black';
-        if (score.white > score.black) return 'white';
-        return 'tie';
+        if (!checkGameFinished(state.board)) return null;
+        return determineWinner(state.board);
       },
     }),
     {
@@ -395,6 +452,7 @@ export const useOthelloActions = () => useOthelloStore((state) => ({
   initializeGame: state.initializeGame,
   resetGame: state.resetGame,
   makeMove: state.makeMove,
+  passMove: state.passMove,
   undoMove: state.undoMove,
   pauseGame: state.pauseGame,
   resumeGame: state.resumeGame,
@@ -407,3 +465,11 @@ export const useOthelloActions = () => useOthelloStore((state) => ({
   isGameFinished: state.isGameFinished,
   getWinner: state.getWinner,
 }));
+
+// 추가 편의 훅들
+export const useMustPass = () => useOthelloStore((state) => state.mustPass);
+export const useLastMove = () => useOthelloStore((state) =>
+  state.history.length > 0 ? state.history[state.history.length - 1] : null
+);
+export const useCanUndo = () => useOthelloStore((state) => state.history.length > 0);
+export const useAIThinking = () => useOthelloStore((state) => state.aiThinking);

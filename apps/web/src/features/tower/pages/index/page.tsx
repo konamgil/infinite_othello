@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../../../../store/gameStore';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
-import { CosmicTowerCanvas } from '../../../tower/components/CosmicTowerCanvas';
-import { CinematicHologramTower } from '../../../tower/components/CinematicHologramTower';
+import { CosmicTowerCanvas } from '../../components/CosmicTowerCanvas';
+import { CinematicHologramTower } from '../../components/CinematicHologramTower';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, Target, Star } from 'lucide-react';
 import { useAnimatedCounter } from '../../../../hooks/useAnimatedCounter';
 import { useTowerEnergy } from '../../../../hooks/useTowerEnergy';
-import { EnergyBar } from '../../../tower/components/EnergyBar';
+import { EnergyBar } from '../../components/EnergyBar';
+// import { TowerDebugPanel } from '../../../../components/debug/TowerDebugPanel';
 
 /**
  * Generates a set of speech lines for the Tower Guardian based on the player's progress.
