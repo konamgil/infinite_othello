@@ -7,6 +7,7 @@ dist/
 *.log
 *.tmp
 .env*
+package-lock.json
 
 # Vite
 
