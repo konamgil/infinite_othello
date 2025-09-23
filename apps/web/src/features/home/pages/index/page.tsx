@@ -141,7 +141,7 @@ export default function HomePage() {
   return (
     <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
         {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
-        <div className="relative min-h-80 overflow-hidden">
+        <div className="relative min-h-96 overflow-hidden">
           {/* 별빛 오델로 캔버스 - 상단/좌우 붙임 + 자연스러운 경계 */}
           <div className="absolute top-0 left-0 right-0 overflow-hidden">
             <div className="relative w-full flex justify-center">

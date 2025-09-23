@@ -472,3 +472,28 @@
   }
 }
 
+/* PWA 관련 스타일 */
+@media (display-mode: standalone) {
+  /* PWA로 설치된 경우의 스타일 */
+  body {
+    /* PWA 모드에서 추가적인 스타일링 */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* 주소창 완전히 숨기기 */
+  html, body {
+    height: 100vh;
+    height: 100dvh; /* 동적 뷰포트 높이 사용 */
+    overflow: hidden;
+  }
+  
+  /* PWA 모드에서 전체 화면 활용 */
+  #root {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+

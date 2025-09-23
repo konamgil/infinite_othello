@@ -5,13 +5,13 @@ import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { PreparationPhase } from './steps/PreparationPhase';
 import { OpponentRevealPhase } from './steps/OpponentRevealPhase';
 import { CountdownPhase } from './steps/CountdownPhase';
-import { TransitionPhase } from './steps/TransitionPhase';
+// import { TransitionPhase } from './steps/TransitionPhase'; // 나중에 사용 예정
 
 // 훅과 유틸리티들 (곧 구현 예정)
 import { useChallengeFlow } from '../../hooks/useChallengeFlow';
 import { getOpponentData } from './data/aiOpponents';
 
-type ChallengePhase = 'preparation' | 'opponent' | 'countdown' | 'transition' | 'complete';
+type ChallengePhase = 'preparation' | 'opponent' | 'countdown' | 'complete';
 
 interface TowerChallengeIntroProps {
   /** 도전할 층 번호 */
@@ -48,7 +48,7 @@ export function TowerChallengeIntro({
     preparation: 5000,  // 3초 → 5초 (충분한 몰입 시간)
     opponent: 6000,     // 4초 → 6초 (상대 분석 시간 증가)
     countdown: 4000,    // 3초 → 4초 (긴장감 빌드업)
-    transition: 3000,   // 1초 → 3초 (부드러운 전환)
+    // transition: 3000,   // 나중에 사용 예정
   };
 
   // 다음 단계로 진행
@@ -60,9 +60,7 @@ export function TowerChallengeIntro({
         case 'opponent':
           return 'countdown';
         case 'countdown':
-          return 'transition';
-        case 'transition':
-          return 'complete';
+          return 'complete'; // transition 단계 스킵
         default:
           return current;
       }
@@ -187,25 +185,26 @@ export function TowerChallengeIntro({
           />
         )}
 
-        {currentPhase === 'transition' && (
+        {/* 택티컬 그리드 화면 - 나중에 사용 예정 */}
+        {/* {currentPhase === 'transition' && (
           <TransitionPhase
             floor={floor}
             onComplete={advanceToNextPhase}
             onSkip={handleSkip}
           />
-        )}
+        )} */}
       </div>
 
       {/* 진행률 표시기 */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
         <div className="flex gap-2">
-          {(['preparation', 'opponent', 'countdown', 'transition'] as const).map((phase, index) => (
+          {(['preparation', 'opponent', 'countdown'] as const).map((phase, index) => (
             <div
               key={phase}
               className={`w-8 h-1 rounded-full transition-all duration-300 ${
                 currentPhase === phase
                   ? 'bg-purple-400 shadow-lg shadow-purple-400/50'
-                  : index < ['preparation', 'opponent', 'countdown', 'transition'].indexOf(currentPhase)
+                  : index < ['preparation', 'opponent', 'countdown'].indexOf(currentPhase)
                   ? 'bg-purple-600/80'
                   : 'bg-white/20'
               }`}

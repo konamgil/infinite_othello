@@ -16,7 +16,7 @@ interface PhaseTimings {
   preparation: number;
   opponent: number;
   countdown: number;
-  transition: number;
+  // transition: number; // 나중에 사용 예정
 }
 
 interface ChallengeFlowData {
@@ -61,7 +61,7 @@ export function useChallengeFlow(floor: number): ChallengeFlowData {
       preparation: Math.round(3000 * multiplier * difficultyMultiplier),
       opponent: Math.round(4000 * multiplier),
       countdown: 3000, // 카운트다운은 항상 동일
-      transition: 1000, // 전환도 항상 동일
+      // transition: 1000, // 나중에 사용 예정
     };
   }, [floor, opponentData.difficulty]);
 

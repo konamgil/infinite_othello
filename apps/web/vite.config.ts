@@ -20,6 +20,10 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        display_override: ['window-controls-overlay', 'standalone'],
+        edge_side_panel: {
+          preferred_width: 400
+        },
         icons: [
           {
             src: 'icon-72x72.png',
