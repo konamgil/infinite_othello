@@ -190,6 +190,16 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
   const [gameStatus, setGameStatus] = useState<'playing' | 'paused' | 'finished'>('playing');
   const [moveHistory, setMoveHistory] = useState<Array<{ x: number; y: number; player: 'black' | 'white' }>>([]);
   const [lastFlippedDiscs, setLastFlippedDiscs] = useState<Array<{x: number, y: number}>>([]);
+  const [showBoard, setShowBoard] = useState(false); // 보드 등장 애니메이션 상태
+
+  // 전체 화면 페이드인 애니메이션
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowBoard(true);
+    }, 200); // 0.2초 후 전체 화면 등장
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // 게임 상태 업데이트
   useEffect(() => {
@@ -276,7 +286,9 @@ export function GameController({ title = "게임", opponent = 'ai', difficulty =
   const score = getScore();
 
   return (
-    <div className="h-full w-full overflow-hidden relative bg-black/90">
+    <div className={`h-full w-full overflow-hidden relative bg-black/90 transition-opacity duration-800 ease-out ${
+      showBoard ? 'opacity-100' : 'opacity-0'
+    }`}>
       {/* 신비로운 배경 이팩트 */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/10 to-blue-900/20"></div>
