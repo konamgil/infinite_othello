@@ -30,10 +30,14 @@ export function PreparationPhase({ floor, onComplete, onSkip }: PreparationPhase
       setCurrentPhase(prev => (prev + 1) % STRATEGIC_PHASES.length);
     }, 1200); // 더 여유로운 메시지 전환
 
-    // 진행도 애니메이션
+    // 진행도 애니메이션 - 100% 도달 시 바로 완료
     const progressTimer = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 100) return 0;
+        if (prev >= 100) {
+          clearInterval(progressTimer);
+          onComplete(); // 100% 도달 시 바로 완료
+          return 100;
+        }
         return prev + 2;
       });
     }, 60);

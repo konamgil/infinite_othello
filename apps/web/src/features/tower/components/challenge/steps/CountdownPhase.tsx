@@ -12,20 +12,14 @@ interface CountdownPhaseProps {
  * 하이테크 전투 시스템의 최종 활성화 단계
  */
 export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
-  const [currentPhase, setCurrentPhase] = useState<'PREP' | 3 | 2 | 1 | 'ENGAGE' | null>('PREP');
-  const [systemStatus, setSystemStatus] = useState<string[]>([]);
-  const [weaponSystems, setWeaponSystems] = useState(false);
-  const [targetingLock, setTargetingLock] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState<3 | 2 | 1 | 'ENGAGE' | null>(3);
+  // PREP 단계 제거로 인해 사용하지 않는 상태들
+  const [animationKey, setAnimationKey] = useState(0);
 
-  const systemMessages = [
-    'WEAPONS SYSTEMS ONLINE',
-    'TARGETING MATRIX LOCKED',
-    'NEURAL INTERFACE ACTIVE',
-    'COMBAT PROTOCOLS ENGAGED'
-  ];
+  // PREP 단계 제거로 인해 사용하지 않는 메시지들
 
   useEffect(() => {
-    const sequence: ('PREP' | 3 | 2 | 1 | 'ENGAGE')[] = ['PREP', 3, 2, 1, 'ENGAGE'];
+    const sequence: (3 | 2 | 1 | 'ENGAGE')[] = [3, 2, 1, 'ENGAGE'];
     let currentIndex = 0;
 
     const progressSequence = () => {
@@ -37,24 +31,7 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
       const current = sequence[currentIndex];
       setCurrentPhase(current);
 
-      // 시스템 활성화 단계
-      if (current === 'PREP') {
-        // 시스템 메시지 순차 표시
-        systemMessages.forEach((msg, i) => {
-          setTimeout(() => {
-            setSystemStatus(prev => [...prev, msg]);
-            if (i === 1) setWeaponSystems(true);
-            if (i === 2) setTargetingLock(true);
-          }, i * 300);
-        });
-        
-        haptic.buttonTap();
-        setTimeout(() => {
-          currentIndex++;
-          progressSequence();
-        }, 2500); // 시스템 준비 시간 증가
-        return;
-      }
+      // PREP 단계 제거됨 - 바로 카운트다운 시작
 
       // 카운트다운 단계
       if (typeof current === 'number') {
@@ -64,10 +41,13 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
           navigator.vibrate(intensity);
         }
         
+        // 애니메이션 키 업데이트로 새로운 애니메이션 트리거
+        setAnimationKey(prev => prev + 1);
+        
         setTimeout(() => {
           currentIndex++;
           progressSequence();
-        }, 1500); // 카운트다운 각 숫자 시간 증가
+        }, 1000); // 카운트다운 각 숫자 시간 단축
         return;
       }
 
@@ -81,7 +61,7 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
         setTimeout(() => {
           currentIndex++;
           progressSequence();
-        }, 1500); // ENGAGE 시간 증가
+        }, 1000); // ENGAGE 시간 단축
         return;
       }
     };
@@ -137,59 +117,27 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
 
       <div className="relative z-10 text-center max-w-2xl mx-auto px-8">
         
-        {/* 시스템 준비 단계 */}
-        {currentPhase === 'PREP' && (
-          <div className="animate-[fade-in_0.5s_ease-out]">
-            <div className="text-2xl font-mono font-light text-orange-400 mb-6">
-              COMBAT SYSTEMS INITIALIZATION
-            </div>
-            <div className="h-px bg-gradient-to-r from-transparent via-orange-400 to-transparent mb-8" />
-            
-            {/* 시스템 상태 */}
-            <div className="space-y-3 mb-8">
-              {systemStatus.map((status, i) => (
-                <div 
-                  key={i}
-                  className="flex items-center justify-between bg-black/40 border border-orange-400/30 p-3 rounded font-mono text-sm animate-[slide-in_0.3s_ease-out]"
-                  style={{ animationDelay: `${i * 0.3}s` }}
-                >
-                  <span className="text-orange-300">&gt; {status}</span>
-                  <span className="text-green-400">✓ READY</span>
-                </div>
-              ))}
-            </div>
-
-            {/* 시스템 상태 인디케이터 */}
-            <div className="grid grid-cols-3 gap-4 text-xs font-mono">
-              <div className={weaponSystems ? "text-green-400" : "text-gray-500"}>
-                <div className="text-white/60 mb-1">WEAPONS</div>
-                <div>{weaponSystems ? "ONLINE" : "OFFLINE"}</div>
-              </div>
-              <div className={targetingLock ? "text-green-400" : "text-gray-500"}>
-                <div className="text-white/60 mb-1">TARGETING</div>
-                <div>{targetingLock ? "LOCKED" : "SCANNING"}</div>
-              </div>
-              <div className="text-cyan-400">
-                <div className="text-white/60 mb-1">NEURAL LINK</div>
-                <div>STABLE</div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* PREP 단계 제거됨 */}
 
         {/* 카운트다운 단계 */}
         {typeof currentPhase === 'number' && (
-          <div className="animate-[fade-in_0.3s_ease-out]">
+          <div className="animate-[fade-in_0.3s_ease-out] flex flex-col items-center justify-center">
             <div className="text-orange-400 font-mono text-lg mb-4">
               COMBAT INITIATION IN
             </div>
             
             {/* 대형 카운트다운 숫자 */}
-            <div className="relative mb-8">
+            <div className="relative mb-8 flex items-center justify-center w-full">
               <div 
-                className={`text-9xl font-mono font-black ${getPhaseColor(currentPhase)} filter drop-shadow-2xl animate-[countdown-pulse_0.8s_ease-out]`}
+                key={animationKey}
+                className={`text-9xl font-mono font-black ${getPhaseColor(currentPhase)} filter drop-shadow-2xl animate-[countdown-pulse_0.8s_ease-out] text-center leading-none`}
                 style={{
-                  textShadow: `0 0 50px currentColor, 0 0 100px currentColor`
+                  textShadow: `0 0 50px currentColor, 0 0 100px currentColor`,
+                  minWidth: '200px',
+                  minHeight: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 {currentPhase}
@@ -197,6 +145,7 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
               
               {/* 카운트다운 링 */}
               <div 
+                key={`ring-${animationKey}`}
                 className={`absolute inset-0 border-4 ${currentPhase === 1 ? 'border-red-400' : currentPhase === 2 ? 'border-yellow-400' : 'border-cyan-400'} rounded-full opacity-50`}
                 style={{
                   animation: 'countdown-ring 1s ease-out'
@@ -205,7 +154,7 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
               
               {/* 위험 표시 (1일 때) */}
               {currentPhase === 1 && (
-                <div className="absolute -top-4 -bottom-4 -left-4 -right-4 border-2 border-red-400/50 rounded-full animate-pulse" />
+                <div key={`danger-${animationKey}`} className="absolute inset-0 border-2 border-red-400/50 rounded-full animate-pulse" />
               )}
             </div>
 
@@ -272,14 +221,7 @@ export function CountdownPhase({ onComplete, onSkip }: CountdownPhaseProps) {
           ))}
         </div>
 
-        {/* 스킵 안내 */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="bg-black/60 backdrop-blur-sm border border-orange-400/30 rounded-full px-4 py-2 animate-pulse">
-            <div className="text-orange-300 font-mono text-xs">
-              TAP TO SKIP COUNTDOWN
-            </div>
-          </div>
-        </div>
+        {/* 스킵 안내 제거됨 - 오른쪽 상단에 이미 있음 */}
       </div>
     </div>
   );

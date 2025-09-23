@@ -74,9 +74,10 @@ export function TowerChallengeIntro({
     }
   }, [currentPhase, onChallengeComplete]);
 
-  // 자동 진행 타이머
+  // 자동 진행 타이머 (countdown 단계는 제외)
   useEffect(() => {
     if (isSkipping) return;
+    if (currentPhase === 'countdown') return; // countdown은 자체 타이밍 관리
 
     const duration = PHASE_DURATIONS[currentPhase as keyof typeof PHASE_DURATIONS];
     if (!duration) return;
