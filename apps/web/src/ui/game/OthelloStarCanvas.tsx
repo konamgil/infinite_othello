@@ -102,16 +102,25 @@ const OthelloStarCanvas: React.FC<OthelloStarCanvasProps> = ({
     canvas.style.height = `${height}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // ── 보드 크기/배치 계산 (상단 폭 기준) ──────────────────────────
+    // ── 보드 크기/배치 계산 (비율 유지) ──────────────────────────
     const TOP_W = 200 * boardScale;          // 윗변 길이
     const H = 120 * boardScale;              // 보드 높이(세로)
+    const aspectRatio = TOP_W / H;           // 5:3 비율 유지
     const maxW = Math.max(10, width - safeMargin * 2);
     const maxH = Math.max(10, height - safeMargin * 2 - safeBottom);
+
+    // 비율을 유지하면서 크기 조정
     let topW = Math.min(TOP_W, maxW);
-    let bh = Math.min(H, maxH);
+    let bh = topW / aspectRatio;
+
+    // 높이가 너무 크면 높이 기준으로 다시 계산
+    if (bh > maxH) {
+      bh = maxH;
+      topW = bh * aspectRatio;
+    }
 
     const cx = width * 0.5;
-    const cy = height * 0.75;
+    const cy = height * 0.85;
     let topX = cx - topW / 2;
     let topY = cy - bh / 2;
 

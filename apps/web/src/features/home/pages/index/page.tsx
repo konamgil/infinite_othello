@@ -42,13 +42,15 @@ export default function HomePage() {
   const { player, updatePlayer } = useGameStore();
   const effects = useFXEffects();
 
-  // 반응형 캔버스 크기
-  const [canvasSize, setCanvasSize] = useState(400);
+  // 반응형 캔버스 크기 - 비율 유지
+  const [canvasSize, setCanvasSize] = useState({ width: 390, height: 300 });
 
-  // 화면 크기 변경 시 캔버스 크기 조정
+  // 화면 크기 변경 시 캔버스 크기 조정 - 5:3.85 비율 유지
   useEffect(() => {
     const updateCanvasSize = () => {
-      setCanvasSize(window.innerWidth);
+      const maxWidth = Math.min(window.innerWidth - 32, 420); // 여백 32px, 최대 420px
+      const height = maxWidth * (300 / 390); // 원래 비율 유지
+      setCanvasSize({ width: maxWidth, height });
     };
 
     updateCanvasSize();
@@ -144,10 +146,10 @@ export default function HomePage() {
           <div className="absolute top-0 left-0 right-0 overflow-hidden">
             <div className="relative w-full">
               <OthelloStarCanvas
-                width={canvasSize}
-                height={400}
+                width={canvasSize.width}
+                height={canvasSize.height}
                 boardScale={1}
-                perspectiveSkew={2}
+                perspectiveSkew={Math.max(1, canvasSize.width / 200)}
                 safeBottom={72}
                 fpsCap={45}
               />
