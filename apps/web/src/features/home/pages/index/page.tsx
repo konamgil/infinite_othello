@@ -48,7 +48,7 @@ export default function HomePage() {
   // 화면 크기 변경 시 캔버스 크기 조정 - 5:3.85 비율 유지
   useEffect(() => {
     const updateCanvasSize = () => {
-      const maxWidth = Math.min(window.innerWidth - 32, 420); // 여백 32px, 최대 420px
+      const maxWidth = Math.min(window.innerWidth, 430); // 여백 제거, 전체 폭 사용
       const height = maxWidth * (300 / 390); // 원래 비율 유지
       setCanvasSize({ width: maxWidth, height });
     };
@@ -141,16 +141,16 @@ export default function HomePage() {
   return (
     <div className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-behavior-y-contain">
         {/* 히어로 섹션 - 신비로운 별빛 오델로 */}
-        <div className="relative min-h-96 overflow-hidden">
+        <div className="relative min-h-80 overflow-hidden">
           {/* 별빛 오델로 캔버스 - 상단/좌우 붙임 + 자연스러운 경계 */}
           <div className="absolute top-0 left-0 right-0 overflow-hidden">
-            <div className="relative w-full">
+            <div className="relative w-full flex justify-center">
               <OthelloStarCanvas
                 width={canvasSize.width}
                 height={canvasSize.height}
                 boardScale={1}
                 perspectiveSkew={Math.max(1, canvasSize.width / 200)}
-                safeBottom={72}
+                safeBottom={0}
                 fpsCap={45}
               />
 
@@ -164,11 +164,23 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* 색상 전환 영역 - 별빛 캔버스와 홈 배경을 연결 */}
+          <div
+            className="absolute left-0 right-0 h-24 pointer-events-none"
+            style={{
+              top: `${canvasSize.height}px`,
+              background: `linear-gradient(to bottom,
+                rgba(0, 0, 3, 1) 0%,
+                rgba(2, 2, 14, 0.8) 50%,
+                rgba(5, 5, 20, 0.6) 100%)`
+            }}
+          />
+
           {/* Stats Display - 우측 상단 */}
           <StatsDisplay stats={statsData} />
 
           {/* 메인 콘텐츠 */}
-          <div className="relative z-10 px-4 pt-32 pb-12 text-center">
+          <div className="relative z-10 px-4 pt-24 pb-12 text-center">
             {/* 게임 로고/타이틀 - RP와 거리 확보 */}
             <div className="mb-8">
               <div className="relative inline-block">

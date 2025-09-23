@@ -17,6 +17,7 @@ import { Palette, ShoppingBag, User, Settings, HelpCircle, Info, Clock, Star, Cr
 export default function MorePage() {
   const navigate = useNavigate();
   const player = useGameStore((state) => state.player);
+  const ui = useGameStore((state) => state.ui);
 
   // 상단 통계 데이터 구성
   const statsData: StatItem[] = [
@@ -105,7 +106,7 @@ export default function MorePage() {
             <span className="text-white/50 text-sm font-display">보드 & 디스크</span>
           </button>
 
-          {/* 환경설정 */}
+          {/* 애니메이션 최적화 */}
           <button
             className="w-full p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10
                        hover:bg-black/30 active:scale-95 transition-all duration-200
@@ -147,11 +148,21 @@ export default function MorePage() {
               </div>
             </div>
 
-            {/* 애니메이션 설정 */}
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5">
-              <span className="text-white/90 font-display text-sm">애니메이션</span>
-              <div className="w-10 h-5 bg-orange-400/60 rounded-full relative cursor-pointer">
-                <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm"></div>
+            {/* 애니메이션 최적화 설정 */}
+            <div 
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+              onClick={() => {
+                const { updateUISettings } = useGameStore.getState();
+                updateUISettings({ performanceMode: !ui.performanceMode });
+              }}
+            >
+              <span className="text-white/90 font-display text-sm">애니메이션 최적화</span>
+              <div className={`w-10 h-5 rounded-full relative transition-colors ${
+                ui.performanceMode ? 'bg-green-400/60' : 'bg-white/20'
+              }`}>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm transition-transform ${
+                  ui.performanceMode ? 'right-0.5' : 'left-0.5'
+                }`}></div>
               </div>
             </div>
 

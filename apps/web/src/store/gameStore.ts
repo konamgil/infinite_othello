@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 
 /**
  * @interface GameState
@@ -33,6 +33,7 @@ export interface GameState {
     fontSize: 'small' | 'medium' | 'large';
     animations: boolean;
     soundEnabled: boolean;
+    performanceMode: boolean;
   };
 }
 
@@ -92,6 +93,7 @@ const initialState: GameState = {
     fontSize: 'medium',
     animations: true,
     soundEnabled: true,
+    performanceMode: false,
   },
 };
 
@@ -103,39 +105,44 @@ const initialState: GameState = {
  */
 export const useGameStore = create<GameStore>()(
   devtools(
-    (set, get) => ({
-      ...initialState,
+    persist(
+      (set, get) => ({
+        ...initialState,
 
-      setActiveTab: (tab) =>
-        set({ activeTab: tab }, false, 'setActiveTab'),
+        setActiveTab: (tab) =>
+          set({ activeTab: tab }, false, 'setActiveTab'),
 
-      updatePlayer: (playerUpdate) =>
-        set(
-          (state) => ({
-            player: { ...state.player, ...playerUpdate }
-          }),
-          false,
-          'updatePlayer'
-        ),
+        updatePlayer: (playerUpdate) =>
+          set(
+            (state) => ({
+              player: { ...state.player, ...playerUpdate }
+            }),
+            false,
+            'updatePlayer'
+          ),
 
-      setTheme: (themeUpdate) =>
-        set(
-          (state) => ({
-            theme: { ...state.theme, ...themeUpdate }
-          }),
-          false,
-          'setTheme'
-        ),
+        setTheme: (themeUpdate) =>
+          set(
+            (state) => ({
+              theme: { ...state.theme, ...themeUpdate }
+            }),
+            false,
+            'setTheme'
+          ),
 
-      updateUISettings: (settingsUpdate) =>
-        set(
-          (state) => ({
-            ui: { ...state.ui, ...settingsUpdate }
-          }),
-          false,
-          'updateUISettings'
-        ),
-    }),
+        updateUISettings: (settingsUpdate) =>
+          set(
+            (state) => ({
+              ui: { ...state.ui, ...settingsUpdate }
+            }),
+            false,
+            'updateUISettings'
+          ),
+      }),
+      {
+        name: 'infinity-othello-game-store',
+      }
+    ),
     {
       name: 'infinity-othello-game-store', // DevTools에서 표시될 이름
     }

@@ -19,11 +19,34 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
     const particles: Particle[] = [];
 
     const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      if (!container) return { width: 320, height: 420 };
+
+      const containerRect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = 320 * dpr;
-      canvas.height = 420 * dpr;
+
+      // 스마트 크기 계산: 전체 너비 사용 + 후광 고려
+      const maxAvailableWidth = Math.min(containerRect.width, 700);        // 100% 사용, 700px 상한
+      const maxAvailableHeight = Math.min(containerRect.height * 0.9, 700); // 90% 사용, 700px 상한
+
+      // 원래 크기(320px) 최소 보장하되 후광(+100px)까지 고려
+      const baseWidth = 320;  // 원래 타워 크기
+      const auraSpace = 100;  // 후광 여백
+      const minCanvasWidth = baseWidth + auraSpace;  // 420px 최소 보장
+
+      const aspectRatio = 420 / 320; // 원본 비율 유지
+
+      // 최적 크기: 사용 가능 공간과 최소 크기 중 큰 것
+      const canvasWidth = Math.max(Math.min(maxAvailableWidth, 650), minCanvasWidth);  // 상한 증가
+      const canvasHeight = Math.max(Math.min(maxAvailableHeight, canvasWidth * aspectRatio), 420);
+
+      canvas.width = canvasWidth * dpr;
+      canvas.height = canvasHeight * dpr;
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+
       ctx.scale(dpr, dpr);
-      return { width: 320, height: 420 };
+      return { width: canvasWidth, height: canvasHeight };
     };
 
     const { width, height } = resizeCanvas();
@@ -59,10 +82,23 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
 
     animate(0);
 
+    // Resize 이벤트 리스너 추가
+    const handleResize = () => {
+      const newSize = resizeCanvas();
+      // 파티클 재생성
+      particles.length = 0;
+      for (let i = 0; i < 50; i++) {
+        particles.push(createParticle(newSize.width, newSize.height));
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
+      window.removeEventListener('resize', handleResize);
     };
   }, [currentFloor, maxFloor]);
 
@@ -70,7 +106,7 @@ export function CinematicHologramTower({ currentFloor, maxFloor, className = '' 
     <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-[320px] h-[420px] block"
+        className="block"
         style={{ imageRendering: 'auto' }}
       />
     </div>
@@ -549,7 +585,7 @@ function drawEnhancedBackground(ctx: CanvasRenderingContext2D, width: number, he
   bgGradient.addColorStop(0, 'rgba(0, 10, 20, 0.8)');
   bgGradient.addColorStop(0.5, 'rgba(0, 5, 15, 0.6)');
   bgGradient.addColorStop(1, 'rgba(0, 0, 10, 0.4)');
-  
+
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, width, height);
   
@@ -566,10 +602,12 @@ function drawEnhancedBackground(ctx: CanvasRenderingContext2D, width: number, he
   }
 }
 
-// 타워 주변 에너지 오라
+// 타워 주변 에너지 오라 (동적 크기)
 function drawTowerAura(ctx: CanvasRenderingContext2D, centerX: number, height: number, progress: number, time: number) {
   const auraIntensity = Math.sin(time / 500) * 0.3 + 0.7;
-  const auraRadius = 120 + progress * 50;
+  // 캔버스 크기에 비례한 후광 크기 (최대 캔버스 폭의 40%)
+  const baseRadius = Math.min(centerX * 0.8, 120);
+  const auraRadius = baseRadius + progress * (baseRadius * 0.4);
   
   // 외부 오라
   const outerAura = ctx.createRadialGradient(centerX, height - 30, 0, centerX, height - 30, auraRadius);

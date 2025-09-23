@@ -12,5 +12,5 @@ import { router } from './router';
  * @returns {React.ReactElement} The rendered `RouterProvider` component.
  */
 export function App() {
-  return <RouterProvider router={router} />;
+  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 }

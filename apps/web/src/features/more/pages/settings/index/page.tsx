@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Palette, Volume2, VolumeX, Smartphone, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Palette, Volume2, VolumeX, Smartphone, ArrowLeft, RotateCcw, Zap, AlertTriangle } from 'lucide-react';
 import { useGameStore } from '../../../../../store/gameStore';
 import { MoreLayout } from '../../../layouts/MoreLayout';
+import { usePerformanceOptimizations } from '../../../../../hooks/usePerformanceOptimizations';
 
 /**
  * The main settings page of the application.
@@ -16,6 +17,8 @@ import { MoreLayout } from '../../../layouts/MoreLayout';
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { ui, updateUISettings } = useGameStore();
+  const { deviceInfo, suggestOptimizations, applyAutoOptimizations } = usePerformanceOptimizations();
+  const [showOptimizationSuggestion, setShowOptimizationSuggestion] = useState(false);
 
   /** Toggles the sound effects on or off. */
   const toggleSound = () => {
@@ -25,6 +28,25 @@ export default function SettingsPage() {
   /** Toggles UI animations on or off. */
   const toggleAnimations = () => {
     updateUISettings({ animations: !ui.animations });
+  };
+
+  /** Toggles performance mode on or off. */
+  const togglePerformanceMode = () => {
+    updateUISettings({ performanceMode: !ui.performanceMode });
+  };
+
+  // 성능 최적화 제안 확인
+  useEffect(() => {
+    const suggestion = suggestOptimizations();
+    if (suggestion) {
+      setShowOptimizationSuggestion(true);
+    }
+  }, [suggestOptimizations]);
+
+  /** 자동 최적화 적용 */
+  const handleApplyAutoOptimizations = () => {
+    applyAutoOptimizations();
+    setShowOptimizationSuggestion(false);
   };
 
   /**
@@ -48,6 +70,37 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-3">
+
+        {/* 성능 최적화 제안 */}
+        {showOptimizationSuggestion && (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-900/30 to-red-900/30 backdrop-blur-md border border-orange-400/30">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-400/30 to-red-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-orange-400/20">
+                <AlertTriangle size={18} className="text-orange-300" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-orange-300 font-smooth mb-1">성능 최적화 권장</h3>
+                <p className="text-sm text-orange-200/80 font-smooth mb-3">
+                  디바이스 성능을 감지하여 최적화 모드를 권장합니다.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleApplyAutoOptimizations}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    자동 최적화 적용
+                  </button>
+                  <button
+                    onClick={() => setShowOptimizationSuggestion(false)}
+                    className="px-4 py-2 text-orange-300/60 hover:text-orange-300 transition-colors duration-200 text-sm"
+                  >
+                    나중에
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
           <div className="flex items-center justify-between">
@@ -86,22 +139,56 @@ export default function SettingsPage() {
                 <Smartphone size={18} className="text-blue-300" />
               </div>
               <div>
-                <h3 className="font-medium text-white/90 font-smooth">애니메이션</h3>
-                <p className="text-sm text-white/60 font-smooth">동적인 UI 애니메이션을 제어합니다</p>
+                <h3 className="font-medium text-white/90 font-smooth">애니메이션 최적화</h3>
+                <p className="text-sm text-white/60 font-smooth">성능을 위해 애니메이션을 최적화합니다</p>
               </div>
             </div>
             <button
-              onClick={toggleAnimations}
+              onClick={togglePerformanceMode}
               className={`w-12 h-6 rounded-full relative transition-colors ${
-                ui.animations ? 'bg-orange-400/60' : 'bg-white/20'
+                ui.performanceMode ? 'bg-orange-400/60' : 'bg-white/20'
               }`}
             >
               <div
                 className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform shadow-sm ${
-                  ui.animations ? 'translate-x-6' : 'translate-x-0.5'
+                  ui.performanceMode ? 'translate-x-6' : 'translate-x-0.5'
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        {/* 성능 정보 */}
+        <div className="p-4 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+          <div className="mb-3">
+            <h3 className="font-medium text-white/90 mb-2 font-smooth flex items-center gap-2">
+              <Zap size={16} className="text-blue-400" />
+              성능 정보
+            </h3>
+            <p className="text-sm text-white/60 font-smooth mb-3">현재 디바이스의 성능 정보입니다</p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-black/30 rounded-lg p-3">
+              <div className="text-white/60 mb-1">메모리</div>
+              <div className="text-blue-300 font-mono">
+                {deviceInfo.memoryGB > 0 ? `${deviceInfo.memoryGB}GB` : 'Unknown'}
+              </div>
+            </div>
+            <div className="bg-black/30 rounded-lg p-3">
+              <div className="text-white/60 mb-1">CPU 코어</div>
+              <div className="text-blue-300 font-mono">{deviceInfo.cores}개</div>
+            </div>
+            <div className="bg-black/30 rounded-lg p-3">
+              <div className="text-white/60 mb-1">GPU 등급</div>
+              <div className="text-blue-300 font-mono capitalize">{deviceInfo.gpuTier}</div>
+            </div>
+            <div className="bg-black/30 rounded-lg p-3">
+              <div className="text-white/60 mb-1">성능 모드</div>
+              <div className={`font-mono ${ui.performanceMode ? 'text-green-300' : 'text-orange-300'}`}>
+                {ui.performanceMode ? 'ON' : 'OFF'}
+              </div>
+            </div>
           </div>
         </div>
 

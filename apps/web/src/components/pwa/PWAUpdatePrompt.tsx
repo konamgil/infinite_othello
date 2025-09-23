@@ -18,22 +18,35 @@ export function PWAUpdatePrompt() {
       navigator.serviceWorker.ready.then((reg) => {
         setRegistration(reg);
         
-        // 업데이트 확인
+        // 업데이트 확인 - 더 정확한 체크
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setUpdateAvailable(true);
+                // 잠깐 기다린 후 정말 다른 버전인지 확인
+                setTimeout(() => {
+                  if (reg.waiting && reg.waiting !== navigator.serviceWorker.controller) {
+                    setUpdateAvailable(true);
+                  }
+                }, 1000);
               }
             });
           }
         });
       });
 
-      // 페이지 로드 시 업데이트 확인
+      // 실제 업데이트만 감지하도록 개선
       navigator.serviceWorker.ready.then((reg) => {
-        reg.update();
+        // 현재 활성 서비스워커가 있고, 새로운 서비스워커가 대기 중일 때만 업데이트 알림
+        if (reg.waiting && navigator.serviceWorker.controller) {
+          setUpdateAvailable(true);
+        }
+
+        // 개발 모드가 아닐 때만 주기적 체크
+        if (process.env.NODE_ENV === 'production') {
+          reg.update();
+        }
       });
     }
   }, []);

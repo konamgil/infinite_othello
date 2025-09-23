@@ -203,7 +203,7 @@ const OthelloStarCanvas: React.FC<OthelloStarCanvasProps> = ({
       last = ts;
       const t = (ts - start) / 1000;
 
-      // 배경
+      // 배경 - 홈 상단 색상(#000003)과 매칭
       ctx.fillStyle = "rgba(0,0,3,0.95)";
       ctx.fillRect(0, 0, width, height);
       const bg = ctx.createRadialGradient(width / 2, height / 3, 0, width / 2, height / 3, height);

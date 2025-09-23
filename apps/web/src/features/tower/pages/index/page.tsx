@@ -4,6 +4,7 @@ import { useGameStore } from '../../../../store/gameStore';
 import { haptic } from '../../../../ui/feedback/HapticFeedback';
 import { CosmicTowerCanvas } from '../../components/CosmicTowerCanvas';
 import { CinematicHologramTower } from '../../components/CinematicHologramTower';
+import { CinematicHologramTower as CinematicHologramTowerLowFrame } from '../../components/CinematicHologramTowerLowFrame';
 import { StatsDisplay, type StatItem } from '../../../../ui/stats';
 import { Zap, Crown, Target, Star } from 'lucide-react';
 import { useAnimatedCounter } from '../../../../hooks/useAnimatedCounter';
@@ -61,7 +62,7 @@ function getGuardianSpeech(floor: number, isEnergyFull: boolean): string[] {
  */
 export default function TowerPage() {
   const navigate = useNavigate();
-  const { player, updatePlayer } = useGameStore();
+  const { player, updatePlayer, ui } = useGameStore();
   const currentFloor = player.towerProgress;
   const maxFloor = 300;
 
@@ -207,16 +208,24 @@ export default function TowerPage() {
         <StatsDisplay stats={statsData} />
       </div>
 
-      {/* Main Content Area - 홀로그램 타워 (더 많은 공간 할당) */}
-      <div className="flex-[1.2] flex flex-col items-center justify-center px-4 pt-4 pb-0 relative">
-        
-        {/* 영화적 홀로그램 타워 */}
-        <div className="relative z-10">
-          <CinematicHologramTower
-            currentFloor={currentFloor}
-            maxFloor={maxFloor}
-            className="mx-auto"
-          />
+      {/* Main Content Area - 홀로그램 타워 (전체 너비 사용) */}
+      <div className="flex-1 flex flex-col items-center justify-center px-0 pt-2 pb-0 relative min-h-0">
+
+        {/* 영화적 홀로그램 타워 - 성능 모드에 따라 선택 */}
+        <div className="relative z-10 w-full h-full flex items-center justify-center">
+          {ui.performanceMode ? (
+            <CinematicHologramTowerLowFrame
+              currentFloor={currentFloor}
+              maxFloor={maxFloor}
+              className="w-full h-full"
+            />
+          ) : (
+            <CinematicHologramTower
+              currentFloor={currentFloor}
+              maxFloor={maxFloor}
+              className="w-full h-full"
+            />
+          )}
         </div>
       </div>
 

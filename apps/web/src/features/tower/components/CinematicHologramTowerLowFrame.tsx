@@ -30,15 +30,42 @@ export function CinematicHologramTower({
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
-    // ── 1) 논리 크기 & DPR 상한
-    const LOGICAL_W = 320;
-    const LOGICAL_H = 420;
-    const DPR = Math.min(window.devicePixelRatio || 1, 1.5); // A패치: 상한 1.5
+    // ── 1) 동적 크기 계산 & DPR 상한 (성능 최적화)
+    const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      if (!container) return { width: 320, height: 420 };
 
-    canvas.width = Math.round(LOGICAL_W * DPR);
-    canvas.height = Math.round(LOGICAL_H * DPR);
-    // setTransform으로 스케일 고정 (중복 scale 누적 방지)
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const containerRect = container.getBoundingClientRect();
+      // 성능 모드이므로 DPR 상한을 더 낮게 설정
+      const DPR = Math.min(window.devicePixelRatio || 1, 1.2);
+
+      // 스마트 크기 계산 (성능 모드: 전체 너비 사용)
+      const maxAvailableWidth = Math.min(containerRect.width, 600);          // 100% 사용, 600px 상한
+      const maxAvailableHeight = Math.min(containerRect.height * 0.85, 650); // 85% 사용, 650px 상한
+
+      // 원래 크기 최소 보장 (성능 모드: 약간 작게)
+      const baseWidth = 320;  // 원래 타워 크기
+      const auraSpace = 80;   // 후광 여백 (일반 버전보다 작게)
+      const minCanvasWidth = baseWidth + auraSpace;  // 400px 최소 보장
+
+      const aspectRatio = 420 / 320;
+
+      // 최적 크기: 사용 가능 공간과 최소 크기 중 큰 것
+      const canvasWidth = Math.max(Math.min(maxAvailableWidth, 580), minCanvasWidth);  // 상한 증가
+      const canvasHeight = Math.max(Math.min(maxAvailableHeight, canvasWidth * aspectRatio), 400);
+
+      canvas.width = Math.round(canvasWidth * DPR);
+      canvas.height = Math.round(canvasHeight * DPR);
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+
+      // setTransform으로 스케일 고정 (중복 scale 누적 방지)
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      return { width: canvasWidth, height: canvasHeight };
+    };
+
+    const { width: LOGICAL_W, height: LOGICAL_H } = resizeCanvas();
 
     // ── 2) 오프스크린 레이어 준비 (배경, 타워)
     const bgLayer = document.createElement('canvas');
@@ -107,14 +134,40 @@ export function CinematicHologramTower({
     };
 
     raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
+
+    // Resize 이벤트 리스너 추가 (성능 최적화: throttle)
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newSize = resizeCanvas();
+        // 파티클 재생성
+        particles.length = 0;
+        particles.push(...Array.from({ length: 50 }, () =>
+          createParticle(newSize.width, newSize.height)
+        ));
+        // 오프스크린 캔버스 크기 업데이트
+        bgLayer.width = newSize.width;
+        bgLayer.height = newSize.height;
+        twLayer.width = newSize.width;
+        twLayer.height = newSize.height;
+      }, 150); // 150ms throttle
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
   }, [currentFloor, maxFloor]);
 
   return (
     <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-[320px] h-[420px] block"
+        className="block"
         style={{ imageRendering: 'auto' }}
       />
     </div>
@@ -587,7 +640,9 @@ function drawTowerAura(
   time: number,
 ) {
   const auraIntensity = Math.sin(time / 500) * 0.3 + 0.7;
-  const auraRadius = 120 + progress * 50;
+  // 캔버스 크기에 비례한 후광 크기 (LowFrame 버전: 더 절약)
+  const baseRadius = Math.min(centerX * 0.75, 110); // 일반 버전보다 작게
+  const auraRadius = baseRadius + progress * (baseRadius * 0.35);
 
   const outer = ctx.createRadialGradient(
     centerX,

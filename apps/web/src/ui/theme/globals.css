@@ -33,7 +33,7 @@
     font-family: 'IBM Plex Sans KR', 'Exo 2', system-ui, sans-serif; /* 가독성 좋은 한글/영문 폰트 스택 */
     /* 여러 개의 그라데이션을 겹쳐 깊이감 있는 우주 배경 생성 */
     background:
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%), /* 좌하단 보라색 성운 */
+      radial-gradient(circle at 20% 80%, rgba(18, 19, 17, 0.3), transparent 50%), /* 좌하단 보라색 성운 */
       radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15), transparent 50%), /* 우상단 밝은 별빛 */
       radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2), transparent 50%), /* 중앙 보라색 성운 */
       linear-gradient(180deg, #000003 0%, #02020e 50%, #050514 100%); /* 기본 어두운 우주 배경 */
