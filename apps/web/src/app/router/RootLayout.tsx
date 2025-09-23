@@ -3,8 +3,8 @@ import { Outlet, useLocation, useMatches, useNavigation } from 'react-router-dom
 
 import { AppShell } from '../../ui/layout/AppShell';
 import { BottomNav } from '../../ui/navigation/BottomNav';
-import { PWAInstallPrompt } from '../../components/PWAInstallPrompt';
-import { PWAUpdatePrompt } from '../../components/PWAUpdatePrompt';
+import { PWAInstallPrompt } from '../../components/pwa/PWAInstallPrompt';
+import { PWAUpdatePrompt } from '../../components/pwa/PWAUpdatePrompt';
 import type { RouteHandle, RouteMeta, RootRouteMeta } from './meta';
 import { rootNavItems } from './rootRoutes';
 
