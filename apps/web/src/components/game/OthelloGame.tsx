@@ -156,6 +156,7 @@ export function OthelloGame({
   const [lastMove, setLastMove] = useState<{ x: number; y: number } | null>(null);
   const [moveCount, setMoveCount] = useState(0);
   const [gameStartTime] = useState(Date.now());
+  const [towerAIThinking, setTowerAIThinking] = useState(false);
 
   // AI 상태는 이제 GameSession에서 관리하므로 로컬 상태 제거
   // const [isAIThinking, setIsAIThinking] = useState(false); // ❌ 제거됨
@@ -198,13 +199,15 @@ export function OthelloGame({
 
   useEffect(() => {
     // AI 턴 자동 처리
+    const thinking = mode === 'tower' ? towerAIThinking : aiThinking;
+
     if (gameStatus === 'playing' &&
         isAITurn(currentPlayer) &&
-        !aiThinking &&
+        !thinking &&
         !disabled) {
       handleAIMove();
     }
-  }, [currentPlayer, gameStatus, aiThinking, disabled, isAITurn]);
+  }, [currentPlayer, gameStatus, aiThinking, towerAIThinking, disabled, isAITurn, mode, handleAIMove]);
 
   // 게임 종료 처리
   useEffect(() => {
@@ -232,9 +235,32 @@ export function OthelloGame({
   // ===== AI 이동 처리 (새로운 시스템) =====
 
   const handleAIMove = useCallback(async () => {
-    if (aiThinking || disabled) return;
+    if ((mode === 'tower' ? towerAIThinking : aiThinking) || disabled) return;
 
     try {
+      if (mode === 'tower') {
+        setTowerAIThinking(true);
+        const move = await towerManager.getAIMove(newBoard as any, currentPlayer);
+        setTowerAIThinking(false);
+
+        if (move) {
+          const aiPosition: Position = { row: move.row, col: move.col };
+          const moveResult: MoveResult = newMakeMove(aiPosition);
+
+          if (moveResult.success) {
+            const legacyMove = positionToLegacy(aiPosition);
+            setLastMove(legacyMove);
+            setMoveCount(prev => prev + 1);
+
+            const flipped = moveResult.capturedCells.map(pos => positionToLegacy(pos));
+            setFlippedDiscs(flipped);
+            setTimeout(() => setFlippedDiscs([]), 500);
+          }
+        }
+
+        return;
+      }
+
       // GameCore 구성
       const gameCore = {
         id: crypto.randomUUID(),
@@ -248,20 +274,16 @@ export function OthelloGame({
         canRedo: false   // TODO: get from store
       };
 
-      // 새로운 AI 시스템으로 이동 요청
       const aiPosition = await requestAIMove(gameCore);
 
       if (aiPosition) {
-        // 새로운 시스템으로 이동 실행
         const moveResult: MoveResult = newMakeMove(aiPosition);
 
         if (moveResult.success) {
-          // UI 업데이트 (기존 호환성)
           const legacyMove = positionToLegacy(aiPosition);
           setLastMove(legacyMove);
           setMoveCount(prev => prev + 1);
 
-          // 뒤집힌 돌 애니메이션
           const flipped = moveResult.capturedCells.map(pos => positionToLegacy(pos));
           setFlippedDiscs(flipped);
           setTimeout(() => setFlippedDiscs([]), 500);
@@ -269,8 +291,12 @@ export function OthelloGame({
       }
     } catch (error) {
       console.error('[OthelloGame] AI move failed:', error);
+    } finally {
+      if (mode === 'tower') {
+        setTowerAIThinking(false);
+      }
     }
-  }, [aiThinking, disabled, newBoard, currentPlayer, newValidMoves, score, gameStatus, requestAIMove, newMakeMove]);
+  }, [mode, towerAIThinking, aiThinking, disabled, newBoard, currentPlayer, newValidMoves, score, gameStatus, requestAIMove, newMakeMove, towerManager]);
 
   // ===== 플레이어 이동 처리 (새로운 시스템) =====
 
@@ -308,6 +334,7 @@ export function OthelloGame({
     setFlippedDiscs([]);
     setLastMove(null);
     setMoveCount(0);
+    setTowerAIThinking(false);
     // AI 상태는 GameSession에서 자동 관리됨
   }, [newResetGame]);
 
@@ -361,7 +388,7 @@ export function OthelloGame({
       />
 
       {/* AI 상태 표시 (새로운 시스템 상태 사용) */}
-      {aiThinking && (
+      {(aiThinking || towerAIThinking) && (
         <div className="text-center">
           <div className="text-sm text-yellow-400 animate-pulse">
             AI가 생각하는 중...
