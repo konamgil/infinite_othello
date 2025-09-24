@@ -17,3 +17,8 @@ declare module 'engine-d' {
   const engine: any;
   export default engine;
 }
+
+declare module 'engine-neo' {
+  const engine: any;
+  export default engine;
+}

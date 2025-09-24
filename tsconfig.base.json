@@ -21,6 +21,9 @@
       "engine-a": [
         "packages/engine-a/src/index.ts"
       ],
+      "engine-neo": [
+        "packages/engine-neo/src/index.ts"
+      ],
       "core": [
         "packages/core/src/index.ts"
       ],

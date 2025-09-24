@@ -277,6 +277,7 @@ export const useTowerStore = create<TowerStore>()(
 
           try {
             // AI 엔진 생성
+            currentAIEngine?.dispose?.();
             currentAIEngine = createTowerAI(floor);
             const aiInfo = getTowerAIInfo(floor);
 
@@ -298,6 +299,8 @@ export const useTowerStore = create<TowerStore>()(
             return true;
           } catch (error) {
             console.error('Failed to start floor challenge:', error);
+            currentAIEngine?.dispose?.();
+            currentAIEngine = null;
             return false;
           }
         },
@@ -323,6 +326,7 @@ export const useTowerStore = create<TowerStore>()(
           });
 
           // AI 엔진 정리
+          currentAIEngine?.dispose?.();
           currentAIEngine = null;
 
           // 일일/주간 도전 업데이트
@@ -336,6 +340,7 @@ export const useTowerStore = create<TowerStore>()(
             towerGameStatus: 'waiting',
             currentAI: null
           });
+          currentAIEngine?.dispose?.();
           currentAIEngine = null;
         },
 

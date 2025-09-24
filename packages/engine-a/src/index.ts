@@ -1,4 +1,4 @@
-import type { Engine, EngineRequest, EngineResponse, Move } from "shared-types";
+import type { Engine, EngineRequest, EngineResponse, Position } from "shared-types";
 import { getValidMoves } from "core";
 
 function pick<T>(arr: T[]): T | undefined {
@@ -7,11 +7,24 @@ function pick<T>(arr: T[]): T | undefined {
 }
 
 const engine: Engine = {
+  name: "Random Engine",
+  version: "1.0.0",
+  author: "Infinite Othello",
+
   async analyze(req: EngineRequest): Promise<EngineResponse> {
-    const moves: Move[] = getValidMoves(req.state);
-    const move = pick(moves);
-    return { move, nodes: moves.length, evaluation: 0 };
-  },
+    // Get valid moves using new game logic
+    const moves = Array.from(getValidMoves(req.gameCore.board, req.gameCore.currentPlayer));
+    const bestMove = pick(moves);
+
+    return {
+      bestMove,
+      evaluation: 0, // Random engine doesn't evaluate
+      nodes: moves.length,
+      depth: 1,
+      timeUsed: 1, // Minimal time for random selection
+      pv: bestMove ? [bestMove] : undefined
+    };
+  }
 };
 
 export default engine;

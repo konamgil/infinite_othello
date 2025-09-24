@@ -8,10 +8,10 @@ let current: Engine | null = null;
  * The engines are lazy-loaded, meaning they are only imported when first requested.
  * The selected engine is stored in the `current` module-level variable.
  *
- * @param {'A' | 'B' | 'C' | 'D'} tier - The tier of the engine to select.
+ * @param {'A' | 'B' | 'C' | 'D' | 'NEO'} tier - The tier of the engine to select.
  * @returns {Promise<void>} A promise that resolves when the engine has been imported and selected.
  */
-export async function selectEngine(tier: "A" | "B" | "C" | "D"): Promise<void> {
+export async function selectEngine(tier: "A" | "B" | "C" | "D" | "NEO"): Promise<void> {
   switch (tier) {
     case "A":
       current = (await import("engine-a")).default;
@@ -24,6 +24,9 @@ export async function selectEngine(tier: "A" | "B" | "C" | "D"): Promise<void> {
       break;
     case "D":
       current = (await import("engine-d")).default;
+      break;
+    case "NEO":
+      current = (await import("engine-neo")).default;
       break;
     default:
       current = (await import("engine-a")).default;

@@ -12,6 +12,15 @@ import {
   type ValidMove,
 } from './othelloLogic';
 
+import type {
+  Engine,
+  EngineRequest,
+  GameCore as SharedGameCore,
+  Board as SharedBoard,
+  Position as SharedPosition,
+  Move as SharedMove
+} from 'shared-types';
+
 // === 타워 AI 설정 ===
 export interface TowerAIConfig {
   floor: number; // 1-300층
@@ -61,6 +70,34 @@ export type AIAbility =
   | 'learning'         // 학습 능력
   | 'adaptation'       // 상대 적응
   | 'time_management'; // 시간 관리
+
+// === 엔진 정책 ===
+const TOWER_ENGINE_POLICY = {
+  mode: 'neo' as 'neo' | 'legacy' | 'hybrid',
+  neoStartFloor: 1
+} as const;
+
+const DIFFICULTY_SKILL_MAP: Record<AILevel, number> = {
+  tutorial: 15,
+  beginner: 30,
+  intermediate: 55,
+  advanced: 75,
+  master: 90,
+  grandmaster: 95,
+  legendary: 100
+};
+
+const shouldUseNeoEngine = (floor: number): boolean => {
+  switch (TOWER_ENGINE_POLICY.mode) {
+    case 'legacy':
+      return false;
+    case 'hybrid':
+      return floor >= TOWER_ENGINE_POLICY.neoStartFloor;
+    case 'neo':
+    default:
+      return true;
+  }
+};
 
 // === 층별 AI 구성 ===
 export const TOWER_AI_CONFIGS: TowerAIConfig[] = [
@@ -158,12 +195,19 @@ export const TOWER_AI_CONFIGS: TowerAIConfig[] = [
 
 // === AI 엔진 클래스 ===
 export class TowerAIEngine {
-  private config: TowerAIConfig;
+  private readonly floor: number;
+  private readonly config: TowerAIConfig;
+  private readonly useNeo: boolean;
   private openingBook: Map<string, ValidMove[]> = new Map();
   private gameHistory: Array<{ board: Board; move: ValidMove }> = [];
+  private neoEngine: Engine | null = null;
+  private neoLoadingPromise: Promise<Engine> | null = null;
+  private neoConfigured = false;
 
   constructor(floor: number) {
+    this.floor = floor;
     this.config = TOWER_AI_CONFIGS[floor - 1];
+    this.useNeo = shouldUseNeoEngine(floor);
     this.initializeOpeningBook();
   }
 
@@ -177,18 +221,31 @@ export class TowerAIEngine {
     // 생각 시간 시뮬레이션
     await this.think();
 
-    let selectedMove: ValidMove;
+    let selectedMove: ValidMove | null = null;
 
-    // 능력별 처리
-    if (this.hasAbility('opening_book') && this.gameHistory.length < 10) {
-      const bookMove = this.getOpeningBookMove(board);
-      if (bookMove) return bookMove;
+    if (this.useNeo) {
+      selectedMove = await this.calculateWithNeo(board, player, validMoves);
     }
 
-    if (this.hasAbility('endgame_solver') && this.isEndgame(board)) {
-      selectedMove = this.solveEndgame(board, validMoves);
-    } else {
-      selectedMove = this.selectMoveByStrategy(board, validMoves, player);
+    if (!selectedMove) {
+      // 능력별 처리 (레거시 로직)
+      if (this.hasAbility('opening_book') && this.gameHistory.length < 10) {
+        const bookMove = this.getOpeningBookMove(board);
+        if (bookMove) {
+          return bookMove;
+        }
+      }
+
+      if (this.hasAbility('endgame_solver') && this.isEndgame(board)) {
+        selectedMove = this.solveEndgame(board, validMoves);
+      } else {
+        selectedMove = this.selectMoveByStrategy(board, validMoves, player);
+      }
+    }
+
+    // 안정성 위해 fallback
+    if (!selectedMove) {
+      selectedMove = validMoves[0];
     }
 
     // 실수 확률 적용
@@ -202,6 +259,150 @@ export class TowerAIEngine {
     }
 
     return selectedMove;
+  }
+
+  private async calculateWithNeo(
+    board: Board,
+    player: Player,
+    validMoves: ValidMove[]
+  ): Promise<ValidMove | null> {
+    try {
+      const engine = await this.ensureNeoEngine();
+      const score = calculateScore(board);
+
+      const sharedValidMoves = validMoves.map(({ row, col }) => ({ row, col } as SharedPosition));
+
+      const gameCore: SharedGameCore = {
+        id: `tower-floor-${this.floor}`,
+        board: board as SharedBoard,
+        currentPlayer: player,
+        validMoves: sharedValidMoves,
+        score: { black: score.black, white: score.white },
+        status: 'playing',
+        moveHistory: [] as SharedMove[],
+        canUndo: false,
+        canRedo: false
+      };
+
+      const request: EngineRequest = {
+        gameCore,
+        timeLimit: Math.max(500, this.config.thinkingTime),
+        skill: this.estimateSkillLevel(),
+        depth: undefined
+      };
+
+      const response = await engine.analyze(request);
+
+      if (!response.bestMove) {
+        return null;
+      }
+
+      const match = validMoves.find(move =>
+        move.row === response.bestMove!.row && move.col === response.bestMove!.col
+      );
+
+      return match ?? null;
+    } catch (error) {
+      console.warn('[TowerAI] Engine-Neo 실패, 레거시 전략으로 대체합니다.', error);
+      return null;
+    }
+  }
+
+  private async ensureNeoEngine(): Promise<Engine> {
+    if (this.neoEngine) {
+      if (!this.neoConfigured) {
+        this.configureNeoEngine(this.neoEngine);
+      }
+      return this.neoEngine;
+    }
+
+    if (!this.neoLoadingPromise) {
+      this.neoLoadingPromise = import('engine-neo').then(module => {
+        let engineInstance: Engine | null = null;
+
+        if (typeof module.EngineNeo === 'function') {
+          engineInstance = new module.EngineNeo(this.getNeoConfig());
+        } else {
+          const candidate = module.engineNeo ?? module.default;
+          if (candidate && typeof (candidate as Engine).analyze === 'function') {
+            engineInstance = candidate as Engine;
+          }
+        }
+
+        if (!engineInstance) {
+          throw new Error('Engine-Neo 모듈에서 사용 가능한 엔진을 찾을 수 없습니다.');
+        }
+
+        this.neoEngine = engineInstance;
+        this.configureNeoEngine(engineInstance);
+        return engineInstance;
+      });
+    }
+
+    return this.neoLoadingPromise;
+  }
+
+  private configureNeoEngine(engine: Engine): void {
+    if (typeof (engine as any).clearState === 'function') {
+      (engine as any).clearState();
+    }
+
+    const config = this.getNeoConfig();
+    if (typeof (engine as any).updateConfig === 'function') {
+      (engine as any).updateConfig(config);
+    }
+
+    this.neoConfigured = true;
+  }
+
+  private getNeoConfig(): Record<string, unknown> {
+    const skill = this.estimateSkillLevel();
+    const level = Math.max(12, Math.min(30, Math.round(10 + skill / 3)));
+
+    const maxThinkTime = Math.max(1500, this.config.thinkingTime);
+    const minThinkTime = Math.max(250, Math.min(800, Math.round(maxThinkTime * 0.2)));
+
+    return {
+      level,
+      enableOpeningBook: this.hasAbility('opening_book'),
+      enableEndgameTablebase: this.hasAbility('endgame_solver'),
+      timeConfig: {
+        totalTime: Math.max(12000, maxThinkTime * 4),
+        increment: 0,
+        minThinkTime,
+        maxThinkTime
+      },
+      aspirationConfig: {
+        level
+      }
+    };
+  }
+
+  private estimateSkillLevel(): number {
+    const difficultyWeight = DIFFICULTY_SKILL_MAP[this.config.difficulty];
+    const mistakePenalty = Math.round(Math.max(0, 1 - this.config.mistakeRate) * 100);
+    const blended = Math.round(difficultyWeight * 0.6 + mistakePenalty * 0.4);
+    return Math.max(10, Math.min(100, blended));
+  }
+
+  dispose(): void {
+    if (this.neoEngine && typeof this.neoEngine.stop === 'function') {
+      try {
+        this.neoEngine.stop();
+      } catch (error) {
+        console.warn('[TowerAI] Engine-Neo stop 호출 실패', error);
+      }
+    }
+    if (this.neoEngine && typeof (this.neoEngine as any).clearState === 'function') {
+      try {
+        (this.neoEngine as any).clearState();
+      } catch (error) {
+        console.warn('[TowerAI] Engine-Neo clearState 호출 실패', error);
+      }
+    }
+    this.neoEngine = null;
+    this.neoLoadingPromise = null;
+    this.neoConfigured = false;
   }
 
   /**
