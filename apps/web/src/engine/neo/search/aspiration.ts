@@ -1,7 +1,7 @@
 // Aspiration window search implementation
 // Converted from search-neo.js aspiration window logic
 
-import type { Board, Player, Position } from '../../types';
+import type { Board, Player, Position } from '../../../types';
 import { PVSEngine, type SearchResult, type SearchConfig } from './pvs';
 import { evaluateBoard } from '../evaluation/heuristic';
 

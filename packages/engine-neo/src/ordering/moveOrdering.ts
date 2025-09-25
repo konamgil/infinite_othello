@@ -171,7 +171,8 @@ function scoreMoveForOrdering(
   if (ttBestMove &&
       ttBestMove.row === move.row &&
       ttBestMove.col === move.col) {
-    score += 10000;
+    const ttBoost = ply < 8 ? 0 : 10000;
+    score += ttBoost;
   }
 
   // 2. Corner moves are extremely valuable

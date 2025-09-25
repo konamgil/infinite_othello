@@ -1,7 +1,7 @@
 // Time management system for search algorithms
 // Converted from search-neo.js time control logic
 
-import type { Board } from '../../types';
+import type { Board } from '../../../types';
 
 export interface TimeConfig {
   totalTime: number;      // Total time available (ms)

@@ -1,7 +1,7 @@
 // Main heuristic evaluation function
 // Converted and optimized from ai.js heuristicEvaluate
 
-import type { Board, Player } from '../../types';
+import type { Board, Player } from '../../../types';
 import { getEvaluationWeights, POSITIONAL_WEIGHTS, CORNER_DATA } from './weights';
 import {
   countStableDiscs,

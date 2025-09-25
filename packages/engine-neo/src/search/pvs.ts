@@ -159,6 +159,7 @@ export class PVSEngine {
 
     // Generate and order moves
     const moves = getValidMoves(board, player);
+    const empties = this.countEmptySquares(board);
     if (moves.length === 0) {
       // Pass move or game over
       const opponent = player === "black" ? "white" : "black";
@@ -233,7 +234,7 @@ export class PVSEngine {
       } else {
         // Late move reduction
         let reduction = 0;
-        if (this.shouldReduceMove(moveCount, depth, move, settings)) {
+        if (this.shouldReduceMove(moveCount, depth, move, settings, empties)) {
           reduction = Math.floor(
             settings.lmrBase + (Math.log(depth) * Math.log(moveCount)) / 3,
           );
@@ -405,6 +406,9 @@ export class PVSEngine {
     beta: number,
     settings: any,
   ): boolean {
+    if (moveCount < 6) {
+      return false;
+    }
     if (
       depth >= 6 &&
       moveCount >=
@@ -420,8 +424,15 @@ export class PVSEngine {
     depth: number,
     move: Position,
     settings: any,
+    empties: number,
   ): boolean {
-    return depth >= 3 && moveCount >= 4 && !this.isImportantMove(move);
+    if (depth < 4) {
+      return false;
+    }
+    if (empties >= 48) {
+      return false;
+    }
+    return moveCount >= 4 && !this.isImportantMove(move);
   }
 
   private isImportantMove(move: Position): boolean {

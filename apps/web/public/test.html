@@ -330,19 +330,22 @@
     .board-cell.ai-hint::after {
       content: attr(data-ai-eval);
       position: absolute;
-      top: 8px;
-      right: 8px;
-      transform: translate(50%, -50%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: rgba(56, 189, 248, 0.9);
       color: #0b1120;
       font-size: 12px;
       font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 999px;
+      padding: 6px 10px;
+      border-radius: 10px;
       pointer-events: none;
       box-shadow: 0 6px 18px rgba(56, 189, 248, 0.35);
+      text-align: center;
+      white-space: pre;
+      line-height: 1.2;
+      min-width: 42px;
     }
-
     .board-cell.ai-hint.ai-best::after {
       background: #4ade80;
       color: #0b1120;
@@ -540,6 +543,28 @@
       color: #e2e8f0;
     }
 
+    .preview-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .preview-badge.deep {
+      background: rgba(56, 189, 248, 0.9);
+      color: #0b1120;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+
+    .preview-badge.heuristic {
+      background: rgba(148, 163, 184, 0.18);
+      color: #e2e8f0;
+    }
+
     .preview-item.best {
       border-color: #4ade80;
       box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
@@ -555,7 +580,16 @@
       margin-top: 6px;
     }
 
+    .preview-meta {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
     .preview-flips {
+      display: block;
+      margin-top: 4px;
       font-size: 12px;
       color: #94a3b8;
     }
@@ -747,6 +781,49 @@
       return player === 'black' ? 'white' : 'black';
     }
 
+    const STONE_SCALE_MAX = 64;
+
+    function mapEvalToStoneScale(evaluation) {
+      if (typeof evaluation !== 'number' || Number.isNaN(evaluation)) {
+        return 0;
+      }
+      const compressed = Math.tanh(evaluation / 120);
+      const scaled = Math.round(compressed * STONE_SCALE_MAX);
+      return Math.max(-STONE_SCALE_MAX, Math.min(STONE_SCALE_MAX, scaled));
+    }
+
+    function getStoneDiff(board, perspective = 'black') {
+      if (!Array.isArray(board)) return 0;
+      let black = 0;
+      let white = 0;
+      for (const row of board) {
+        for (const cell of row) {
+          if (cell === 'black') black += 1;
+          else if (cell === 'white') white += 1;
+        }
+      }
+      const diff = perspective === 'black' ? black - white : white - black;
+      return diff;
+    }
+
+    function summarizeBoardEvaluation(board, evaluation, perspective = 'black') {
+      return {
+        perspective,
+        stoneDiff: getStoneDiff(board, perspective),
+        normalizedEval: mapEvalToStoneScale(evaluation)
+      };
+    }
+
+    function formatSigned(value) {
+      if (typeof value !== 'number' || Number.isNaN(value)) {
+        return '0';
+      }
+      if (value === 0) {
+        return '0';
+      }
+      return value > 0 ? `+${value}` : `${value}`;
+    }
+
     function createInitialBoard() {
       const board = Array.from({ length: 8 }, () => Array(8).fill(null));
       board[3][3] = 'white';
@@ -860,6 +937,29 @@
     }
 
 
+
+    function formatAiHintLabel(hint) {
+      const value = typeof hint?.evaluation === 'number'
+        ? `${hint.evaluation >= 0 ? '+' : ''}${Math.round(hint.evaluation)}`
+        : '';
+
+      if (!value) return '';
+
+      const depthLabel = typeof hint?.depth === 'number' ? `D${hint.depth}` : '';
+      const elapsed = typeof hint?.elapsedMs === 'number'
+        ? Math.max(0, Math.round(hint.elapsedMs / 1000))
+        : typeof hint?.timeMs === 'number'
+          ? Math.max(0, Math.round(hint.timeMs / 1000))
+          : null;
+      const timeLabel = elapsed !== null ? `${elapsed}s` : '';
+      const nodesLabel = typeof hint?.nodes === 'number'
+        ? (hint.nodes.toLocaleString ? hint.nodes.toLocaleString() : String(hint.nodes)) + ' nodes'
+        : '';
+
+      const parts = [value, depthLabel, timeLabel, nodesLabel].filter(Boolean);
+      return parts.join('\n');
+    }
+
     function applyAiHints(insights = []) {
       const cells = Array.from(elements.board.children);
       cells.forEach(cell => {
@@ -874,7 +974,13 @@
       const lookup = new Map();
       insights.forEach((entry, index) => {
         const key = `${entry.move.row}-${entry.move.col}`;
-        lookup.set(key, { evaluation: entry.evaluation, best: index === 0 });
+        lookup.set(key, {
+          evaluation: entry.evaluation,
+          depth: entry.depth,
+          elapsedMs: entry.elapsedMs ?? entry.timeMs,
+          nodes: entry.nodes,
+          best: index === 0
+        });
       });
 
       cells.forEach(cell => {
@@ -882,10 +988,7 @@
         const hint = lookup.get(key);
         if (!hint) return;
 
-        const evalLabel = typeof hint.evaluation === 'number'
-          ? `${hint.evaluation >= 0 ? '+' : ''}${hint.evaluation}`
-          : '';
-
+        const evalLabel = formatAiHintLabel(hint);
         if (!evalLabel) return;
 
         cell.dataset.aiEval = evalLabel;
@@ -894,6 +997,70 @@
           cell.classList.add('ai-best');
         }
       });
+    }
+
+
+
+
+    function updateLiveAiHints(result, elapsedMs) {
+      if (!result?.bestMove) return;
+
+      const { row, col } = result.bestMove;
+      const evaluation = typeof result.evaluation === 'number' ? Math.round(result.evaluation) : null;
+      const depth = typeof result.depth === 'number' ? result.depth : null;
+      const time = typeof elapsedMs === 'number'
+        ? elapsedMs
+        : typeof result.timeUsed === 'number'
+          ? result.timeUsed
+          : null;
+      const nodes = typeof result.nodes === 'number' ? result.nodes : null;
+
+      const insights = Array.isArray(gameState.aiInsights) ? [...gameState.aiInsights] : [];
+      let found = false;
+
+      const updatedInsights = insights.map(entry => {
+        const isMatch = entry.move?.row === row && entry.move?.col === col;
+        if (isMatch) {
+          found = true;
+          return {
+            ...entry,
+            analysisType: 'deep',
+            evaluation: evaluation ?? entry.evaluation,
+            depth: depth ?? null,
+            elapsedMs: typeof time === 'number' ? time : null,
+            nodes: nodes ?? null
+          };
+        }
+
+        return {
+          ...entry,
+          analysisType: 'heuristic',
+          depth: null,
+          elapsedMs: null,
+          nodes: null
+        };
+      });
+
+      if (!found) {
+        updatedInsights.unshift({
+          move: { row, col },
+          evaluation: evaluation ?? 0,
+          depth: depth ?? null,
+          elapsedMs: typeof time === 'number' ? time : null,
+          nodes: nodes ?? null,
+          flips: 0,
+          analysisType: 'deep'
+        });
+      } else {
+        const matchIndex = updatedInsights.findIndex(entry => entry.analysisType === 'deep' && entry.move?.row === row && entry.move?.col === col);
+        if (matchIndex > 0) {
+          const [match] = updatedInsights.splice(matchIndex, 1);
+          updatedInsights.unshift(match);
+        }
+      }
+
+      gameState.aiInsights = updatedInsights;
+      renderAiInsights(gameState.aiInsights);
     }
 
     function renderBoard(highlightMoves = []) {
@@ -937,6 +1104,7 @@
       applyAiHints([]);
     }
 
+
     function renderAiInsights(entries) {
       if (!elements.aiPreview || !elements.aiPreviewBody) return;
       if (!entries || entries.length === 0) {
@@ -949,20 +1117,60 @@
       entries.forEach((entry, index) => {
         const item = document.createElement('div');
         item.className = 'preview-item' + (index === 0 ? ' best' : '');
+
+        const badge = document.createElement('span');
+        badge.className = 'preview-badge ' + (entry.analysisType === 'deep' ? 'deep' : 'heuristic');
+        badge.textContent = entry.analysisType === 'deep' ? '심층 탐색' : '빠른 평가';
+        item.appendChild(badge);
+
         const moveSpan = document.createElement('span');
         moveSpan.className = 'preview-move';
         moveSpan.textContent = formatMove(entry.move.row, entry.move.col);
+        item.appendChild(moveSpan);
+
         const evalSpan = document.createElement('span');
         evalSpan.className = 'preview-eval';
-        evalSpan.textContent = 'eval ' + (entry.evaluation >= 0 ? '+' : '') + entry.evaluation;
-        const flipsSpan = document.createElement('span');
-        flipsSpan.className = 'preview-flips';
-        flipsSpan.textContent = entry.flips + ' flips';
-        item.append(moveSpan, evalSpan, flipsSpan);
+        const evaluation = typeof entry.evaluation === 'number' ? entry.evaluation : null;
+        evalSpan.textContent = evaluation !== null
+          ? 'eval ' + (evaluation >= 0 ? '+' : '') + evaluation
+          : 'eval —';
+        item.appendChild(evalSpan);
+
+        if (entry.analysisType === 'deep') {
+          const metaParts = [];
+          if (typeof entry.depth === 'number') {
+            metaParts.push('depth ' + entry.depth);
+          }
+          const seconds = typeof entry.elapsedMs === 'number'
+            ? Math.max(0, Math.round(entry.elapsedMs / 1000))
+            : null;
+          if (seconds !== null) {
+            metaParts.push(seconds + 's');
+          }
+          if (typeof entry.nodes === 'number') {
+            const nodesLabel = entry.nodes.toLocaleString ? entry.nodes.toLocaleString() : String(entry.nodes);
+            metaParts.push(nodesLabel + ' nodes');
+          }
+          if (metaParts.length > 0) {
+            const metaSpan = document.createElement('span');
+            metaSpan.className = 'preview-meta';
+            metaSpan.textContent = metaParts.join(' · ');
+            item.appendChild(metaSpan);
+          }
+        }
+
+        if (typeof entry.flips === 'number') {
+          const flipsSpan = document.createElement('span');
+          flipsSpan.className = 'preview-flips';
+          flipsSpan.textContent = entry.flips + ' flips';
+          item.appendChild(flipsSpan);
+        }
+
         elements.aiPreviewBody.appendChild(item);
       });
       applyAiHints(entries);
     }
+
 
     function ensureEngineWorker() {
       if (engineWorker || engineWorkerReady) {
@@ -991,6 +1199,7 @@
         const displayResult = payload?.result || payload?.bestResult;
         if (displayResult) {
           updateScoreboard(displayResult);
+          updateLiveAiHints(displayResult, payload?.elapsed);
         }
 
         const seconds = Math.min(10, Math.max(1, Math.ceil((payload?.elapsed || 0) / 1000)));
@@ -1008,6 +1217,7 @@
         if (payload?.bestResult) {
           gameState.engineBestResult = payload.bestResult;
           updateScoreboard(payload.bestResult);
+          updateLiveAiHints(payload.bestResult, payload?.elapsed);
         }
 
         const finalEval = typeof (payload?.bestResult?.evaluation) === 'number' ? payload.bestResult.evaluation : null;
@@ -1094,7 +1304,15 @@
             ? counts.black - counts.white
             : counts.white - counts.black;
         }
-        previews.push({ move, evaluation: Math.round(evaluation), flips: flips.length });
+        previews.push({
+          move,
+          evaluation: Math.round(evaluation),
+          flips: flips.length,
+          depth: null,
+          elapsedMs: null,
+          nodes: null,
+          analysisType: 'heuristic'
+        });
       }
       previews.sort((a, b) => (b.evaluation ?? -Infinity) - (a.evaluation ?? -Infinity));
       console.log('[Neo Preview]', previews);
@@ -1433,9 +1651,22 @@
       }
     }
 
-    function displayResult(testName, result) {
+    function displayResult(testName, result, options = {}) {
+      const { board, perspective = 'black' } = options;
       const resultsDiv = document.getElementById('results');
       const isSuccess = !result.error;
+      const evaluationValue = typeof result?.evaluation === 'number'
+        ? result.evaluation
+        : typeof result?.stats?.evaluation === 'number'
+          ? result.stats.evaluation
+          : null;
+      const evaluationSummary = board
+        ? summarizeBoardEvaluation(board, evaluationValue ?? undefined, perspective)
+        : null;
+      const normalizedEval = evaluationSummary
+        ? evaluationSummary.normalizedEval
+        : mapEvalToStoneScale(evaluationValue ?? undefined);
+      const stoneDiff = evaluationSummary?.stoneDiff ?? null;
       let metricsHTML = '';
 
       if (isSuccess && result.testCount) {
@@ -1471,9 +1702,19 @@
               <span class="metric-value">${result.bestMove ? formatMove(result.bestMove.row, result.bestMove.col) : 'None'}</span>
             </div>
             <div class="metric">
-              <span class="metric-label">Evaluation</span>
-              <span class="metric-value">${result.evaluation}</span>
+              <span class="metric-label">Eval (raw)</span>
+              <span class="metric-value">${evaluationValue ?? '—'}</span>
             </div>
+            <div class="metric">
+              <span class="metric-label">Eval (±Discs)</span>
+              <span class="metric-value">${formatSigned(normalizedEval)}</span>
+            </div>
+            ${stoneDiff !== null ? `
+              <div class="metric">
+                <span class="metric-label">Stone Diff</span>
+                <span class="metric-value">${formatSigned(stoneDiff)}</span>
+              </div>
+            ` : ''}
             <div class="metric">
               <span class="metric-label">Depth</span>
               <span class="metric-value">${result.depth}</span>
@@ -1515,7 +1756,8 @@
       resultsDiv.insertAdjacentHTML('afterbegin', resultHTML);
     }
 
-    window.runBasicTest = async function runBasicTest() {
+
+window.runBasicTest = async function runBasicTest() {
       if (!engineReady) {
         alert('엔진이 아직 준비되지 않았습니다.');
         return;
@@ -1523,22 +1765,24 @@
 
       setButtonLoading('basic-test-btn', true);
       try {
+        const board = createInitialBoard();
+        const score = calculateScore(board);
         const result = await engineNeo.analyze({
           gameCore: {
             id: 'basic-test',
-            board: createInitialBoard(),
+            board,
             currentPlayer: 'black',
             validMoves: [],
-            score: { black: 2, white: 2 },
+            score,
             status: 'playing',
             moveHistory: [],
             canUndo: false,
             canRedo: false
           },
-          timeLimit: 2000,
-          skill: 50
+          timeLimit: 10000,
+          skill: 90
         });
-        displayResult('기본 성능 테스트 (2초, 난이도 50)', result);
+        displayResult('기본 성능 테스트 (기본 보드)', result, { board, perspective: 'black' });
       } catch (error) {
         console.error('기본 테스트 실패', error);
         displayResult('기본 성능 테스트', { error: error instanceof Error ? error.message : String(error) });
@@ -1570,13 +1814,14 @@
         board[5][3] = 'white';
         board[5][4] = 'black';
 
+        const score = calculateScore(board);
         const result = await engineNeo.analyze({
           gameCore: {
             id: 'advanced-test',
             board,
             currentPlayer: 'black',
             validMoves: [],
-            score: { black: 8, white: 7 },
+            score,
             status: 'playing',
             moveHistory: [],
             canUndo: false,
@@ -1585,7 +1830,7 @@
           timeLimit: 5000,
           skill: 90
         });
-        displayResult('고급 성능 테스트 (5초, 난이도 90, 복잡한 보드)', result);
+        displayResult('고급 성능 테스트 (복잡한 보드)', result, { board, perspective: 'black' });
       } catch (error) {
         console.error('고급 테스트 실패', error);
         displayResult('고급 성능 테스트', { error: error instanceof Error ? error.message : String(error) });

@@ -249,7 +249,10 @@ export class TowerAIEngine {
     }
 
     // 실수 확률 적용
-    if (Math.random() < this.config.mistakeRate) {
+    const skillForMistake = this.estimateSkillLevel();
+    const mistakeScale = skillForMistake >= 85 ? 0.2 : skillForMistake >= 70 ? 0.4 : skillForMistake >= 55 ? 0.7 : 1;
+    const effectiveMistakeRate = this.config.mistakeRate * mistakeScale;
+    if (effectiveMistakeRate > 0 && Math.random() < effectiveMistakeRate) {
       selectedMove = this.makeMistake(validMoves, selectedMove);
     }
 
@@ -284,14 +287,57 @@ export class TowerAIEngine {
         canRedo: false
       };
 
+
+
+      const skill = this.estimateSkillLevel();
+      const intensity = Math.min(1, Math.max(0, skill / 100));
+      const empties = 64 - (score.black + score.white);
+
+      const baseThinking = Math.max(800, this.config.thinkingTime);
+      let timeLimit = Math.round(baseThinking * (0.9 + intensity * 1.25));
+      if (this.hasAbility('time_management')) {
+        timeLimit = Math.round(timeLimit * 1.2);
+      }
+      if (empties <= 18) {
+        timeLimit = Math.round(timeLimit * 1.5);
+      }
+      if (empties <= 10) {
+        timeLimit = Math.round(timeLimit * 2);
+      }
+      timeLimit = Math.min(timeLimit, 12000);
+
       const request: EngineRequest = {
         gameCore,
-        timeLimit: Math.max(500, this.config.thinkingTime),
-        skill: this.estimateSkillLevel(),
+        timeLimit,
+        skill,
         depth: undefined
       };
 
-      const response = await engine.analyze(request);
+      let response = await engine.analyze(request);
+
+      const needsDeeperSearch =
+        response.bestMove &&
+        typeof response.evaluation === 'number' &&
+        intensity >= 0.75 &&
+        empties <= 32 &&
+        (response.evaluation ?? 0) < 0;
+
+      if (needsDeeperSearch && timeLimit < 9000) {
+        const secondTimeLimit = Math.min(12000, Math.round(timeLimit * 1.6));
+        const deeperResponse = await engine.analyze({
+          ...request,
+          timeLimit: secondTimeLimit,
+          skill: Math.min(100, skill + 3)
+        });
+
+        if (
+          deeperResponse.bestMove &&
+          typeof deeperResponse.evaluation === 'number' &&
+          deeperResponse.evaluation > (response.evaluation ?? -Infinity)
+        ) {
+          response = deeperResponse;
+        }
+      }
 
       if (!response.bestMove) {
         return null;
@@ -357,23 +403,43 @@ export class TowerAIEngine {
 
   private getNeoConfig(): Record<string, unknown> {
     const skill = this.estimateSkillLevel();
-    const level = Math.max(12, Math.min(30, Math.round(10 + skill / 3)));
+    const intensity = Math.min(1, Math.max(0, skill / 100));
 
-    const maxThinkTime = Math.max(1500, this.config.thinkingTime);
-    const minThinkTime = Math.max(250, Math.min(800, Math.round(maxThinkTime * 0.2)));
+    const level = Math.max(16, Math.min(45, Math.round(18 + intensity * 22)));
+
+    const timeManagementBoost = this.hasAbility('time_management') ? 0.3 : 0;
+    const baseThinking = Math.max(800, this.config.thinkingTime);
+    let maxThinkTime = Math.round(
+      Math.max(1800, baseThinking * (1 + intensity * 1.1 + timeManagementBoost))
+    );
+    maxThinkTime = Math.min(maxThinkTime, 12000);
+    const minThinkTime = Math.max(350, Math.min(1200, Math.round(maxThinkTime * 0.25)));
+
+    const totalTime = Math.max(
+      18000,
+      Math.round(maxThinkTime * (4.5 + intensity * 2.5))
+    );
+    const increment = Math.min(1500, Math.round(maxThinkTime * 0.12));
 
     return {
       level,
+      ttSize: intensity >= 0.75 ? 400000 : 250000,
       enableOpeningBook: this.hasAbility('opening_book'),
       enableEndgameTablebase: this.hasAbility('endgame_solver'),
       timeConfig: {
-        totalTime: Math.max(12000, maxThinkTime * 4),
-        increment: 0,
+        totalTime,
+        increment,
         minThinkTime,
         maxThinkTime
       },
       aspirationConfig: {
-        level
+        level,
+        initialWindow: intensity >= 0.8 ? 35 : 45,
+        maxWindow: intensity >= 0.8 ? 320 : 380,
+        windowGrowth: intensity >= 0.9 ? 1.7 : 1.9,
+        enableTT: true,
+        enableKillers: true,
+        enableHistory: true
       }
     };
   }

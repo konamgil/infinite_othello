@@ -1,12 +1,12 @@
 // Principal Variation Search (PVS) implementation
 // Converted from search-neo.js PVS algorithm
 
-import type { Board, Player, Position } from '../../types';
+import type { Board, Player, Position } from '../../../types';
 import { TranspositionTable, TTFlag, type TTEntry } from '../optimization/transTable';
 import { KillerMoves, HistoryTable, orderMoves, type MoveOrderingContext } from '../ordering/moveOrdering';
 import { evaluateBoard, isEndgamePhase } from '../evaluation/heuristic';
 import { getCurrentMobility } from '../evaluation/mobility';
-import { getValidMoves } from '../../core';
+import { getValidMoves } from '../../../core/gameCore';
 import { getLevelConfig, getSelectivitySettings, STABILITY_THRESHOLDS, PRUNING_PARAMS } from '../config/selectivity';
 
 export interface SearchResult {

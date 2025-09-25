@@ -1,7 +1,7 @@
 // Transposition Table implementation with aging
 // Converted from search-neo.js makeTT function
 
-import type { Position } from '../../types';
+import type { Position } from '../../../types';
 
 export enum TTFlag {
   EXACT = 0,  // Exact score

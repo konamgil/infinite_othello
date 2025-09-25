@@ -1,7 +1,7 @@
 // Move ordering system for search optimization
 // Converted from ai.js and search-neo.js move ordering logic
 
-import type { Position, Player, Board } from '../../types';
+import type { Position, Player, Board } from '../../../types';
 import { POSITIONAL_WEIGHTS } from '../evaluation/weights';
 import { isImportantMove } from '../evaluation/mobility';
 

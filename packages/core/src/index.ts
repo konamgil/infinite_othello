@@ -12,3 +12,6 @@ export { GameStateManager } from "./GameStateManager";
 export * from "./SearchWorkerManager";
 export { SearchWorkerManager } from "./SearchWorkerManager";
 
+
+// Evaluation helpers
+export * from "./evaluation/scoreUtils";

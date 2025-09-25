@@ -1,8 +1,8 @@
 // Mobility analysis functions
 // Converted from ai.js mobility and potential mobility calculations
 
-import type { Board, Player, Position } from '../../types';
-import { getValidMoves } from '../../core';
+import type { Board, Player, Position } from '../../../types';
+import { getValidMoves } from '../../../core/gameCore';
 import { DIRECTIONS } from './weights';
 
 /**

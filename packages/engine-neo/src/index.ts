@@ -27,14 +27,14 @@ export interface EngineNeoConfig {
 }
 
 export const DEFAULT_ENGINE_CONFIG: EngineNeoConfig = {
-  level: 18,
+  level: 22,
   timeConfig: {
-    totalTime: 30000,    // 30 seconds
-    increment: 1000,     // 1 second increment
-    minThinkTime: 500,   // 0.5 seconds minimum
-    maxThinkTime: 10000  // 10 seconds maximum
+    totalTime: 36000,    // 36 seconds
+    increment: 1200,     // 1.2 second increment
+    minThinkTime: 600,   // 0.6 seconds minimum
+    maxThinkTime: 12000  // 12 seconds maximum
   },
-  ttSize: 200000,
+  ttSize: 400000,
   enableOpeningBook: false,
   enableEndgameTablebase: false
 };
@@ -271,10 +271,10 @@ export class EngineNeo implements Engine {
     // Update time manager if time config changed
     if (newConfig.timeConfig) {
       const timeConfig: TimeConfig = {
-        totalTime: 30000,
-        increment: 1000,
-        minThinkTime: 500,
-        maxThinkTime: 10000,
+        totalTime: 36000,
+        increment: 1200,
+        minThinkTime: 600,
+        maxThinkTime: 12000,
         ...this.config.timeConfig
       };
       this.timeManager = new TimeManager(timeConfig);

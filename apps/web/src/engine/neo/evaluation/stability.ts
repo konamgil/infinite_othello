@@ -1,7 +1,7 @@
 // Stability analysis functions
 // Converted from ai.js countStableDiscs and countEdgeStableDiscs
 
-import type { Board, Player } from '../../types';
+import type { Board, Player } from '../../../types';
 import { DIRECTIONS } from './weights';
 
 /**
