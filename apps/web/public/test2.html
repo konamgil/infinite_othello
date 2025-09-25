@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenith AI Engine Test</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .header h1 {
+      color: #a78bfa;
+      margin-bottom: 10px;
+      font-size: 42px;
+      text-shadow: 0 0 20px rgba(167, 139, 250, 0.5);
+    }
+
+    .header p {
+      color: #cbd5e1;
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .engine-info {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
+    }
+
+    .engine-info h2 {
+      margin: 0 0 16px;
+      color: #a78bfa;
+      font-size: 22px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .info-item {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .info-label {
+      color: #94a3b8;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      color: #e2e8f0;
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 6px;
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .test-btn {
+      background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 17px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      margin: 0 10px 12px;
+      box-shadow: 0 10px 24px rgba(139, 92, 246, 0.35);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .test-btn.secondary {
+      background: linear-gradient(135deg, #475569, #374151);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.45);
+    }
+
+    .test-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(139, 92, 246, 0.4);
+    }
+
+    .test-btn:disabled {
+      background: linear-gradient(135deg, #475569, #334155);
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .loading {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(148, 163, 184, 0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.9s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .results {
+      margin-top: 32px;
+    }
+
+    .test-result {
+      background: rgba(15, 23, 42, 0.8);
+      margin-bottom: 22px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4);
+    }
+
+    .test-result.success {
+      border-left: 4px solid #4ade80;
+    }
+
+    .test-result.error {
+      border-left: 4px solid #f87171;
+    }
+
+    .result-header {
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(148, 163, 184, 0.08);
+    }
+
+    .result-title {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .result-status {
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .status-success {
+      background: #4ade80;
+      color: #0b1120;
+    }
+
+    .status-error {
+      background: #f87171;
+      color: #0b1120;
+    }
+
+    .result-body {
+      padding: 24px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
+    }
+
+    .metric {
+      text-align: center;
+      padding: 14px;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .metric-label {
+      color: #94a3b8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      color: #e2e8f0;
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+    }
+
+    .error-message {
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      padding: 18px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .game-section {
+      margin-top: 48px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      border-radius: 18px;
+      padding: 28px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.55);
+    }
+
+    .game-section h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      color: #a78bfa;
+    }
+
+    .game-section p {
+      margin: 0 0 20px;
+      color: #94a3b8;
+    }
+
+    .game-controls {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .game-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .board-wrapper {
+      background: radial-gradient(circle at 20% 20%, rgba(167, 139, 250, 0.2), rgba(99, 102, 241, 0.2));
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      box-shadow: inset 0 0 25px rgba(15, 23, 42, 0.45);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      width: min(440px, 90vw);
+      aspect-ratio: 1;
+      background: #064e3b;
+      border-radius: 18px;
+      padding: 12px;
+      box-sizing: border-box;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .board-cell {
+      position: relative;
+      background: linear-gradient(180deg, #15803d, #065f46);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .board-cell:hover:not(.disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 118, 110, 0.35);
+    }
+
+    .board-cell.disabled {
+      cursor: default;
+      opacity: 0.7;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .board-cell.valid-move::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(167, 139, 250, 0.85);
+      box-shadow: 0 0 16px rgba(167, 139, 250, 0.6);
+    }
+
+    .board-cell.last-move {
+      outline: 3px solid #fbbf24;
+      outline-offset: -3px;
+    }
+
+    .piece {
+      position: absolute;
+      width: 74%;
+      height: 74%;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .board-cell.has-piece .piece {
+      transform: scale(1);
+    }
+
+    .piece.black {
+      background: radial-gradient(circle at 30% 30%, #1e293b, #010409 65%);
+      box-shadow: inset -6px -6px 12px rgba(15, 23, 42, 0.6);
+    }
+
+    .piece.white {
+      background: radial-gradient(circle at 30% 30%, #ffffff, #cbd5f5 65%);
+      box-shadow: inset -4px -4px 10px rgba(148, 163, 184, 0.4);
+    }
+
+    .game-sidebar {
+      flex: 1;
+      min-width: 260px;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .scoreboard {
+      background: rgba(30, 41, 59, 0.8);
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .score-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .score-item .score-label {
+      font-size: 13px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .score-item .score-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-top: 4px;
+    }
+
+    .score-item.black .score-value {
+      color: #a78bfa;
+    }
+
+    .score-item.white .score-value {
+      color: #f8fafc;
+    }
+
+    .status-panel {
+      background: rgba(15, 23, 42, 0.75);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(167, 139, 250, 0.18);
+      font-size: 15px;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+    }
+
+    #game-status {
+      color: #e2e8f0;
+    }
+
+    .log-panel {
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 240px;
+    }
+
+    .log-header {
+      background: rgba(167, 139, 250, 0.12);
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #a78bfa;
+      border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+    }
+
+    .move-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px dotted rgba(148, 163, 184, 0.1);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry .tag {
+      display: inline-block;
+      width: 48px;
+      font-weight: 700;
+    }
+
+    .log-entry.player {
+      color: #a78bfa;
+    }
+
+    .log-entry.engine {
+      color: #fbbf24;
+    }
+
+    .log-entry.info {
+      color: #a1a1aa;
+    }
+
+    .log-entry.error {
+      color: #fca5a5;
+    }
+
+    .zenith-features {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .zenith-features h3 {
+      color: #a78bfa;
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-item {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .feature-title {
+      color: #a78bfa;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      color: #94a3b8;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+      .test-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚡ Zenith AI Engine Test</h1>
+      <p>최첨단 제니스 엔진의 고급 AI 기능을 테스트하고 실전 대국을 즐겨보세요.</p>
+    </div>
+
+    <div class="zenith-features">
+      <h3>🚀 Zenith 고급 기능</h3>
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-title">🧠 다중 요인 평가</div>
+          <div class="feature-desc">이동성, 안정성, 모서리 제어 등 7가지 요인을 종합 분석</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">🎯 전략적 분석</div>
+          <div class="feature-desc">게임 단계별 최적 전략 수립 및 적응형 전략 시스템</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">🔍 상대방 분석</div>
+          <div class="feature-desc">상대방의 패턴을 학습하고 대응 전략을 자동 조정</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">🔮 예측적 탐색</div>
+          <div class="feature-desc">미래 시나리오를 예측하여 최적의 수를 선택</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">📈 자기 학습</div>
+          <div class="feature-desc">게임 결과를 학습하여 지속적으로 실력 향상</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">⚡ 적응형 전략</div>
+          <div class="feature-desc">상황에 따라 전략을 동적으로 변경하는 지능형 AI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="engine-info">
+      <h2>📋 Zenith Engine Information</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Name</div>
+          <div class="info-value" id="engine-name">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Version</div>
+          <div class="info-value" id="engine-version">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Author</div>
+          <div class="info-value" id="engine-author">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Level</div>
+          <div class="info-value" id="engine-level">Loading...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Status</div>
+          <div class="info-value" id="engine-status">엔진 로딩 중...</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Features</div>
+          <div class="info-value" id="engine-features">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="test-btn" id="basic-test-btn" disabled>
+        <span>🧪 기본 성능 테스트</span>
+      </button>
+      <button class="test-btn" id="advanced-test-btn" disabled>
+        <span>⚡ 고급 성능 테스트</span>
+      </button>
+      <button class="test-btn" id="zenith-test-btn" disabled>
+        <span>🚀 Zenith 특화 테스트</span>
+      </button>
+      <button class="test-btn" id="learning-test-btn" disabled>
+        <span>📚 학습 기능 테스트</span>
+      </button>
+      <button class="test-btn" id="strategy-test-btn" disabled>
+        <span>🎯 전략 분석 테스트</span>
+      </button>
+      <button class="test-btn" id="play-game-btn" disabled>
+        <span>🎮 Zenith와 대국하기</span>
+      </button>
+    </div>
+
+    <div id="results" class="results"></div>
+
+    <!-- 게임 섹션 -->
+    <div class="game-section" id="game-section" style="display: none;">
+      <h2>🎮 Zenith와 실전 대국</h2>
+      <p>최첨단 Zenith AI와 실전 대국을 즐겨보세요. 고급 분석과 전략적 사고를 경험할 수 있습니다.</p>
+      
+      <div class="game-controls">
+        <button class="test-btn" id="start-game-btn" disabled>
+          <span>🎮 게임 시작</span>
+        </button>
+        <button class="test-btn secondary" id="reset-game-btn" disabled>
+          <span>↻ 초기화</span>
+        </button>
+      </div>
+
+      <div id="game-area" class="game-area">
+        <div class="board-wrapper">
+          <div id="othello-board" class="board"></div>
+        </div>
+        <div class="game-sidebar">
+          <div class="scoreboard">
+            <div class="score-row">
+              <div class="score-item black">
+                <span class="score-label">Black (You)</span>
+                <span class="score-value" id="score-black">2</span>
+              </div>
+              <div class="score-item white">
+                <span class="score-label">White (Zenith)</span>
+                <span class="score-value" id="score-white">2</span>
+              </div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">현재 턴</span>
+              <span class="score-value" id="current-turn">-</span>
+            </div>
+          </div>
+          <div class="status-panel">
+            <div id="game-status">게임을 시작하려면 "게임 시작" 버튼을 누르세요.</div>
+          </div>
+          <div class="log-panel">
+            <div class="log-header">Move Log</div>
+            <div id="move-log" class="move-log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Zenith Engine Test Implementation
+    let engineZenith = null;
+    let engineReady = false;
+    let engineModule = null;
+
+    const elements = {
+      engineName: document.getElementById('engine-name'),
+      engineVersion: document.getElementById('engine-version'),
+      engineAuthor: document.getElementById('engine-author'),
+      engineLevel: document.getElementById('engine-level'),
+      engineStatus: document.getElementById('engine-status'),
+      engineFeatures: document.getElementById('engine-features'),
+      basicTest: document.getElementById('basic-test-btn'),
+      advancedTest: document.getElementById('advanced-test-btn'),
+      zenithTest: document.getElementById('zenith-test-btn'),
+      learningTest: document.getElementById('learning-test-btn'),
+      strategyTest: document.getElementById('strategy-test-btn'),
+      playGame: document.getElementById('play-game-btn'),
+      results: document.getElementById('results'),
+      gameSection: document.getElementById('game-section'),
+      board: document.getElementById('othello-board'),
+      scoreBlack: document.getElementById('score-black'),
+      scoreWhite: document.getElementById('score-white'),
+      currentTurn: document.getElementById('current-turn'),
+      gameStatus: document.getElementById('game-status'),
+      moveLog: document.getElementById('move-log'),
+      startButton: document.getElementById('start-game-btn'),
+      resetButton: document.getElementById('reset-game-btn')
+    };
+
+    // 게임 상태
+    const gameState = {
+      board: [],
+      human: 'black',
+      engine: 'white',
+      currentPlayer: 'black',
+      inProgress: false,
+      canClick: false,
+      validMoves: [],
+      lastMove: null,
+      moveNumber: 1
+    };
+
+    function setButtonLoading(buttonId, loading) {
+      const button = document.getElementById(buttonId);
+      if (!button) return;
+
+      if (loading) {
+        if (!button.dataset.original) {
+          button.dataset.original = button.innerHTML;
+        }
+        button.disabled = true;
+        button.innerHTML = `<span class="loading"></span><span>${button.textContent.trim()}</span>`;
+      } else {
+        if (button.dataset.original) {
+          button.innerHTML = button.dataset.original;
+          delete button.dataset.original;
+        }
+        if (button !== elements.basicTest || engineReady) {
+          button.disabled = false;
+        }
+      }
+    }
+
+    function displayResult(testName, result, options = {}) {
+      const isSuccess = !result.error;
+      const resultsDiv = document.getElementById('results');
+      
+      let metricsHTML = '';
+      if (isSuccess && result.testCount) {
+        metricsHTML = `
+          <div class="metrics-grid">
+            <div class="metric">
+              <span class="metric-label">Runs</span>
+              <span class="metric-value">${result.testCount}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Success</span>
+              <span class="metric-value">${result.successRate}%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Avg Time</span>
+              <span class="metric-value">${result.avgTime}ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Avg Nodes</span>
+              <span class="metric-value">${result.avgNodes?.toLocaleString?.() || 0}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Total Time</span>
+              <span class="metric-value">${result.totalTime}ms</span>
+            </div>
+          </div>
+        `;
+      } else if (isSuccess) {
+        metricsHTML = `
+          <div class="metrics-grid">
+            <div class="metric">
+              <span class="metric-label">Best Move</span>
+              <span class="metric-value">${result.bestMove ? `${String.fromCharCode(65 + result.bestMove.col)}${result.bestMove.row + 1}` : 'None'}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Eval</span>
+              <span class="metric-value">${result.evaluation ?? '—'}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Depth</span>
+              <span class="metric-value">${result.depth}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Nodes</span>
+              <span class="metric-value">${result.nodes?.toLocaleString?.() || 0}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Time</span>
+              <span class="metric-value">${result.timeUsed}ms</span>
+            </div>
+          </div>
+        `;
+      } else {
+        metricsHTML = `<div class="error-message">${result.error}</div>`;
+      }
+
+      const resultHTML = `
+        <div class="test-result ${isSuccess ? 'success' : 'error'}">
+          <div class="result-header">
+            <div class="result-title">${testName}</div>
+            <div class="result-status ${isSuccess ? 'status-success' : 'status-error'}">
+              ${isSuccess ? '✅ PASS' : '❌ FAIL'}
+            </div>
+          </div>
+          <div class="result-body">
+            ${metricsHTML}
+          </div>
+        </div>
+      `;
+
+      resultsDiv.insertAdjacentHTML('afterbegin', resultHTML);
+    }
+
+    // Test Functions
+    window.runBasicTest = async function runBasicTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      setButtonLoading('basic-test-btn', true);
+      try {
+        const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+        board[3][3] = 'white';
+        board[3][4] = 'black';
+        board[4][3] = 'black';
+        board[4][4] = 'white';
+
+        const result = await engineZenith.analyze({
+          gameCore: {
+            id: 'basic-test',
+            board,
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 2, white: 2 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 10000,
+          skill: 90
+        });
+        displayResult('기본 성능 테스트 (초기 보드)', result);
+      } catch (error) {
+        console.error('기본 테스트 실패', error);
+        displayResult('기본 성능 테스트', { error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        setButtonLoading('basic-test-btn', false);
+      }
+    };
+
+    window.runAdvancedTest = async function runAdvancedTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      setButtonLoading('advanced-test-btn', true);
+      try {
+        const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+        // 복잡한 중간 게임 보드 설정
+        board[2][2] = 'black';
+        board[2][3] = 'white';
+        board[2][4] = 'black';
+        board[3][2] = 'white';
+        board[3][3] = 'white';
+        board[3][4] = 'black';
+        board[3][5] = 'white';
+        board[4][2] = 'black';
+        board[4][3] = 'black';
+        board[4][4] = 'white';
+        board[4][5] = 'black';
+        board[5][3] = 'white';
+        board[5][4] = 'black';
+
+        const result = await engineZenith.analyze({
+          gameCore: {
+            id: 'advanced-test',
+            board,
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 8, white: 7 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 5000,
+          skill: 90
+        });
+        displayResult('고급 성능 테스트 (복잡한 보드)', result);
+      } catch (error) {
+        console.error('고급 테스트 실패', error);
+        displayResult('고급 성능 테스트', { error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        setButtonLoading('advanced-test-btn', false);
+      }
+    };
+
+    window.runZenithTest = async function runZenithTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      setButtonLoading('zenith-test-btn', true);
+      try {
+        // Zenith 특화 기능 테스트
+        const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+        board[3][3] = 'white';
+        board[3][4] = 'black';
+        board[4][3] = 'black';
+        board[4][4] = 'white';
+
+        const result = await engineZenith.analyze({
+          gameCore: {
+            id: 'zenith-test',
+            board,
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 2, white: 2 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 15000,
+          skill: 95
+        });
+        displayResult('Zenith 특화 테스트 (고급 분석)', result);
+      } catch (error) {
+        console.error('Zenith 테스트 실패', error);
+        displayResult('Zenith 특화 테스트', { error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        setButtonLoading('zenith-test-btn', false);
+      }
+    };
+
+    window.runLearningTest = async function runLearningTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      setButtonLoading('learning-test-btn', true);
+      try {
+        // 학습 기능 테스트
+        const results = [];
+        const testCount = 3;
+
+        for (let i = 0; i < testCount; i++) {
+          const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+          board[3][3] = 'white';
+          board[3][4] = 'black';
+          board[4][3] = 'black';
+          board[4][4] = 'white';
+
+          const result = await engineZenith.analyze({
+            gameCore: {
+              id: `learning-test-${i}`,
+              board,
+              currentPlayer: 'black',
+              validMoves: [],
+              score: { black: 2, white: 2 },
+              status: 'playing',
+              moveHistory: [],
+              canUndo: false,
+              canRedo: false
+            },
+            timeLimit: 3000,
+            skill: 85
+          });
+          results.push({ success: true, time: result.timeUsed || 0 });
+        }
+
+        const successCount = results.filter(r => r.success).length;
+        const avgTime = Math.round(results.reduce((sum, r) => sum + r.time, 0) / results.length);
+
+        displayResult(`학습 기능 테스트 (${testCount}회 연속)`, {
+          testCount,
+          successCount,
+          successRate: Math.round((successCount / testCount) * 100),
+          avgTime,
+          totalTime: Math.round(results.reduce((sum, r) => sum + r.time, 0))
+        });
+      } catch (error) {
+        console.error('학습 테스트 실패', error);
+        displayResult('학습 기능 테스트', { error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        setButtonLoading('learning-test-btn', false);
+      }
+    };
+
+    window.runStrategyTest = async function runStrategyTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      setButtonLoading('strategy-test-btn', true);
+      try {
+        // 전략 분석 테스트
+        const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+        board[3][3] = 'white';
+        board[3][4] = 'black';
+        board[4][3] = 'black';
+        board[4][4] = 'white';
+
+        const result = await engineZenith.analyze({
+          gameCore: {
+            id: 'strategy-test',
+            board,
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 2, white: 2 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 8000,
+          skill: 90
+        });
+        displayResult('전략 분석 테스트 (전략적 사고)', result);
+      } catch (error) {
+        console.error('전략 테스트 실패', error);
+        displayResult('전략 분석 테스트', { error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        setButtonLoading('strategy-test-btn', false);
+      }
+    };
+
+    // 실제 Zenith 엔진을 사용합니다
+
+    async function loadEngine() {
+      try {
+        console.log('[Zenith] 실제 Zenith 엔진 로딩 시작...');
+        
+        // 실제 Zenith 엔진 로딩
+        const module = await import('./engine-zenith.js');
+        console.log('[Zenith] 모듈 로딩 완료:', module);
+        
+        // 모듈에서 Zenith 엔진 인스턴스 가져오기
+        if (module.engineZenith) {
+          engineZenith = module.engineZenith;
+        } else if (module.EngineZenith) {
+          engineZenith = new module.EngineZenith();
+        } else if (module.default) {
+          engineZenith = module.default.engineZenith || new module.default.EngineZenith();
+        } else {
+          throw new Error('Zenith 엔진을 찾을 수 없습니다.');
+        }
+        
+        engineReady = true;
+        console.log('[Zenith] 실제 Zenith 엔진 로딩 완료:', engineZenith);
+
+        elements.engineName.textContent = engineZenith.name || 'Engine-Zenith';
+        elements.engineVersion.textContent = engineZenith.version || '1.0.0';
+        elements.engineAuthor.textContent = engineZenith.author || 'Zenith Research Team';
+        elements.engineLevel.textContent = `Level ${engineZenith.level || 18}`;
+        elements.engineStatus.textContent = '✅ Ready (Real)';
+        elements.engineFeatures.textContent = '6 Features';
+
+        [elements.basicTest, elements.advancedTest, elements.zenithTest, elements.learningTest, elements.strategyTest, elements.playGame]
+          .forEach(btn => btn.disabled = false);
+          
+        console.log('[Zenith] 모든 기능 활성화 완료');
+      } catch (error) {
+        console.error('Zenith 엔진 로딩 실패:', error);
+        elements.engineStatus.textContent = '❌ Failed';
+        elements.engineName.textContent = 'Load error';
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            <div class="result-header">
+              <div class="result-title">Zenith 엔진 로딩 실패</div>
+              <div class="result-status status-error">❌ ERROR</div>
+            </div>
+            <div class="result-body">
+              <div class="error-message">${error instanceof Error ? error.message : error}</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 게임 관련 함수들
+    function createInitialBoard() {
+      const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      board[3][3] = 'white';
+      board[3][4] = 'black';
+      board[4][3] = 'black';
+      board[4][4] = 'white';
+      return board;
+    }
+
+    function getValidMoves(board, player) {
+      const moves = [];
+      const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+      
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          if (board[row][col] === null) {
+            let isValid = false;
+            for (const [dr, dc] of directions) {
+              if (checkDirection(board, row, col, dr, dc, player)) {
+                isValid = true;
+                break;
+              }
+            }
+            if (isValid) {
+              moves.push({ row, col });
+            }
+          }
+        }
+      }
+      return moves;
+    }
+
+    function checkDirection(board, row, col, dr, dc, player) {
+      const opponent = player === 'black' ? 'white' : 'black';
+      let r = row + dr;
+      let c = col + dc;
+      let foundOpponent = false;
+      
+      while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+        if (board[r][c] === opponent) {
+          foundOpponent = true;
+        } else if (board[r][c] === player && foundOpponent) {
+          return true;
+        } else {
+          break;
+        }
+        r += dr;
+        c += dc;
+      }
+      return false;
+    }
+
+    function applyMove(board, player, move) {
+      const newBoard = board.map(row => [...row]);
+      const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+      const flips = [];
+      
+      newBoard[move.row][move.col] = player;
+      
+      for (const [dr, dc] of directions) {
+        const path = [];
+        let r = move.row + dr;
+        let c = move.col + dc;
+        
+        while (r >= 0 && r < 8 && c >= 0 && c < 8 && newBoard[r][c] === (player === 'black' ? 'white' : 'black')) {
+          path.push([r, c]);
+          r += dr;
+          c += dc;
+        }
+        
+        if (r >= 0 && r < 8 && c >= 0 && c < 8 && newBoard[r][c] === player && path.length > 0) {
+          flips.push(...path);
+        }
+      }
+      
+      for (const [r, c] of flips) {
+        newBoard[r][c] = player;
+      }
+      
+      return { board: newBoard, flips: flips.length };
+    }
+
+    function countPieces(board) {
+      let black = 0, white = 0;
+      for (const row of board) {
+        for (const cell of row) {
+          if (cell === 'black') black++;
+          else if (cell === 'white') white++;
+        }
+      }
+      return { black, white };
+    }
+
+    function formatMove(row, col) {
+      return `${String.fromCharCode(65 + col)}${row + 1}`;
+    }
+
+    function buildBoardUI() {
+      elements.board.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'board-cell disabled';
+          cell.dataset.row = String(row);
+          cell.dataset.col = String(col);
+          const piece = document.createElement('span');
+          piece.className = 'piece';
+          cell.appendChild(piece);
+          cell.addEventListener('click', handleCellClick);
+          elements.board.appendChild(cell);
+        }
+      }
+    }
+
+    function renderBoard() {
+      const lastMoveKey = gameState.lastMove ? `${gameState.lastMove.row}-${gameState.lastMove.col}` : null;
+      
+      Array.from(elements.board.children).forEach(cell => {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        const pieceEl = cell.querySelector('.piece');
+        const value = gameState.board[row][col];
+
+        cell.classList.remove('valid-move', 'last-move', 'has-piece', 'disabled');
+        pieceEl.className = 'piece';
+
+        if (value === 'black' || value === 'white') {
+          cell.classList.add('has-piece');
+          pieceEl.classList.add(value);
+        }
+
+        if (lastMoveKey === `${row}-${col}`) {
+          cell.classList.add('last-move');
+        }
+
+        if (gameState.canClick && gameState.validMoves.some(move => move.row === row && move.col === col)) {
+          cell.classList.add('valid-move');
+        } else {
+          cell.classList.add('disabled');
+        }
+      });
+    }
+
+    function updateScoreboard() {
+      const { black, white } = countPieces(gameState.board);
+      elements.scoreBlack.textContent = black;
+      elements.scoreWhite.textContent = white;
+      
+      if (gameState.inProgress) {
+        const turnLabel = gameState.currentPlayer === gameState.human ? 'You (Black)' : 'Zenith (White)';
+        elements.currentTurn.textContent = turnLabel;
+      } else {
+        elements.currentTurn.textContent = '-';
+      }
+    }
+
+    function addLogEntry(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = message;
+      elements.moveLog.appendChild(entry);
+      elements.moveLog.scrollTop = elements.moveLog.scrollHeight;
+    }
+
+    function setGameStatus(message) {
+      elements.gameStatus.textContent = message;
+    }
+
+    async function handleCellClick(event) {
+      if (!gameState.inProgress || !gameState.canClick) return;
+      
+      const cell = event.currentTarget;
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+
+      if (!gameState.validMoves.some(move => move.row === row && move.col === col)) {
+        return;
+      }
+
+      gameState.canClick = false;
+      const { board, flips } = applyMove(gameState.board, gameState.human, { row, col });
+      gameState.board = board;
+      gameState.lastMove = { row, col, player: gameState.human };
+      addLogEntry(`You → ${formatMove(row, col)} (${flips}개 뒤집음)`, 'player');
+      updateScoreboard();
+      renderBoard();
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await nextTurn(gameState.engine);
+    }
+
+    async function nextTurn(nextPlayer) {
+      const movesHuman = getValidMoves(gameState.board, gameState.human);
+      const movesEngine = getValidMoves(gameState.board, gameState.engine);
+      const { black, white } = countPieces(gameState.board);
+
+      if ((movesHuman.length === 0 && movesEngine.length === 0) || black + white === 64) {
+        endGame();
+        return;
+      }
+
+      if (nextPlayer === gameState.human) {
+        if (movesHuman.length === 0) {
+          addLogEntry('당신은 둘 곳이 없어 패스합니다.', 'info');
+          setGameStatus('둘 곳이 없어 패스합니다. Zenith가 다시 둡니다.');
+          gameState.currentPlayer = gameState.engine;
+          gameState.canClick = false;
+          await nextTurn(gameState.engine);
+          return;
+        }
+
+        gameState.currentPlayer = gameState.human;
+        gameState.canClick = true;
+        gameState.validMoves = movesHuman;
+        renderBoard();
+        setGameStatus(`당신의 차례입니다. 가능한 수: ${movesHuman.length}개`);
+        return;
+      }
+
+      gameState.currentPlayer = gameState.engine;
+      gameState.canClick = false;
+      renderBoard();
+
+      if (movesEngine.length === 0) {
+        addLogEntry('Zenith는 둘 곳이 없어 패스합니다.', 'info');
+        setGameStatus('Zenith가 둘 곳이 없어 패스합니다. 다시 당신의 차례입니다.');
+        await nextTurn(gameState.human);
+        return;
+      }
+
+      setGameStatus('Zenith가 고급 분석 중입니다...');
+      
+      // Zenith가 실제로 생각하는 시간 시뮬레이션 (더 오래)
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      try {
+        console.log('[Zenith] 실제 Zenith 엔진 분석 시작...');
+        console.log('[Zenith] 엔진 상태:', engineZenith);
+        console.log('[Zenith] 엔진 설정:', engineZenith.config);
+        
+        // Zenith 엔진 설정 확인 및 수정
+        if (engineZenith.config) {
+          console.log('[Zenith] 현재 설정:', engineZenith.config);
+          // 설정 수정 시도
+          if (engineZenith.config.level) {
+            engineZenith.config.level = 20; // 최고 레벨
+          }
+        }
+        
+        const result = await engineZenith.analyze({
+          gameCore: {
+            id: 'zenith-game',
+            board: gameState.board,
+            currentPlayer: gameState.engine,
+            validMoves: movesEngine,
+            score: countPieces(gameState.board),
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 30000,
+          skill: 100
+        });
+
+        console.log('[Zenith] 분석 결과:', result);
+        console.log('[Zenith] result 타입:', typeof result);
+        console.log('[Zenith] result 키들:', Object.keys(result || {}));
+
+        if (result && result.bestMove) {
+          console.log('[Zenith] 선택된 수:', result.bestMove);
+          console.log('[Zenith] 현재 보드 상태:', gameState.board);
+          
+          const { board, flips } = applyMove(gameState.board, gameState.engine, result.bestMove);
+          console.log('[Zenith] 수 적용 후 보드:', board);
+          console.log('[Zenith] 뒤집힌 돌 수:', flips);
+          
+          gameState.board = board;
+          gameState.lastMove = { row: result.bestMove.row, col: result.bestMove.col, player: gameState.engine };
+          
+          const evalText = result.evaluation ? ` (eval ${Math.round(result.evaluation)})` : '';
+          const depthText = result.depth ? ` (깊이 ${result.depth})` : '';
+          addLogEntry(`Zenith → ${formatMove(result.bestMove.row, result.bestMove.col)}${evalText}${depthText} (${flips}개 뒤집음)`, 'engine');
+          updateScoreboard();
+          renderBoard();
+        } else {
+          console.log('[Zenith] 유효한 수를 찾지 못함:', result);
+          addLogEntry('Zenith가 유효한 수를 찾지 못했습니다.', 'error');
+        }
+      } catch (error) {
+        console.error('Zenith 분석 오류:', error);
+        addLogEntry(`Zenith 분석 오류: ${error.message}`, 'error');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await nextTurn(gameState.human);
+    }
+
+    function endGame() {
+      const { black, white } = countPieces(gameState.board);
+      let message = '';
+      if (black > white) message = `게임 종료! 🏆 당신이 ${black}:${white}로 승리했습니다.`;
+      else if (white > black) message = `게임 종료! 🤖 Zenith가 ${white}:${black}로 승리했습니다.`;
+      else message = '게임 종료! 🤝 무승부입니다.';
+
+      addLogEntry(message, 'info');
+      setGameStatus(message);
+      gameState.inProgress = false;
+      gameState.canClick = false;
+      renderBoard();
+      elements.startButton.disabled = false;
+      elements.resetButton.disabled = false;
+    }
+
+    function resetGame() {
+      gameState.board = createInitialBoard();
+      gameState.currentPlayer = gameState.human;
+      gameState.inProgress = false;
+      gameState.canClick = false;
+      gameState.validMoves = [];
+      gameState.lastMove = null;
+      gameState.moveNumber = 1;
+      
+      elements.moveLog.innerHTML = '';
+      renderBoard();
+      updateScoreboard();
+      setGameStatus('게임을 시작하려면 "게임 시작" 버튼을 누르세요.');
+      elements.startButton.disabled = false;
+      elements.resetButton.disabled = true;
+    }
+
+    async function startGame() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      gameState.board = createInitialBoard();
+      gameState.currentPlayer = gameState.human;
+      gameState.inProgress = true;
+      gameState.canClick = false;
+      gameState.validMoves = [];
+      gameState.lastMove = null;
+      gameState.moveNumber = 1;
+
+      elements.startButton.disabled = true;
+      elements.resetButton.disabled = false;
+      addLogEntry('게임을 시작합니다. 당신은 흑(선공)입니다.', 'info');
+      renderBoard();
+      updateScoreboard();
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await nextTurn(gameState.human);
+    }
+
+    function showGameSection() {
+      elements.gameSection.style.display = 'block';
+      buildBoardUI();
+      resetGame();
+    }
+
+    // 이벤트 리스너 등록
+    elements.basicTest.addEventListener('click', window.runBasicTest);
+    elements.advancedTest.addEventListener('click', window.runAdvancedTest);
+    elements.zenithTest.addEventListener('click', window.runZenithTest);
+    elements.learningTest.addEventListener('click', window.runLearningTest);
+    elements.strategyTest.addEventListener('click', window.runStrategyTest);
+    elements.playGame.addEventListener('click', showGameSection);
+    elements.startButton.addEventListener('click', startGame);
+    elements.resetButton.addEventListener('click', resetGame);
+
+    // 엔진 로딩 시작
+    loadEngine();
+  </script>
+</body>
+</html>
