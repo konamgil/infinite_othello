@@ -1,12 +1,12 @@
 // Principal Variation Search (PVS) implementation
 // Converted from search-neo.js PVS algorithm
 
-import type { Board, Player, Position } from 'shared-types';
+import type { Board, Player, Position, GameCore } from 'shared-types';
 import { TranspositionTable, TTFlag, type TTEntry } from '../optimization/transTable';
 import { KillerMoves, HistoryTable, orderMoves, type MoveOrderingContext } from '../ordering/moveOrdering';
 import { evaluateBoard, isEndgamePhase } from '../evaluation/heuristic';
 import { getCurrentMobility } from '../evaluation/mobility';
-import { getValidMoves } from 'core';
+import { getValidMoves, makeMove as coreMakeMove } from 'core';
 import { getLevelConfig, getSelectivitySettings, STABILITY_THRESHOLDS, PRUNING_PARAMS } from '../config/selectivity';
 
 export interface SearchResult {
@@ -184,6 +184,12 @@ export class PVSEngine {
       }
 
       const newBoard = this.makeMove(board, move, player);
+
+      if (!newBoard) {
+
+        continue;
+
+      }
       const opponent = player === 'black' ? 'white' : 'black';
       let score: number;
 
@@ -277,9 +283,12 @@ export class PVSEngine {
     // Only search tactical moves in quiescence
     const tacticalMoves = this.filterTacticalMoves(moves, board);
 
-    for (const move of tacticalMoves) {
-      const newBoard = this.makeMove(board, move, player);
-      const opponent = player === 'black' ? 'white' : 'black';
+    for (const move of tacticalMoves) {
+      const newBoard = this.makeMove(board, move, player);
+      if (!newBoard) {
+        continue;
+      }
+      const opponent =      const opponent = player === 'black' ? 'white' : 'black';
       const score = -this.quiescenceSearch(newBoard, opponent, -beta, -alpha, ply + 1);
 
       if (score >= beta) return beta;
@@ -333,18 +342,127 @@ export class PVSEngine {
     return moves.filter(move => this.isImportantMove(move)).slice(0, 4);
   }
 
-  private makeMove(board: Board, move: Position, player: Player): Board {
-    // Use core makeMove for proper game logic with flipping
-    const { makeMove } = require('core');
-    const gameCore = {
+  private makeMove(board: Board, move: Position, player: Player): Board | null {
+
+    // Prefer the core implementation for accuracy when available
+
+    const gameCore: GameCore = {
+
+      id: 'pvs-move',
+
       board,
+
       currentPlayer: player,
-      gamePhase: 'midgame' as const
+
+      validMoves: [],
+
+      score: { black: 0, white: 0 },
+
+      status: 'playing',
+
+      moveHistory: [],
+
+      canUndo: false,
+
+      canRedo: false
+
     };
 
-    const result = makeMove(gameCore, move);
-    return result.success ? result.newGameCore!.board : board;
+
+
+    const result = coreMakeMove(gameCore, move);
+
+    if (result.success && result.newGameCore) {
+
+      return result.newGameCore.board;
+
+    }
+
+
+
+    return this.fallbackApplyMove(board, move, player);
+
   }
+
+
+
+  private fallbackApplyMove(board: Board, move: Position, player: Player): Board | null {
+
+    const opponent = player === 'black' ? 'white' : 'black';
+
+    const next = board.map(row => [...row]);
+
+    const directions = [
+
+      [-1, -1], [0, -1], [1, -1],
+
+      [-1, 0],            [1, 0],
+
+      [-1, 1],  [0, 1],   [1, 1]
+
+    ];
+
+
+
+    const flips: Position[] = [];
+
+
+
+    for (const [dr, dc] of directions) {
+
+      let r = move.row + dr;
+
+      let c = move.col + dc;
+
+      const path: Position[] = [];
+
+
+
+      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
+
+        path.push({ row: r, col: c });
+
+        r += dr;
+
+        c += dc;
+
+      }
+
+
+
+      if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
+
+        flips.push(...path);
+
+      }
+
+    }
+
+
+
+    if (flips.length === 0) {
+
+      return null;
+
+    }
+
+
+
+    next[move.row][move.col] = player;
+
+    for (const pos of flips) {
+
+      next[pos.row][pos.col] = player;
+
+    }
+
+
+
+    return next;
+
+  }
+
+
 
   private generateBoardKey(board: Board, player: Player): string {
     return `${JSON.stringify(board)}_${player}`;
@@ -376,3 +494,12 @@ export class PVSEngine {
     return playerCount - opponentCount;
   }
 }
+
+
+
+
+
+
+
+
+
