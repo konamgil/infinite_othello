@@ -210,10 +210,6 @@ export class PVSEngine {
       if (!newBoard) {
         continue;
       }
-
-      if (!newBoard) {
-        continue;
-      }
       const opponent = player === "black" ? "white" : "black";
       let score: number;
 

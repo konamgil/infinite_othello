@@ -325,6 +325,28 @@
       box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
     }
 
+
+
+    .board-cell.ai-hint::after {
+      content: attr(data-ai-eval);
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      transform: translate(50%, -50%);
+      background: rgba(56, 189, 248, 0.9);
+      color: #0b1120;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 999px;
+      pointer-events: none;
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.35);
+    }
+
+    .board-cell.ai-hint.ai-best::after {
+      background: #4ade80;
+      color: #0b1120;
+    }
     .board-cell.last-move {
       outline: 3px solid #fbbf24;
       outline-offset: -3px;
@@ -830,6 +852,43 @@
       });
     }
 
+
+    function applyAiHints(insights = []) {
+      const cells = Array.from(elements.board.children);
+      cells.forEach(cell => {
+        cell.classList.remove('ai-hint', 'ai-best');
+        delete cell.dataset.aiEval;
+      });
+
+      if (!Array.isArray(insights) || insights.length === 0) {
+        return;
+      }
+
+      const lookup = new Map();
+      insights.forEach((entry, index) => {
+        const key = `${entry.move.row}-${entry.move.col}`;
+        lookup.set(key, { evaluation: entry.evaluation, best: index === 0 });
+      });
+
+      cells.forEach(cell => {
+        const key = `${cell.dataset.row}-${cell.dataset.col}`;
+        const hint = lookup.get(key);
+        if (!hint) return;
+
+        const evalLabel = typeof hint.evaluation === 'number'
+          ? `${hint.evaluation >= 0 ? '+' : ''}${hint.evaluation}`
+          : '';
+
+        if (!evalLabel) return;
+
+        cell.dataset.aiEval = evalLabel;
+        cell.classList.add('ai-hint');
+        if (hint.best) {
+          cell.classList.add('ai-best');
+        }
+      });
+    }
+
     function renderBoard(highlightMoves = []) {
       const moveSet = new Set(highlightMoves.map(m => `${m.row}-${m.col}`));
       const lastMoveKey = gameState.lastMove ? `${gameState.lastMove.row}-${gameState.lastMove.col}` : null;
@@ -868,6 +927,7 @@
       elements.aiPreview.classList.remove('visible');
       elements.aiPreviewBody.innerHTML = '';
       gameState.aiInsights = [];
+      applyAiHints([]);
     }
 
     function renderAiInsights(entries) {
@@ -894,6 +954,7 @@
         item.append(moveSpan, evalSpan, flipsSpan);
         elements.aiPreviewBody.appendChild(item);
       });
+      applyAiHints(entries);
     }
 
     async function computeAiPreviews(moves) {
