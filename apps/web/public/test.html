@@ -874,15 +874,23 @@
       }
       elements.aiPreview.classList.remove('hidden');
       elements.aiPreview.classList.add('visible');
-      elements.aiPreviewBody.innerHTML = entries.map((entry, index) => 
-        <div class="preview-item">
-          <span class="preview-move"></span>
-          <span class="preview-eval">eval </span>
-          <span class="preview-flips"> flips</span>
-        </div>
-      ).join('');
+      elements.aiPreviewBody.innerHTML = '';
+      entries.forEach((entry, index) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item' + (index === 0 ? ' best' : '');
+        const moveSpan = document.createElement('span');
+        moveSpan.className = 'preview-move';
+        moveSpan.textContent = formatMove(entry.move.row, entry.move.col);
+        const evalSpan = document.createElement('span');
+        evalSpan.className = 'preview-eval';
+        evalSpan.textContent = 'eval ' + (entry.evaluation >= 0 ? '+' : '') + entry.evaluation;
+        const flipsSpan = document.createElement('span');
+        flipsSpan.className = 'preview-flips';
+        flipsSpan.textContent = entry.flips + ' flips';
+        item.append(moveSpan, evalSpan, flipsSpan);
+        elements.aiPreviewBody.appendChild(item);
+      });
     }
-
     async function computeAiPreviews(moves) {
       if (!moves || moves.length === 0) return [];
       const previews = [];
@@ -954,7 +962,7 @@
       elements.resetButton.disabled = false;
     }
 
-    function nextTurn(nextPlayer) {
+        async function nextTurn(nextPlayer) {
       const movesHuman = getValidMoves(gameState.board, gameState.human);
       const movesEngine = getValidMoves(gameState.board, gameState.engine);
       const { empty } = countPieces(gameState.board);
@@ -965,13 +973,14 @@
       }
 
       if (nextPlayer === gameState.human) {
+        clearAiInsights();
+        elements.nextButton.disabled = true;
         if (movesHuman.length === 0) {
           addLogEntry('당신은 둘 곳이 없어 패스합니다.', 'info');
           setGameStatus('둘 곳이 없어 패스합니다. Neo가 다시 둡니다.');
           gameState.currentPlayer = gameState.engine;
           gameState.canClick = false;
-          renderBoard();
-          setTimeout(() => engineTurn(movesEngine), 600);
+          await prepareEngineTurn(movesEngine);
           return;
         }
 
@@ -979,26 +988,24 @@
         gameState.canClick = true;
         gameState.validMoves = movesHuman;
         renderBoard(movesHuman);
-        setGameStatus(`당신의 차례입니다. 가능한 수 ${movesHuman.length}개`);
-      } else {
-        if (movesEngine.length === 0) {
-          addLogEntry('Neo는 둘 곳이 없어 패스합니다.', 'info');
-          setGameStatus('Neo가 둘 곳이 없어 패스합니다. 다시 당신의 차례입니다.');
-          gameState.currentPlayer = gameState.human;
-          gameState.canClick = true;
-          gameState.validMoves = movesHuman;
-          renderBoard(movesHuman);
-          return;
-        }
-
-        gameState.currentPlayer = gameState.engine;
-        gameState.canClick = false;
-        renderBoard();
-        engineTurn(movesEngine);
+        setGameStatus(당신의 차례입니다. 가능한 수 개);
+        return;
       }
-    }
 
-    async function handleCellClick(event) {
+      gameState.currentPlayer = gameState.engine;
+      gameState.canClick = false;
+      renderBoard();
+
+      if (movesEngine.length === 0) {
+        addLogEntry('Neo는 둘 곳이 없어 패스합니다.', 'info');
+        setGameStatus('Neo가 둘 곳이 없어 패스합니다. 다시 당신의 차례입니다.');
+        await nextTurn(gameState.human);
+        return;
+      }
+
+      await prepareEngineTurn(movesEngine);
+    }
+async function handleCellClick(event) {
       if (!gameState.inProgress || !gameState.canClick) return;
       const cell = event.currentTarget;
       const row = Number(cell.dataset.row);
@@ -1017,13 +1024,13 @@
       renderBoard();
 
       await sleep(120);
-      nextTurn(gameState.engine);
+      await nextTurn(gameState.engine);
     }
 
     async function engineTurn(precomputedMoves) {
       const moves = precomputedMoves ?? getValidMoves(gameState.board, gameState.engine);
       if (moves.length === 0) {
-        nextTurn(gameState.human);
+        await nextTurn(gameState.human);
         return;
       }
 
@@ -1075,7 +1082,7 @@
       }
 
       await sleep(250);
-      nextTurn(gameState.human);
+      await nextTurn(gameState.human);
     }
 
     function buildBoardUI() {
@@ -1137,7 +1144,7 @@
       updateScoreboard();
 
       await sleep(150);
-      nextTurn(gameState.human);
+      await nextTurn(gameState.human);
     }
 
     function setButtonLoading(buttonId, loading) {
