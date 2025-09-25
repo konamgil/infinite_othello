@@ -184,6 +184,9 @@ export class PVSEngine {
       }
 
       const newBoard = this.makeMove(board, move, player);
+      if (!newBoard) {
+        continue;
+      }
 
       if (!newBoard) {
 
@@ -283,11 +286,19 @@ export class PVSEngine {
     // Only search tactical moves in quiescence
     const tacticalMoves = this.filterTacticalMoves(moves, board);
 
-    for (const move of tacticalMoves) {
-      const newBoard = this.makeMove(board, move, player);
-      if (!newBoard) {
-        continue;
-      }
+    for (const move of tacticalMoves) {
+
+      const newBoard = this.makeMove(board, move, player);
+      if (!newBoard) {
+        continue;
+      }
+
+      if (!newBoard) {
+
+        continue;
+
+      }
+
       const opponent =      const opponent = player === 'black' ? 'white' : 'black';
       const score = -this.quiescenceSearch(newBoard, opponent, -beta, -alpha, ply + 1);
 
@@ -342,128 +353,58 @@ export class PVSEngine {
     return moves.filter(move => this.isImportantMove(move)).slice(0, 4);
   }
 
-  private makeMove(board: Board, move: Position, player: Player): Board | null {
-
-    // Prefer the core implementation for accuracy when available
-
-    const gameCore: GameCore = {
-
-      id: 'pvs-move',
-
-      board,
-
-      currentPlayer: player,
-
-      validMoves: [],
-
-      score: { black: 0, white: 0 },
-
-      status: 'playing',
-
-      moveHistory: [],
-
-      canUndo: false,
-
-      canRedo: false
-
-    };
-
-
-
-    const result = coreMakeMove(gameCore, move);
-
-    if (result.success && result.newGameCore) {
-
-      return result.newGameCore.board;
-
-    }
-
-
-
-    return this.fallbackApplyMove(board, move, player);
-
-  }
-
-
-
-  private fallbackApplyMove(board: Board, move: Position, player: Player): Board | null {
-
-    const opponent = player === 'black' ? 'white' : 'black';
-
-    const next = board.map(row => [...row]);
-
-    const directions = [
-
-      [-1, -1], [0, -1], [1, -1],
-
-      [-1, 0],            [1, 0],
-
-      [-1, 1],  [0, 1],   [1, 1]
-
-    ];
-
-
-
-    const flips: Position[] = [];
-
-
-
-    for (const [dr, dc] of directions) {
-
-      let r = move.row + dr;
-
-      let c = move.col + dc;
-
-      const path: Position[] = [];
-
-
-
-      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
-
-        path.push({ row: r, col: c });
-
-        r += dr;
-
-        c += dc;
-
-      }
-
-
-
-      if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
-
-        flips.push(...path);
-
-      }
-
-    }
-
-
-
-    if (flips.length === 0) {
-
-      return null;
-
-    }
-
-
-
-    next[move.row][move.col] = player;
-
-    for (const pos of flips) {
-
-      next[pos.row][pos.col] = player;
-
-    }
-
-
-
-    return next;
-
-  }
-
-
-
+  private makeMove(board: Board, move: Position, player: Player): Board | null {
+    // Prefer the core implementation for accuracy when available
+    const gameCore: GameCore = {
+      id: 'pvs-move',
+      board,
+      currentPlayer: player,
+      validMoves: [],
+      score: { black: 0, white: 0 },
+      status: 'playing',
+      moveHistory: [],
+      canUndo: false,
+      canRedo: false
+    };
+    const result = coreMakeMove(gameCore, move);
+    if (result.success && result.newGameCore) {
+      return result.newGameCore.board;
+    }
+    return this.fallbackApplyMove(board, move, player);
+  }
+
+  private fallbackApplyMove(board: Board, move: Position, player: Player): Board | null {
+    const opponent = player === 'black' ? 'white' : 'black';
+    const next = board.map(row => [...row]);
+    const directions = [
+      [-1, -1], [0, -1], [1, -1],
+      [-1, 0],            [1, 0],
+      [-1, 1],  [0, 1],   [1, 1]
+    ];
+    const flips: Position[] = [];
+    for (const [dr, dc] of directions) {
+      let r = move.row + dr;
+      let c = move.col + dc;
+      const path: Position[] = [];
+      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
+        path.push({ row: r, col: c });
+        r += dr;
+        c += dc;
+      }
+      if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
+        flips.push(...path);
+      }
+    }
+    if (flips.length === 0) {
+      return null;
+    }
+    next[move.row][move.col] = player;
+    for (const pos of flips) {
+      next[pos.row][pos.col] = player;
+    }
+    return next;
+  }
+
   private generateBoardKey(board: Board, player: Player): string {
     return `${JSON.stringify(board)}_${player}`;
   }

@@ -144,9 +144,15 @@ export class NWSEngine {
         }
       }
 
-      const newBoard = this.makeMove(board, move, player);
-    if (!newBoard) {
-      continue;
+      const newBoard = this.makeMove(board, move, player);
+      if (!newBoard) {
+        continue;
+      }
+
+    if (!newBoard) {
+
+      continue;
+
     }
       const opponent = player === 'black' ? 'white' : 'black';
 
@@ -315,12 +321,10 @@ export class NWSEngine {
       canUndo: false,
       canRedo: false
     };
-
     const result = coreMakeMove(gameCore, move);
     if (result.success && result.newGameCore) {
       return result.newGameCore.board;
     }
-
     return this.fallbackApplyMove(board, move, player);
   }
 
@@ -332,34 +336,27 @@ export class NWSEngine {
       [-1, 0],            [1, 0],
       [-1, 1],  [0, 1],   [1, 1]
     ];
-
     const flips: Position[] = [];
-
     for (const [dr, dc] of directions) {
       let r = move.row + dr;
       let c = move.col + dc;
       const path: Position[] = [];
-
       while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
         path.push({ row: r, col: c });
         r += dr;
         c += dc;
       }
-
       if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
         flips.push(...path);
       }
     }
-
     if (flips.length === 0) {
       return null;
     }
-
     next[move.row][move.col] = player;
     for (const pos of flips) {
       next[pos.row][pos.col] = player;
     }
-
     return next;
   }
 
