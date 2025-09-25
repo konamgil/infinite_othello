@@ -1954,6 +1954,7 @@ var ENDGAME_THRESHOLD = 20;
 var PVSEngine = class {
   constructor() {
     this.nodes = 0;
+    this.quiescenceVisited = /* @__PURE__ */ new Set();
     this.ttHits = 0;
     this.ttStores = 0;
     this.startTime = 0;
@@ -2035,9 +2036,22 @@ var PVSEngine = class {
       const opponent = player === "black" ? "white" : "black";
       const opponentMoves = getValidMoves(board, opponent);
       if (opponentMoves.length === 0) {
-        return { score: this.evaluateGameEnd(board, player), move: void 0, pv: [] };
+        return {
+          score: this.evaluateGameEnd(board, player),
+          move: void 0,
+          pv: []
+        };
       } else {
-        const result = this.pvs(board, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+        const result = this.pvs(
+          board,
+          opponent,
+          depth - 1,
+          -beta,
+          -alpha,
+          ply + 1,
+          isPV,
+          settings
+        );
         return { score: -result.score, move: void 0, pv: result.pv };
       }
     }
@@ -2061,13 +2075,19 @@ var PVSEngine = class {
       if (!newBoard) {
         continue;
       }
-      if (!newBoard) {
-        continue;
-      }
       const opponent = player === "black" ? "white" : "black";
       let score;
       if (moveCount === 0) {
-        const result = this.pvs(newBoard, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+        const result = this.pvs(
+          newBoard,
+          opponent,
+          depth - 1,
+          -beta,
+          -alpha,
+          ply + 1,
+          isPV,
+          settings
+        );
         score = -result.score;
         if (score > alpha) {
           pv = [move, ...result.pv];
@@ -2075,7 +2095,9 @@ var PVSEngine = class {
       } else {
         let reduction = 0;
         if (this.shouldReduceMove(moveCount, depth, move, settings)) {
-          reduction = Math.floor(settings.lmrBase + Math.log(depth) * Math.log(moveCount) / 3);
+          reduction = Math.floor(
+            settings.lmrBase + Math.log(depth) * Math.log(moveCount) / 3
+          );
           reduction = Math.max(0, Math.min(reduction, depth - 2));
         }
         const result = this.pvs(
@@ -2090,7 +2112,16 @@ var PVSEngine = class {
         );
         score = -result.score;
         if (score > alpha && score < beta && (reduction > 0 || !isPV)) {
-          const fullResult = this.pvs(newBoard, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+          const fullResult = this.pvs(
+            newBoard,
+            opponent,
+            depth - 1,
+            -beta,
+            -alpha,
+            ply + 1,
+            isPV,
+            settings
+          );
           score = -fullResult.score;
           if (score > alpha) {
             pv = [move, ...fullResult.pv];
@@ -2113,7 +2144,13 @@ var PVSEngine = class {
       moveCount++;
     }
     if (bestMove) {
-      const entry = this.tt.createEntry(depth, bestScore, bestMove, alpha, beta);
+      const entry = this.tt.createEntry(
+        depth,
+        bestScore,
+        bestMove,
+        alpha,
+        beta
+      );
       this.tt.set(ttKey, entry);
       this.ttStores++;
     }
@@ -2124,6 +2161,11 @@ var PVSEngine = class {
    */
   quiescenceSearch(board, player, alpha, beta, ply) {
     this.nodes++;
+    const stateKey = `${player}-${JSON.stringify(board)}`;
+    if (this.quiescenceVisited.has(stateKey)) {
+      return evaluateBoard(board, player);
+    }
+    this.quiescenceVisited.add(stateKey);
     if (ply >= 64) {
       return evaluateBoard(board, player);
     }
@@ -2137,7 +2179,13 @@ var PVSEngine = class {
       if (opponentMoves.length === 0) {
         return standPat;
       }
-      const score = -this.quiescenceSearch(board, opponent2, -beta, -alpha, ply + 1);
+      const score = -this.quiescenceSearch(
+        board,
+        opponent2,
+        -beta,
+        -alpha,
+        ply + 1
+      );
       if (score > alpha) {
         alpha = score;
       }
@@ -2153,7 +2201,13 @@ var PVSEngine = class {
       if (!newBoard) {
         continue;
       }
-      const score = -this.quiescenceSearch(newBoard, opponent, -beta, -alpha, ply + 1);
+      const score = -this.quiescenceSearch(
+        newBoard,
+        opponent,
+        -beta,
+        -alpha,
+        ply + 1
+      );
       if (score >= beta) return beta;
       if (score > alpha) alpha = score;
     }
@@ -2166,6 +2220,7 @@ var PVSEngine = class {
     this.startTime = Date.now();
     this.timeLimit = config.timeLimit || Infinity;
     this.tt.bumpAge();
+    this.quiescenceVisited.clear();
   }
   shouldStop() {
     return Date.now() - this.startTime >= this.timeLimit;

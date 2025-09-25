@@ -983,15 +983,20 @@
     }
 
     async function prepareEngineTurn(moves) {
-      gameState.pendingAiMoves = moves.map(move => ({ row: move.row, col: move.col }));
       gameState.awaitingAiMove = true;
 
       const insights = await computeAiPreviews(moves);
       gameState.aiInsights = insights;
       renderAiInsights(insights);
 
+      const orderedMoves = insights.length > 0
+        ? insights.map(entry => ({ row: entry.move.row, col: entry.move.col }))
+        : moves.map(move => ({ row: move.row, col: move.col }));
+
+      gameState.pendingAiMoves = orderedMoves;
+
       console.log('[Neo] 후보 수 평가 완료', {
-        moves: gameState.pendingAiMoves,
+        moves: orderedMoves,
         insights
       });
 
@@ -1137,11 +1142,24 @@
         console.log('[Neo] 분석 완료', result);
 
         const move = result.bestMove;
-        const chosen = move && isValidMove(gameState.board, gameState.engine, move.row, move.col)
+        let chosen = move && isValidMove(gameState.board, gameState.engine, move.row, move.col)
           ? move
-          : moves[0];
+          : null;
 
-        if (!move) {
+        if (!chosen) {
+          const previewBest = gameState.aiInsights?.[0]?.move;
+          if (previewBest && isValidMove(gameState.board, gameState.engine, previewBest.row, previewBest.col)) {
+            chosen = { row: previewBest.row, col: previewBest.col };
+            const previewEval = gameState.aiInsights[0]?.evaluation;
+            const previewLabel = typeof previewEval === 'number'
+              ? `${previewEval >= 0 ? '+' : ''}${previewEval}`
+              : 'N/A';
+            addLogEntry(`Neo가 사전 평가 최고 수를 선택했습니다. (eval ${previewLabel})`, 'info');
+          } else {
+            chosen = moves[0];
+            addLogEntry('Neo가 기본 후보 수를 선택했습니다.', 'info');
+          }
+        } else if (!move) {
           addLogEntry('Neo가 예비 수를 선택했습니다.', 'info');
         }
 

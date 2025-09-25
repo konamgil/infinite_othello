@@ -51,6 +51,7 @@ export class PVSEngine {
   private killers: KillerMoves;
   private history: HistoryTable;
   private nodes = 0;
+  private quiescenceVisited = new Set<string>();
   private ttHits = 0;
   private ttStores = 0;
   private startTime = 0;
@@ -319,6 +320,12 @@ export class PVSEngine {
   ): number {
     this.nodes++;
 
+    const stateKey = `${player}-${JSON.stringify(board)}`;
+    if (this.quiescenceVisited.has(stateKey)) {
+      return evaluateBoard(board, player);
+    }
+    this.quiescenceVisited.add(stateKey);
+
     if (ply >= 64) {
       return evaluateBoard(board, player);
     }
@@ -384,6 +391,7 @@ export class PVSEngine {
     this.startTime = Date.now();
     this.timeLimit = config.timeLimit || Infinity;
     this.tt.bumpAge();
+    this.quiescenceVisited.clear();
   }
 
   private shouldStop(): boolean {
