@@ -667,6 +667,7 @@
 
     let engineNeo = null;
     let engineReady = false;
+    let engineModule = null;
 
     const gameState = {
       board: [],
@@ -677,7 +678,10 @@
       canClick: false,
       validMoves: [],
       lastMove: null,
-      moveNumber: 1
+      moveNumber: 1,
+      aiInsights: [],
+      pendingAiMoves: null,
+      awaitingAiMove: false
     };
 
     const elements = {
@@ -891,6 +895,7 @@
         elements.aiPreviewBody.appendChild(item);
       });
     }
+
     async function computeAiPreviews(moves) {
       if (!moves || moves.length === 0) return [];
       const previews = [];
@@ -917,11 +922,18 @@
     }
 
     async function prepareEngineTurn(moves) {
-      gameState.pendingAiMoves = moves;
+      gameState.pendingAiMoves = moves.map(move => ({ row: move.row, col: move.col }));
       gameState.awaitingAiMove = true;
+
       const insights = await computeAiPreviews(moves);
       gameState.aiInsights = insights;
       renderAiInsights(insights);
+
+      console.log('[Neo] 후보 수 평가 완료', {
+        moves: gameState.pendingAiMoves,
+        insights
+      });
+
       elements.nextButton.disabled = false;
       setGameStatus('다음 버튼을 누르면 Neo가 수를 둡니다.');
       addLogEntry('Neo 후보 수 평가 완료. 다음 버튼을 눌러 진행하세요.', 'info');
@@ -988,7 +1000,7 @@
         gameState.canClick = true;
         gameState.validMoves = movesHuman;
         renderBoard(movesHuman);
-        setGameStatus(당신의 차례입니다. 가능한 수 개);
+        setGameStatus(`당신의 차례입니다. 가능한 수: ${movesHuman.length}개`);
         return;
       }
 
@@ -1005,7 +1017,8 @@
 
       await prepareEngineTurn(movesEngine);
     }
-async function handleCellClick(event) {
+
+    async function handleCellClick(event) {
       if (!gameState.inProgress || !gameState.canClick) return;
       const cell = event.currentTarget;
       const row = Number(cell.dataset.row);
@@ -1028,13 +1041,20 @@ async function handleCellClick(event) {
     }
 
     async function engineTurn(precomputedMoves) {
-      const moves = precomputedMoves ?? getValidMoves(gameState.board, gameState.engine);
-      if (moves.length === 0) {
+      const moves = (precomputedMoves ?? gameState.pendingAiMoves) ?? getValidMoves(gameState.board, gameState.engine);
+      if (!moves || moves.length === 0) {
+        gameState.pendingAiMoves = null;
+        gameState.awaitingAiMove = false;
+        clearAiInsights();
         await nextTurn(gameState.human);
         return;
       }
 
+      gameState.awaitingAiMove = false;
+      elements.nextButton.disabled = true;
+
       setGameStatus('Neo가 생각 중입니다...');
+      console.log('[Neo] 분석 시작', { moves });
 
       try {
         const result = await engineNeo.analyze({
@@ -1052,6 +1072,8 @@ async function handleCellClick(event) {
           timeLimit: 1600,
           skill: 85
         });
+
+        console.log('[Neo] 분석 완료', result);
 
         const move = result.bestMove;
         const chosen = move && isValidMove(gameState.board, gameState.engine, move.row, move.col)
@@ -1071,8 +1093,11 @@ async function handleCellClick(event) {
         );
         updateScoreboard(result);
         renderBoard();
+        clearAiInsights();
+        gameState.pendingAiMoves = null;
       } catch (error) {
         console.error('Neo turn failed', error);
+        gameState.awaitingAiMove = false;
         addLogEntry(`Neo 오류: ${error instanceof Error ? error.message : error}`, 'error');
         setGameStatus('엔진 오류가 발생했습니다. 콘솔을 확인하세요.');
         gameState.inProgress = false;
@@ -1083,6 +1108,23 @@ async function handleCellClick(event) {
 
       await sleep(250);
       await nextTurn(gameState.human);
+    }
+
+    async function handleNextButtonClick() {
+      if (!gameState.awaitingAiMove) {
+        return;
+      }
+
+      console.log('[Neo] 다음 버튼 클릭', {
+        pendingMoves: gameState.pendingAiMoves,
+        insights: gameState.aiInsights
+      });
+
+      addLogEntry('Neo가 선택한 수를 실행합니다.', 'info');
+      setGameStatus('Neo가 수를 두고 있습니다...');
+
+      elements.nextButton.disabled = true;
+      await engineTurn(gameState.pendingAiMoves);
     }
 
     function buildBoardUI() {
@@ -1111,13 +1153,18 @@ async function handleCellClick(event) {
       gameState.validMoves = [];
       gameState.lastMove = null;
       gameState.moveNumber = 1;
+      gameState.aiInsights = [];
+      gameState.pendingAiMoves = null;
+      gameState.awaitingAiMove = false;
       clearMoveLog();
+      clearAiInsights();
       renderBoard();
       updateScoreboard();
       setGameStatus('게임을 시작하려면 "게임 시작" 버튼을 누르세요.');
       elements.startButton.disabled = !engineReady;
       elements.resetButton.disabled = true;
       elements.gameArea.classList.add('hidden');
+      elements.nextButton.disabled = true;
     }
 
     async function startNeoGame() {
@@ -1137,8 +1184,13 @@ async function handleCellClick(event) {
       elements.gameArea.classList.remove('hidden');
       elements.startButton.disabled = true;
       elements.resetButton.disabled = false;
+      elements.nextButton.disabled = true;
+      clearAiInsights();
 
       clearMoveLog();
+      gameState.aiInsights = [];
+      gameState.pendingAiMoves = null;
+      gameState.awaitingAiMove = false;
       addLogEntry('게임을 시작합니다. 당신은 흑(선공)입니다.', 'info');
       renderBoard();
       updateScoreboard();
@@ -1394,8 +1446,10 @@ async function handleCellClick(event) {
     async function loadEngine() {
       try {
         const module = await import('./engine-neo.browser.js');
+        engineModule = module;
         engineNeo = module.engineNeo ?? new module.EngineNeo();
         engineReady = true;
+        console.log('[Neo] 엔진 모듈 로딩 완료', module);
 
         document.getElementById('engine-name').textContent = engineNeo.name;
         document.getElementById('engine-version').textContent = engineNeo.version || '1.0.0';
@@ -1425,6 +1479,7 @@ async function handleCellClick(event) {
       }
     }
 
+    elements.nextButton.addEventListener('click', handleNextButtonClick);
     elements.startButton.addEventListener('click', startNeoGame);
     elements.resetButton.addEventListener('click', resetNeoGame);
 

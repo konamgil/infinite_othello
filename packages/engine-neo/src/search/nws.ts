@@ -1,12 +1,21 @@
 // Null Window Search (Zero Window Scout) implementation
 // Converted from search-neo.js NWS algorithm
 
-import type { Board, Player, Position, GameCore } from 'shared-types';
-import { TranspositionTable, TTFlag } from '../optimization/transTable';
-import { KillerMoves, HistoryTable, orderMoves } from '../ordering/moveOrdering';
-import { evaluateBoard } from '../evaluation/heuristic';
-import { getValidMoves, makeMove as coreMakeMove } from 'core';
-import { getLevelConfig, getSelectivitySettings, STABILITY_THRESHOLDS, PRUNING_PARAMS } from '../config/selectivity';
+import type { Board, Player, Position, GameCore } from "shared-types";
+import { TranspositionTable, TTFlag } from "../optimization/transTable";
+import {
+  KillerMoves,
+  HistoryTable,
+  orderMoves,
+} from "../ordering/moveOrdering";
+import { evaluateBoard } from "../evaluation/heuristic";
+import { getValidMoves, makeMove as coreMakeMove } from "core";
+import {
+  getLevelConfig,
+  getSelectivitySettings,
+  STABILITY_THRESHOLDS,
+  PRUNING_PARAMS,
+} from "../config/selectivity";
 
 export interface NWSResult {
   score: number;
@@ -23,7 +32,11 @@ export class NWSEngine {
   private history: HistoryTable;
   private nodes = 0;
 
-  constructor(tt: TranspositionTable, killers: KillerMoves, history: HistoryTable) {
+  constructor(
+    tt: TranspositionTable,
+    killers: KillerMoves,
+    history: HistoryTable,
+  ) {
     this.tt = tt;
     this.killers = killers;
     this.history = history;
@@ -38,7 +51,7 @@ export class NWSEngine {
     depth: number,
     beta: number,
     ply: number,
-    level: number
+    level: number,
   ): NWSResult {
     this.nodes = 0;
 
@@ -53,13 +66,13 @@ export class NWSEngine {
       beta - 1,
       beta,
       ply,
-      selectivitySettings
+      selectivitySettings,
     );
 
     return {
       score,
       nodes: this.nodes,
-      cutoff: score >= beta
+      cutoff: score >= beta,
     };
   }
 
@@ -73,7 +86,7 @@ export class NWSEngine {
     alpha: number,
     beta: number,
     ply: number,
-    settings: any
+    settings: any,
   ): number {
     this.nodes++;
 
@@ -98,8 +111,17 @@ export class NWSEngine {
     const stabilityThreshold = STABILITY_THRESHOLDS.NWS[Math.min(empties, 60)];
 
     if (depth > stabilityThreshold && empties > 4) {
-      const reducedScore = this.nws(board, player, stabilityThreshold, alpha, beta, ply, settings);
-      if (Math.abs(reducedScore) < 100) { // Not near game end
+      const reducedScore = this.nws(
+        board,
+        player,
+        stabilityThreshold,
+        alpha,
+        beta,
+        ply,
+        settings,
+      );
+      if (Math.abs(reducedScore) < 100) {
+        // Not near game end
         return reducedScore;
       }
     }
@@ -107,7 +129,15 @@ export class NWSEngine {
     // Generate and order moves
     const moves = getValidMoves(board, player);
     if (moves.length === 0) {
-      return this.handleNoMoves(board, player, depth, alpha, beta, ply, settings);
+      return this.handleNoMoves(
+        board,
+        player,
+        depth,
+        alpha,
+        beta,
+        ply,
+        settings,
+      );
     }
 
     const orderedMoves = orderMoves(moves, {
@@ -116,7 +146,7 @@ export class NWSEngine {
       board,
       killers: this.killers,
       history: this.history,
-      ttBestMove: ttEntry?.bestMove
+      ttBestMove: ttEntry?.bestMove,
     });
 
     let bestScore = -Infinity;
@@ -130,14 +160,26 @@ export class NWSEngine {
       }
 
       // Futility pruning
-      if (this.shouldFutilityPrune(depth, alpha, beta, board, player, move, settings)) {
+      if (
+        this.shouldFutilityPrune(
+          depth,
+          alpha,
+          beta,
+          board,
+          player,
+          move,
+          settings,
+        )
+      ) {
         moveCount++;
         continue;
       }
 
       // Razoring
       if (this.shouldRazor(depth, alpha, board, player, settings)) {
-        const razorScore = evaluateBoard(board, player) + PRUNING_PARAMS.RAZOR_MARGINS[Math.min(depth, 2)] * settings.razorMul;
+        const razorScore =
+          evaluateBoard(board, player) +
+          PRUNING_PARAMS.RAZOR_MARGINS[Math.min(depth, 2)] * settings.razorMul;
         if (razorScore < alpha) {
           moveCount++;
           continue;
@@ -149,17 +191,14 @@ export class NWSEngine {
         continue;
       }
 
-    if (!newBoard) {
-
-      continue;
-
-    }
-      const opponent = player === 'black' ? 'white' : 'black';
+      const opponent = player === "black" ? "white" : "black";
 
       // Late move reduction
       let reduction = 0;
       if (this.shouldReduceMove(moveCount, depth, move, settings)) {
-        reduction = Math.floor(settings.lmrBase + Math.log(depth) * Math.log(moveCount + 1) / 3);
+        reduction = Math.floor(
+          settings.lmrBase + (Math.log(depth) * Math.log(moveCount + 1)) / 3,
+        );
         reduction = Math.max(0, Math.min(reduction, depth - 2));
       }
 
@@ -170,7 +209,7 @@ export class NWSEngine {
         -beta,
         -alpha,
         ply + 1,
-        settings
+        settings,
       );
 
       if (score > bestScore) {
@@ -185,7 +224,13 @@ export class NWSEngine {
 
         // Store in transposition table
         if (bestMove) {
-          const entry = this.tt.createEntry(depth, bestScore, bestMove, alpha, beta);
+          const entry = this.tt.createEntry(
+            depth,
+            bestScore,
+            bestMove,
+            alpha,
+            beta,
+          );
           this.tt.set(ttKey, entry);
         }
 
@@ -201,7 +246,13 @@ export class NWSEngine {
 
     // Store in transposition table
     if (bestMove) {
-      const entry = this.tt.createEntry(depth, bestScore, bestMove, alpha, beta);
+      const entry = this.tt.createEntry(
+        depth,
+        bestScore,
+        bestMove,
+        alpha,
+        beta,
+      );
       this.tt.set(ttKey, entry);
     }
 
@@ -215,7 +266,7 @@ export class NWSEngine {
     board: Board,
     player: Player,
     alpha: number,
-    beta: number
+    beta: number,
   ): number {
     this.nodes++;
 
@@ -237,9 +288,9 @@ export class NWSEngine {
     alpha: number,
     beta: number,
     ply: number,
-    settings: any
+    settings: any,
   ): number {
-    const opponent = player === 'black' ? 'white' : 'black';
+    const opponent = player === "black" ? "white" : "black";
     const opponentMoves = getValidMoves(board, opponent);
 
     if (opponentMoves.length === 0) {
@@ -247,13 +298,26 @@ export class NWSEngine {
       return this.evaluateGameEnd(board, player);
     } else {
       // Pass move - search opponent
-      return -this.nws(board, opponent, depth - 1, -beta, -alpha, ply + 1, settings);
+      return -this.nws(
+        board,
+        opponent,
+        depth - 1,
+        -beta,
+        -alpha,
+        ply + 1,
+        settings,
+      );
     }
   }
 
-  private shouldPruneMove(moveCount: number, depth: number, settings: any): boolean {
+  private shouldPruneMove(
+    moveCount: number,
+    depth: number,
+    settings: any,
+  ): boolean {
     if (depth >= 6) {
-      const threshold = PRUNING_PARAMS.LMP_TABLE[Math.min(depth, 6)] + settings.lmpBonus;
+      const threshold =
+        PRUNING_PARAMS.LMP_TABLE[Math.min(depth, 6)] + settings.lmpBonus;
       return moveCount >= threshold;
     }
     return false;
@@ -266,11 +330,12 @@ export class NWSEngine {
     board: Board,
     player: Player,
     move: Position,
-    settings: any
+    settings: any,
   ): boolean {
     if (depth <= 3 && depth > 0) {
       const staticEval = evaluateBoard(board, player);
-      const margin = PRUNING_PARAMS.FUTILITY_MARGINS[Math.min(depth, 3)] * settings.futMul;
+      const margin =
+        PRUNING_PARAMS.FUTILITY_MARGINS[Math.min(depth, 3)] * settings.futMul;
 
       if (staticEval + margin <= alpha && !this.isImportantMove(move)) {
         return true;
@@ -284,7 +349,7 @@ export class NWSEngine {
     alpha: number,
     board: Board,
     player: Player,
-    settings: any
+    settings: any,
   ): boolean {
     return depth <= 2 && depth > 0;
   }
@@ -293,7 +358,7 @@ export class NWSEngine {
     moveCount: number,
     depth: number,
     move: Position,
-    settings: any
+    settings: any,
   ): boolean {
     return (
       depth >= 3 &&
@@ -308,58 +373,102 @@ export class NWSEngine {
     return (row === 0 || row === 7) && (col === 0 || col === 7);
   }
 
-  private makeMove(board: Board, move: Position, player: Player): Board | null {
-    // Prefer the core implementation for accuracy when available
-    const gameCore: GameCore = {
-      id: 'nws-move',
-      board,
-      currentPlayer: player,
-      validMoves: [],
-      score: { black: 0, white: 0 },
-      status: 'playing',
-      moveHistory: [],
-      canUndo: false,
-      canRedo: false
-    };
-    const result = coreMakeMove(gameCore, move);
-    if (result.success && result.newGameCore) {
-      return result.newGameCore.board;
-    }
-    return this.fallbackApplyMove(board, move, player);
-  }
-
-  private fallbackApplyMove(board: Board, move: Position, player: Player): Board | null {
-    const opponent = player === 'black' ? 'white' : 'black';
-    const next = board.map(row => [...row]);
-    const directions = [
-      [-1, -1], [0, -1], [1, -1],
-      [-1, 0],            [1, 0],
-      [-1, 1],  [0, 1],   [1, 1]
-    ];
-    const flips: Position[] = [];
-    for (const [dr, dc] of directions) {
-      let r = move.row + dr;
-      let c = move.col + dc;
-      const path: Position[] = [];
-      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
-        path.push({ row: r, col: c });
-        r += dr;
-        c += dc;
-      }
-      if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
-        flips.push(...path);
-      }
-    }
-    if (flips.length === 0) {
-      return null;
-    }
-    next[move.row][move.col] = player;
-    for (const pos of flips) {
-      next[pos.row][pos.col] = player;
-    }
-    return next;
-  }
-
+  private makeMove(board: Board, move: Position, player: Player): Board | null {
+    // Prefer the core implementation for accuracy when available
+
+    const gameCore: GameCore = {
+      id: "nws-move",
+
+      board,
+
+      currentPlayer: player,
+
+      validMoves: [],
+
+      score: { black: 0, white: 0 },
+
+      status: "playing",
+
+      moveHistory: [],
+
+      canUndo: false,
+
+      canRedo: false,
+    };
+
+    const result = coreMakeMove(gameCore, move);
+
+    if (result.success && result.newGameCore) {
+      return result.newGameCore.board;
+    }
+
+    return this.fallbackApplyMove(board, move, player);
+  }
+
+  private fallbackApplyMove(
+    board: Board,
+    move: Position,
+    player: Player,
+  ): Board | null {
+    const opponent = player === "black" ? "white" : "black";
+
+    const next = board.map((row) => [...row]);
+
+    const directions = [
+      [-1, -1],
+      [0, -1],
+      [1, -1],
+
+      [-1, 0],
+      [1, 0],
+
+      [-1, 1],
+      [0, 1],
+      [1, 1],
+    ];
+
+    const flips: Position[] = [];
+
+    for (const [dr, dc] of directions) {
+      let r = move.row + dr;
+
+      let c = move.col + dc;
+
+      const path: Position[] = [];
+
+      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
+        path.push({ row: r, col: c });
+
+        r += dr;
+
+        c += dc;
+      }
+
+      if (
+        path.length > 0 &&
+        r >= 0 &&
+        r < 8 &&
+        c >= 0 &&
+        c < 8 &&
+        next[r][c] === player
+      ) {
+        flips.push(...path);
+      }
+    }
+
+    if (flips.length === 0) {
+      return null;
+    }
+
+    next[move.row][move.col] = player;
+
+    for (const pos of flips) {
+      next[pos.row][pos.col] = player;
+    }
+
+    return next;
+  }
+
   private generateBoardKey(board: Board, player: Player): string {
     return `${JSON.stringify(board)}_${player}`;
   }
@@ -377,7 +486,7 @@ export class NWSEngine {
   private evaluateGameEnd(board: Board, player: Player): number {
     let playerCount = 0;
     let opponentCount = 0;
-    const opponent = player === 'black' ? 'white' : 'black';
+    const opponent = player === "black" ? "white" : "black";
 
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {

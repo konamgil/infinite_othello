@@ -1,13 +1,27 @@
 // Principal Variation Search (PVS) implementation
 // Converted from search-neo.js PVS algorithm
 
-import type { Board, Player, Position, GameCore } from 'shared-types';
-import { TranspositionTable, TTFlag, type TTEntry } from '../optimization/transTable';
-import { KillerMoves, HistoryTable, orderMoves, type MoveOrderingContext } from '../ordering/moveOrdering';
-import { evaluateBoard, isEndgamePhase } from '../evaluation/heuristic';
-import { getCurrentMobility } from '../evaluation/mobility';
-import { getValidMoves, makeMove as coreMakeMove } from 'core';
-import { getLevelConfig, getSelectivitySettings, STABILITY_THRESHOLDS, PRUNING_PARAMS } from '../config/selectivity';
+import type { Board, Player, Position, GameCore } from "shared-types";
+import {
+  TranspositionTable,
+  TTFlag,
+  type TTEntry,
+} from "../optimization/transTable";
+import {
+  KillerMoves,
+  HistoryTable,
+  orderMoves,
+  type MoveOrderingContext,
+} from "../ordering/moveOrdering";
+import { evaluateBoard, isEndgamePhase } from "../evaluation/heuristic";
+import { getCurrentMobility } from "../evaluation/mobility";
+import { getValidMoves, makeMove as coreMakeMove } from "core";
+import {
+  getLevelConfig,
+  getSelectivitySettings,
+  STABILITY_THRESHOLDS,
+  PRUNING_PARAMS,
+} from "../config/selectivity";
 
 export interface SearchResult {
   bestMove?: Position;
@@ -51,11 +65,7 @@ export class PVSEngine {
   /**
    * Main search entry point
    */
-  search(
-    board: Board,
-    player: Player,
-    config: SearchConfig
-  ): SearchResult {
+  search(board: Board, player: Player, config: SearchConfig): SearchResult {
     this.initializeSearch(config);
 
     const empties = this.countEmptySquares(board);
@@ -78,7 +88,7 @@ export class PVSEngine {
         Infinity,
         0,
         true,
-        selectivitySettings
+        selectivitySettings,
       );
 
       if (!this.shouldStop()) {
@@ -96,7 +106,7 @@ export class PVSEngine {
       time: Date.now() - this.startTime,
       pv,
       ttHits: this.ttHits,
-      ttStores: this.ttStores
+      ttStores: this.ttStores,
     };
   }
 
@@ -111,7 +121,7 @@ export class PVSEngine {
     beta: number,
     ply: number,
     isPV: boolean,
-    settings: any
+    settings: any,
   ): { score: number; move?: Position; pv: Position[] } {
     this.nodes++;
 
@@ -120,7 +130,7 @@ export class PVSEngine {
       return {
         score: this.quiescenceSearch(board, player, alpha, beta, ply),
         move: undefined,
-        pv: []
+        pv: [],
       };
     }
 
@@ -150,15 +160,28 @@ export class PVSEngine {
     const moves = getValidMoves(board, player);
     if (moves.length === 0) {
       // Pass move or game over
-      const opponent = player === 'black' ? 'white' : 'black';
+      const opponent = player === "black" ? "white" : "black";
       const opponentMoves = getValidMoves(board, opponent);
 
       if (opponentMoves.length === 0) {
         // Game over - count material
-        return { score: this.evaluateGameEnd(board, player), move: undefined, pv: [] };
+        return {
+          score: this.evaluateGameEnd(board, player),
+          move: undefined,
+          pv: [],
+        };
       } else {
         // Pass - search opponent
-        const result = this.pvs(board, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+        const result = this.pvs(
+          board,
+          opponent,
+          depth - 1,
+          -beta,
+          -alpha,
+          ply + 1,
+          isPV,
+          settings,
+        );
         return { score: -result.score, move: undefined, pv: result.pv };
       }
     }
@@ -169,7 +192,7 @@ export class PVSEngine {
       board,
       killers: this.killers,
       history: this.history,
-      ttBestMove: ttMove
+      ttBestMove: ttMove,
     });
 
     let bestMove: Position | undefined;
@@ -189,16 +212,23 @@ export class PVSEngine {
       }
 
       if (!newBoard) {
-
         continue;
-
       }
-      const opponent = player === 'black' ? 'white' : 'black';
+      const opponent = player === "black" ? "white" : "black";
       let score: number;
 
       if (moveCount === 0) {
         // Principal variation - full window search
-        const result = this.pvs(newBoard, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+        const result = this.pvs(
+          newBoard,
+          opponent,
+          depth - 1,
+          -beta,
+          -alpha,
+          ply + 1,
+          isPV,
+          settings,
+        );
         score = -result.score;
         if (score > alpha) {
           pv = [move, ...result.pv];
@@ -207,7 +237,9 @@ export class PVSEngine {
         // Late move reduction
         let reduction = 0;
         if (this.shouldReduceMove(moveCount, depth, move, settings)) {
-          reduction = Math.floor(settings.lmrBase + Math.log(depth) * Math.log(moveCount) / 3);
+          reduction = Math.floor(
+            settings.lmrBase + (Math.log(depth) * Math.log(moveCount)) / 3,
+          );
           reduction = Math.max(0, Math.min(reduction, depth - 2));
         }
 
@@ -220,13 +252,22 @@ export class PVSEngine {
           -alpha,
           ply + 1,
           false,
-          settings
+          settings,
         );
         score = -result.score;
 
         // Re-search if necessary
         if (score > alpha && score < beta && (reduction > 0 || !isPV)) {
-          const fullResult = this.pvs(newBoard, opponent, depth - 1, -beta, -alpha, ply + 1, isPV, settings);
+          const fullResult = this.pvs(
+            newBoard,
+            opponent,
+            depth - 1,
+            -beta,
+            -alpha,
+            ply + 1,
+            isPV,
+            settings,
+          );
           score = -fullResult.score;
           if (score > alpha) {
             pv = [move, ...fullResult.pv];
@@ -256,7 +297,13 @@ export class PVSEngine {
 
     // Store in transposition table
     if (bestMove) {
-      const entry = this.tt.createEntry(depth, bestScore, bestMove, alpha, beta);
+      const entry = this.tt.createEntry(
+        depth,
+        bestScore,
+        bestMove,
+        alpha,
+        beta,
+      );
       this.tt.set(ttKey, entry);
       this.ttStores++;
     }
@@ -272,35 +319,60 @@ export class PVSEngine {
     player: Player,
     alpha: number,
     beta: number,
-    ply: number
+    ply: number,
   ): number {
     this.nodes++;
+
+    if (ply >= 64) {
+      return evaluateBoard(board, player);
+    }
 
     const standPat = evaluateBoard(board, player);
     if (standPat >= beta) return beta;
     if (standPat > alpha) alpha = standPat;
 
     const moves = getValidMoves(board, player);
-    if (moves.length === 0) return standPat;
+    if (moves.length === 0) {
+      const opponent = player === "black" ? "white" : "black";
+      const opponentMoves = getValidMoves(board, opponent);
 
-    // Only search tactical moves in quiescence
-    const tacticalMoves = this.filterTacticalMoves(moves, board);
+      if (opponentMoves.length === 0) {
+        return standPat;
+      }
+
+      const score = -this.quiescenceSearch(
+        board,
+        opponent,
+        -beta,
+        -alpha,
+        ply + 1,
+      );
+      if (score > alpha) {
+        alpha = score;
+      }
+      return alpha;
+    }
+
+    const tacticalMoves = this.filterTacticalMoves(moves);
+    if (tacticalMoves.length === 0) {
+      return alpha;
+    }
+
+    const opponent = player === "black" ? "white" : "black";
 
     for (const move of tacticalMoves) {
-
       const newBoard = this.makeMove(board, move, player);
       if (!newBoard) {
         continue;
       }
 
-      if (!newBoard) {
-
-        continue;
-
-      }
-
-      const opponent =      const opponent = player === 'black' ? 'white' : 'black';
-      const score = -this.quiescenceSearch(newBoard, opponent, -beta, -alpha, ply + 1);
+      const score = -this.quiescenceSearch(
+        newBoard,
+        opponent,
+        -beta,
+        -alpha,
+        ply + 1,
+      );
 
       if (score >= beta) return beta;
       if (score > alpha) alpha = score;
@@ -327,9 +399,13 @@ export class PVSEngine {
     depth: number,
     alpha: number,
     beta: number,
-    settings: any
+    settings: any,
   ): boolean {
-    if (depth >= 6 && moveCount >= PRUNING_PARAMS.LMP_TABLE[Math.min(depth, 6)] + settings.lmpBonus) {
+    if (
+      depth >= 6 &&
+      moveCount >=
+        PRUNING_PARAMS.LMP_TABLE[Math.min(depth, 6)] + settings.lmpBonus
+    ) {
       return true;
     }
     return false;
@@ -339,7 +415,7 @@ export class PVSEngine {
     moveCount: number,
     depth: number,
     move: Position,
-    settings: any
+    settings: any,
   ): boolean {
     return depth >= 3 && moveCount >= 4 && !this.isImportantMove(move);
   }
@@ -349,62 +425,95 @@ export class PVSEngine {
     return (row === 0 || row === 7) && (col === 0 || col === 7);
   }
 
-  private filterTacticalMoves(moves: Position[], board: Board): Position[] {
-    return moves.filter(move => this.isImportantMove(move)).slice(0, 4);
+  private filterTacticalMoves(moves: Position[]): Position[] {
+    return moves.filter((move) => this.isImportantMove(move)).slice(0, 4);
   }
 
-  private makeMove(board: Board, move: Position, player: Player): Board | null {
-    // Prefer the core implementation for accuracy when available
-    const gameCore: GameCore = {
-      id: 'pvs-move',
-      board,
-      currentPlayer: player,
-      validMoves: [],
-      score: { black: 0, white: 0 },
-      status: 'playing',
-      moveHistory: [],
-      canUndo: false,
-      canRedo: false
-    };
-    const result = coreMakeMove(gameCore, move);
-    if (result.success && result.newGameCore) {
-      return result.newGameCore.board;
-    }
-    return this.fallbackApplyMove(board, move, player);
-  }
-
-  private fallbackApplyMove(board: Board, move: Position, player: Player): Board | null {
-    const opponent = player === 'black' ? 'white' : 'black';
-    const next = board.map(row => [...row]);
-    const directions = [
-      [-1, -1], [0, -1], [1, -1],
-      [-1, 0],            [1, 0],
-      [-1, 1],  [0, 1],   [1, 1]
-    ];
-    const flips: Position[] = [];
-    for (const [dr, dc] of directions) {
-      let r = move.row + dr;
-      let c = move.col + dc;
-      const path: Position[] = [];
-      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
-        path.push({ row: r, col: c });
-        r += dr;
-        c += dc;
-      }
-      if (path.length > 0 && r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === player) {
-        flips.push(...path);
-      }
-    }
-    if (flips.length === 0) {
-      return null;
-    }
-    next[move.row][move.col] = player;
-    for (const pos of flips) {
-      next[pos.row][pos.col] = player;
-    }
-    return next;
-  }
-
+  private makeMove(board: Board, move: Position, player: Player): Board | null {
+    const gameCore: GameCore = {
+      id: "pvs-move",
+      board,
+      currentPlayer: player,
+      validMoves: [],
+      score: { black: 0, white: 0 },
+      status: "playing",
+      moveHistory: [],
+      canUndo: false,
+      canRedo: false,
+    };
+
+    const result = coreMakeMove(gameCore, move);
+    if (result.success && result.newGameCore) {
+      return result.newGameCore.board;
+    }
+
+    return this.fallbackApplyMove(board, move, player);
+  }
+
+  private fallbackApplyMove(
+    board: Board,
+    move: Position,
+    player: Player,
+  ): Board | null {
+    const opponent = player === "black" ? "white" : "black";
+
+    const next = board.map((row) => [...row]);
+
+    const directions = [
+      [-1, -1],
+      [0, -1],
+      [1, -1],
+
+      [-1, 0],
+      [1, 0],
+
+      [-1, 1],
+      [0, 1],
+      [1, 1],
+    ];
+
+    const flips: Position[] = [];
+
+    for (const [dr, dc] of directions) {
+      let r = move.row + dr;
+
+      let c = move.col + dc;
+
+      const path: Position[] = [];
+
+      while (r >= 0 && r < 8 && c >= 0 && c < 8 && next[r][c] === opponent) {
+        path.push({ row: r, col: c });
+
+        r += dr;
+
+        c += dc;
+      }
+
+      if (
+        path.length > 0 &&
+        r >= 0 &&
+        r < 8 &&
+        c >= 0 &&
+        c < 8 &&
+        next[r][c] === player
+      ) {
+        flips.push(...path);
+      }
+    }
+
+    if (flips.length === 0) {
+      return null;
+    }
+
+    next[move.row][move.col] = player;
+
+    for (const pos of flips) {
+      next[pos.row][pos.col] = player;
+    }
+
+    return next;
+  }
+
   private generateBoardKey(board: Board, player: Player): string {
     return `${JSON.stringify(board)}_${player}`;
   }
@@ -422,7 +531,7 @@ export class PVSEngine {
   private evaluateGameEnd(board: Board, player: Player): number {
     let playerCount = 0;
     let opponentCount = 0;
-    const opponent = player === 'black' ? 'white' : 'black';
+    const opponent = player === "black" ? "white" : "black";
 
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -435,12 +544,3 @@ export class PVSEngine {
     return playerCount - opponentCount;
   }
 }
-
-
-
-
-
-
-
-
-

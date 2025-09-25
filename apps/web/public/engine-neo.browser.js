@@ -2058,6 +2058,12 @@ var PVSEngine = class {
         break;
       }
       const newBoard = this.makeMove(board, move, player);
+      if (!newBoard) {
+        continue;
+      }
+      if (!newBoard) {
+        continue;
+      }
       const opponent = player === "black" ? "white" : "black";
       let score;
       if (moveCount === 0) {
@@ -2118,15 +2124,35 @@ var PVSEngine = class {
    */
   quiescenceSearch(board, player, alpha, beta, ply) {
     this.nodes++;
+    if (ply >= 64) {
+      return evaluateBoard(board, player);
+    }
     const standPat = evaluateBoard(board, player);
     if (standPat >= beta) return beta;
     if (standPat > alpha) alpha = standPat;
     const moves = getValidMoves(board, player);
-    if (moves.length === 0) return standPat;
-    const tacticalMoves = this.filterTacticalMoves(moves, board);
+    if (moves.length === 0) {
+      const opponent2 = player === "black" ? "white" : "black";
+      const opponentMoves = getValidMoves(board, opponent2);
+      if (opponentMoves.length === 0) {
+        return standPat;
+      }
+      const score = -this.quiescenceSearch(board, opponent2, -beta, -alpha, ply + 1);
+      if (score > alpha) {
+        alpha = score;
+      }
+      return alpha;
+    }
+    const tacticalMoves = this.filterTacticalMoves(moves);
+    if (tacticalMoves.length === 0) {
+      return alpha;
+    }
+    const opponent = player === "black" ? "white" : "black";
     for (const move of tacticalMoves) {
       const newBoard = this.makeMove(board, move, player);
-      const opponent = player === "black" ? "white" : "black";
+      if (!newBoard) {
+        continue;
+      }
       const score = -this.quiescenceSearch(newBoard, opponent, -beta, -alpha, ply + 1);
       if (score >= beta) return beta;
       if (score > alpha) alpha = score;
@@ -2157,7 +2183,7 @@ var PVSEngine = class {
     const { row, col } = move;
     return (row === 0 || row === 7) && (col === 0 || col === 7);
   }
-  filterTacticalMoves(moves, board) {
+  filterTacticalMoves(moves) {
     return moves.filter((move) => this.isImportantMove(move)).slice(0, 4);
   }
   makeMove(board, move, player) {
@@ -2206,7 +2232,7 @@ var PVSEngine = class {
       }
     }
     if (flips.length === 0) {
-      return board;
+      return null;
     }
     next[move.row][move.col] = player;
     for (const pos of flips) {
