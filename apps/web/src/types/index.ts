@@ -1,194 +1,289 @@
 /**
- * 통합 타입 시스템 - 모든 도메인의 중앙 진입점
- * Enterprise급 TypeScript 타입 시스템
+ * 🎯 Infinite Othello - 완전 새로운 타입 시스템
+ *
+ * 설계 원칙:
+ * - 직관적이고 명확한 네이밍
+ * - 오델로 게임 도메인에 최적화
+ * - 타입 안전성과 성능 모두 고려
+ * - 책임 분리된 상태 아키텍처
  */
 
-// === 도메인별 타입 export ===
-export * from './game';
-export * from './auth';
-export * from './replay';
-export * from './ui';
-export * from './network';
+// ===== 🎮 Core Game Types =====
 
-// === 기존 레거시 타입 호환성 ===
-export * from './supabase';
-export * from './engines.d';
+/** 오델로 플레이어 - 직관적인 색상 기반 */
+export type Player = 'black' | 'white';
 
-// === 도메인 aliases (편의성을 위한 단축 이름) ===
-export type {
-  // Game domain shortcuts
-  PlayerColor as Color,
-  GameMode as Mode,
-  GameState as State,
-  GameMove as Move,
-  Position as Pos,
+/** 보드 셀 상태 - null은 빈 칸 */
+export type Cell = Player | null;
 
-  // Auth domain shortcuts
-  UserProfile as User,
-  AuthState as Auth,
-  SessionInfo as Session,
+/** 8x8 오델로 보드 */
+export type Board = Cell[][];
 
-  // Replay domain shortcuts
-  GameRecord as Record,
-  ReplayFilters as Filters,
-  ReplayPlayerState as Player,
+/** 보드 좌표 - 오델로 표준 (0-7) */
+export interface Position {
+  readonly row: number; // 0-7
+  readonly col: number; // 0-7
+}
 
-  // UI domain shortcuts
-  AppSettings as Settings,
-  ButtonProps as Button,
-  ModalProps as Modal,
+/** 게임 이동 - 포지션 + 메타데이터 */
+export interface Move extends Position {
+  readonly player: Player;
+  readonly capturedCells: readonly Position[];
+  readonly timestamp: number;
+}
 
-  // Network domain shortcuts
-  RealtimeEvent as Event,
-  ApiResponse as Response,
-  ChatMessage as Chat,
-} from './game';
+// ===== 🧠 Game Logic Types =====
 
-// === 유틸리티 타입들 ===
+/** 게임 상태 */
+export type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
+
+/** 게임 점수 */
+export interface Score {
+  readonly black: number;
+  readonly white: number;
+}
+
+/** 게임 모드 */
+export type GameMode =
+  | 'practice'    // 혼자 연습
+  | 'ai'         // AI 대전
+  | 'local'      // 로컬 대전
+  | 'online'     // 온라인 대전
+  | 'tower'      // 타워 챌린지
+  | 'battle'     // 배틀 모드
+  | 'tournament' // 토너먼트
+  | 'ranked';    // 랭크 게임
+
+/** AI 난이도 */
+export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'expert' | 'master';
+
+// ===== 🏗️ Core Game State =====
 
 /**
- * 객체의 특정 필드를 선택적으로 만드는 유틸리티 타입
+ * 게임 핵심 상태 - 순수 비즈니스 로직만 포함
+ * UI나 세션 정보와 분리하여 테스트 용이성 확보
  */
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-/**
- * 객체의 특정 필드를 필수로 만드는 유틸리티 타입
- */
-export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
-
-/**
- * 객체의 특정 필드만 선택하는 유틸리티 타입
- */
-export type SelectFields<T, K extends keyof T> = Pick<T, K>;
-
-/**
- * 객체의 특정 필드를 제외하는 유틸리티 타입
- */
-export type OmitFields<T, K extends keyof T> = Omit<T, K>;
-
-/**
- * 깊은 부분 객체 타입 (모든 속성을 선택적으로)
- */
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
-
-/**
- * 깊은 읽기 전용 객체 타입
- */
-export type DeepReadonly<T> = {
-  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
-};
-
-/**
- * 문자열 리터럴 유니온에서 키를 생성
- */
-export type StringKeys<T> = Extract<keyof T, string>;
-
-/**
- * 숫자 값만 포함하는 객체의 키들
- */
-export type NumericKeys<T> = {
-  [K in keyof T]: T[K] extends number ? K : never;
-}[keyof T];
-
-/**
- * 함수 타입만 포함하는 객체의 키들
- */
-export type FunctionKeys<T> = {
-  [K in keyof T]: T[K] extends Function ? K : never;
-}[keyof T];
-
-// === 도메인 간 관계 타입들 ===
-
-/**
- * 게임과 사용자를 연결하는 타입
- */
-export interface GameWithUser {
-  game: import('./game').GameRecord;
-  user: import('./auth').UserProfile;
-  role: 'player' | 'spectator' | 'host';
+export interface GameCore {
+  readonly id: string;
+  readonly board: Board;
+  readonly currentPlayer: Player;
+  readonly validMoves: readonly Position[];
+  readonly score: Score;
+  readonly status: GameStatus;
+  readonly moveHistory: readonly Move[];
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
 }
 
 /**
- * UI 컴포넌트와 데이터를 연결하는 타입
+ * 게임 세션 메타데이터 - 모드, AI, 타이밍 등
+ * 게임 로직과 분리하여 설정 변경 용이성 확보
  */
-export interface ComponentWithData<TComponent, TData> {
-  component: TComponent;
-  data: TData;
-  loading?: boolean;
-  error?: string;
+export interface GameSession {
+  readonly id: string;
+  readonly mode: GameMode;
+  readonly difficulty?: AIDifficulty;
+  readonly timeLimit?: number; // seconds
+  readonly startTime: number;
+  readonly endTime?: number;
+
+  // AI 상태 (중복 제거)
+  readonly aiThinking: boolean;
+  readonly aiMoveDelay: number; // ms
+
+  // 플레이어 정보
+  readonly players: {
+    readonly black: PlayerInfo;
+    readonly white: PlayerInfo;
+  };
 }
 
 /**
- * API 응답과 UI 상태를 연결하는 타입
+ * UI 전용 상태 - 애니메이션, 테마, 시각적 효과
+ * 게임 로직과 완전 분리하여 UI 변경이 로직에 영향 없음
  */
-export interface ApiWithUIState<TData> {
-  data: TData | null;
-  loading: boolean;
-  error: string | null;
-  lastUpdated: Date | null;
+export interface GameUI {
+  readonly theme: BoardTheme;
+  readonly showValidMoves: boolean;
+  readonly showLastMove: boolean;
+  readonly animationSpeed: AnimationSpeed;
+
+  // 현재 애니메이션 상태
+  readonly animatingCells: readonly Position[];
+  readonly lastMove?: Position;
+  readonly highlightedCells: readonly Position[];
 }
 
-// === 상수 타입들 ===
+/**
+ * 플레이어 프로필 - 사용자 데이터와 통계
+ * 게임 세션과 분리하여 영속성 확보
+ */
+export interface PlayerProfile {
+  readonly id: string;
+  readonly name: string;
+  readonly avatar?: string;
+  readonly rating: number;
+  readonly rank: PlayerRank;
+
+  // 통계
+  readonly stats: PlayerStats;
+
+  // 진행상황
+  readonly progress: PlayerProgress;
+}
+
+// ===== 🎨 UI & Theme Types =====
+
+export type BoardTheme = 'classic' | 'dark' | 'neon' | 'wood' | 'galaxy';
+export type StoneTheme = 'classic' | 'glass' | 'metal' | 'crystal' | 'minimal';
+export type AnimationSpeed = 'none' | 'fast' | 'normal' | 'slow';
+
+// ===== 👤 Player Types =====
+
+export interface PlayerInfo {
+  readonly name: string;
+  readonly type: 'human' | 'ai';
+  readonly difficulty?: AIDifficulty;
+  readonly avatar?: string;
+}
+
+export type PlayerRank =
+  | 'Bronze' | 'Silver' | 'Gold'
+  | 'Platinum' | 'Diamond' | 'Master' | 'Grandmaster';
+
+export interface PlayerStats {
+  readonly totalGames: number;
+  readonly wins: number;
+  readonly losses: number;
+  readonly draws: number;
+  readonly winRate: number;
+  readonly bestWinStreak: number;
+  readonly currentWinStreak: number;
+  readonly totalPlayTime: number; // seconds
+  readonly averageGameTime: number; // seconds
+}
+
+export interface PlayerProgress {
+  readonly currentFloor: number;
+  readonly highestFloor: number;
+  readonly towerProgress: number; // 0-100%
+  readonly unlockedThemes: readonly BoardTheme[];
+  readonly achievements: readonly string[];
+  readonly rp: number; // Ranking Points
+}
+
+// ===== 🤖 Engine System =====
 
 /**
- * 지원되는 모든 게임 모드
+ * 엔진 요청 - 새로운 타입 시스템 기반
  */
-export const SUPPORTED_GAME_MODES = [
-  'single', 'local', 'online', 'ai', 'tower', 'battle',
-  'casual', 'practice', 'ranked', 'quick', 'match', 'tournament'
-] as const;
+export interface EngineRequest {
+  readonly gameCore: GameCore;
+  readonly timeLimit?: number; // ms
+  readonly depth?: number;
+  readonly skill?: number; // 0-100
+}
 
 /**
- * 지원되는 모든 언어
+ * 엔진 응답 - 분석 결과와 최적 수
  */
-export const SUPPORTED_LANGUAGES = ['ko', 'en', 'ja', 'zh'] as const;
+export interface EngineResponse {
+  readonly bestMove?: Position;
+  readonly evaluation: number; // + black 유리, - white 유리
+  readonly nodes: number;
+  readonly depth: number;
+  readonly timeUsed: number; // ms
+  readonly pv?: readonly Position[]; // 최선 변화
+  readonly stats?: Record<string, unknown>;
+}
 
 /**
- * 지원되는 모든 테마
+ * 엔진 인터페이스 - 타입 안전한 AI 시스템
  */
-export const SUPPORTED_THEMES = ['light', 'dark', 'system', 'auto'] as const;
+export interface Engine {
+  readonly name: string;
+  readonly version: string;
+  readonly author: string;
+  analyze(request: EngineRequest): Promise<EngineResponse>;
+  stop?(): void; // 분석 중단
+}
+
+// ===== ⚡ Action Result Types =====
 
 /**
- * API 에러 코드들
+ * 이동 결과 - 성공/실패와 상세 정보
  */
-export const API_ERROR_CODES = [
-  'BAD_REQUEST', 'UNAUTHORIZED', 'FORBIDDEN', 'NOT_FOUND',
-  'CONFLICT', 'VALIDATION_ERROR', 'RATE_LIMITED',
-  'INTERNAL_ERROR', 'SERVICE_UNAVAILABLE', 'GATEWAY_TIMEOUT'
-] as const;
+export type MoveResult =
+  | {
+      readonly success: true;
+      readonly move: Move;
+      readonly newGameCore: GameCore;
+      readonly capturedCells: readonly Position[];
+    }
+  | {
+      readonly success: false;
+      readonly reason: MoveFailureReason;
+      readonly message: string;
+    };
 
-// === 전역 타입 가드 함수들 ===
+export type MoveFailureReason =
+  | 'invalid_position'  // 잘못된 좌표
+  | 'occupied'         // 이미 돌이 있음
+  | 'no_captures'      // 뒤집을 수 없음
+  | 'not_your_turn'    // 차례가 아님
+  | 'game_finished'    // 게임 종료
+  | 'game_paused';     // 게임 일시정지
 
 /**
- * 값이 null이나 undefined가 아닌지 확인
+ * 게임 결과
  */
-export const isDefined = <T>(value: T | null | undefined): value is T => {
-  return value !== null && value !== undefined;
+export interface GameResult {
+  readonly winner: Player | 'draw';
+  readonly score: Score;
+  readonly endReason: GameEndReason;
+  readonly duration: number; // seconds
+  readonly totalMoves: number;
+}
+
+export type GameEndReason =
+  | 'normal'      // 정상 종료
+  | 'resignation' // 기권
+  | 'timeout'     // 시간 초과
+  | 'disconnect'  // 연결 끊김
+  | 'forfeit';    // 몰수
+
+// ===== 🔧 Utility Types =====
+
+/** 위치 유효성 검사 */
+export const isValidPosition = (pos: Position): boolean =>
+  pos.row >= 0 && pos.row < 8 && pos.col >= 0 && pos.col < 8;
+
+/** 플레이어 반전 */
+export const getOpponent = (player: Player): Player =>
+  player === 'black' ? 'white' : 'black';
+
+/** 위치 문자열 변환 (디버깅용) */
+export const positionToString = (pos: Position): string =>
+  `${String.fromCharCode(97 + pos.col)}${pos.row + 1}`; // a1, b2, etc.
+
+/** 문자열을 위치로 변환 */
+export const stringToPosition = (str: string): Position | null => {
+  if (str.length !== 2) return null;
+  const col = str.charCodeAt(0) - 97; // a=0, b=1, etc.
+  const row = parseInt(str[1]) - 1;   // 1=0, 2=1, etc.
+  return isValidPosition({ row, col }) ? { row, col } : null;
 };
 
-/**
- * 값이 빈 문자열이 아닌지 확인
- */
-export const isNonEmptyString = (value: string | null | undefined): value is string => {
-  return typeof value === 'string' && value.length > 0;
-};
+// ===== 📊 Constants =====
 
-/**
- * 배열이 비어있지 않은지 확인
- */
-export const isNonEmptyArray = <T>(value: T[] | null | undefined): value is T[] => {
-  return Array.isArray(value) && value.length > 0;
-};
+export const GAME_CONSTANTS = {
+  BOARD_SIZE: 8,
+  INITIAL_PIECES: 4,
+  MAX_MOVES: 60,
+  DEFAULT_AI_DELAY: 1000, // ms
+  DEFAULT_TIME_LIMIT: 1800, // 30분
+  MIN_RATING: 800,
+  MAX_RATING: 3000,
+  INITIAL_RATING: 1200
+} as const;
 
-/**
- * 객체가 비어있지 않은지 확인
- */
-export const isNonEmptyObject = (value: object | null | undefined): value is object => {
-  return value !== null && value !== undefined && Object.keys(value).length > 0;
-};
-
-// === 버전 정보 ===
-export const TYPE_SYSTEM_VERSION = '1.0.0';
-export const LAST_UPDATED = '2024-01-XX'; // 실제 날짜로 업데이트

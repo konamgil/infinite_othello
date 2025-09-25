@@ -1,4 +1,4 @@
-import type { Engine, EngineRequest, EngineResponse } from "shared-types";
+import type { Engine, EngineRequest, EngineResponse } from "../types";
 
 let current: Engine | null = null;
 
@@ -14,7 +14,7 @@ let current: Engine | null = null;
 export async function selectEngine(tier: "A" | "B" | "C" | "D" | "NEO"): Promise<void> {
   switch (tier) {
     case "A":
-      current = (await import("engine-a")).default;
+      current = (await import("./a")).default;
       break;
     case "B":
       current = (await import("engine-b")).default;
@@ -26,10 +26,10 @@ export async function selectEngine(tier: "A" | "B" | "C" | "D" | "NEO"): Promise
       current = (await import("engine-d")).default;
       break;
     case "NEO":
-      current = (await import("engine-neo")).default;
+      current = (await import("./neo")).default;
       break;
     default:
-      current = (await import("engine-a")).default;
+      current = (await import("./a")).default;
   }
 }
 

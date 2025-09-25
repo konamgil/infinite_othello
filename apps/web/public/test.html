@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Neo AI Engine Test</title>
   <style>
+    :root {
+      color-scheme: dark;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #1a1a1a;
+      background: #0f172a;
       color: #ffffff;
       margin: 0;
       padding: 20px;
@@ -15,7 +19,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
@@ -25,50 +29,58 @@
     }
 
     .header h1 {
-      color: #00d4ff;
+      color: #38bdf8;
       margin-bottom: 10px;
+      font-size: 36px;
     }
 
     .header p {
-      color: #888;
+      color: #94a3b8;
       font-size: 18px;
+      margin: 0;
     }
 
     .engine-info {
-      background: #2a2a2a;
-      padding: 20px;
-      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.4), rgba(14, 116, 144, 0.4));
+      padding: 24px;
+      border-radius: 16px;
       margin-bottom: 30px;
-      border-left: 4px solid #00d4ff;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
     }
 
     .engine-info h2 {
-      margin-top: 0;
-      color: #00d4ff;
+      margin: 0 0 16px;
+      color: #38bdf8;
+      font-size: 22px;
     }
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
       font-family: 'Courier New', monospace;
     }
 
     .info-item {
-      background: #333;
-      padding: 10px 15px;
-      border-radius: 5px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
     }
 
     .info-label {
-      color: #888;
-      font-size: 14px;
+      color: #94a3b8;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .info-value {
-      color: #fff;
+      color: #e2e8f0;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 18px;
+      margin-top: 6px;
     }
 
     .controls {
@@ -77,38 +89,51 @@
     }
 
     .test-btn {
-      background: linear-gradient(45deg, #00d4ff, #0099cc);
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
       color: white;
       border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 17px;
+      font-weight: 600;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      margin: 0 10px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      margin: 0 10px 12px;
+      box-shadow: 0 10px 24px rgba(2, 132, 199, 0.35);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
 
+    .test-btn.secondary {
+      background: linear-gradient(135deg, #475569, #374151);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.45);
+    }
     .test-btn:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+      box-shadow: 0 14px 30px rgba(2, 132, 199, 0.4);
+    }
+
+    .test-btn.secondary:hover:not(:disabled) {
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.55);
     }
 
     .test-btn:disabled {
-      background: #666;
+      background: linear-gradient(135deg, #475569, #334155);
       cursor: not-allowed;
+      opacity: 0.55;
       transform: none;
+      box-shadow: none;
     }
 
     .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #666;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(148, 163, 184, 0.2);
+      border-top-color: #38bdf8;
       border-radius: 50%;
-      border-top-color: #00d4ff;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 10px;
+      animation: spin 0.9s ease-in-out infinite;
     }
 
     @keyframes spin {
@@ -116,106 +141,362 @@
     }
 
     .results {
-      margin-top: 30px;
+      margin-top: 32px;
     }
 
     .test-result {
-      background: #2a2a2a;
-      margin-bottom: 20px;
-      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      margin-bottom: 22px;
+      border-radius: 14px;
       overflow: hidden;
-      border-left: 4px solid #666;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.4);
     }
 
     .test-result.success {
-      border-left-color: #4ade80;
+      border-left: 4px solid #4ade80;
     }
 
     .test-result.error {
-      border-left-color: #f87171;
+      border-left: 4px solid #f87171;
     }
 
     .result-header {
-      padding: 15px 20px;
+      padding: 18px 24px;
       display: flex;
-      justify-content: between;
+      justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(148, 163, 184, 0.08);
     }
 
     .result-title {
-      font-weight: bold;
-      font-size: 16px;
+      font-weight: 600;
+      font-size: 18px;
     }
 
     .result-status {
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
     }
 
     .status-success {
       background: #4ade80;
-      color: #000;
+      color: #0b1120;
     }
 
     .status-error {
       background: #f87171;
-      color: #000;
+      color: #0b1120;
     }
 
     .result-body {
-      padding: 20px;
+      padding: 24px;
     }
 
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
     }
 
     .metric {
       text-align: center;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 5px;
+      padding: 14px;
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
     }
 
     .metric-label {
-      color: #888;
+      color: #94a3b8;
       font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
       display: block;
+      margin-bottom: 6px;
     }
 
     .metric-value {
-      color: #fff;
-      font-size: 18px;
-      font-weight: bold;
+      color: #e2e8f0;
+      font-size: 20px;
+      font-weight: 700;
       font-family: 'Courier New', monospace;
     }
 
     .error-message {
-      background: rgba(248, 113, 113, 0.1);
-      border: 1px solid #f87171;
-      color: #f87171;
-      padding: 15px;
-      border-radius: 5px;
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      padding: 18px;
+      border-radius: 10px;
       font-family: 'Courier New', monospace;
       font-size: 14px;
     }
 
-    .summary {
-      background: #2a2a2a;
-      padding: 20px;
-      border-radius: 10px;
-      border-left: 4px solid #fbbf24;
-      margin-top: 20px;
+    .game-section {
+      margin-top: 48px;
+      background: rgba(15, 23, 42, 0.76);
+      border-radius: 18px;
+      padding: 28px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.55);
     }
 
-    .summary h3 {
+    .game-section h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      color: #38bdf8;
+    }
+
+    .game-section p {
+      margin: 0 0 20px;
+      color: #94a3b8;
+    }
+
+    .game-controls {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .game-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .board-wrapper {
+      background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.2), rgba(15, 118, 110, 0.2));
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: inset 0 0 25px rgba(15, 23, 42, 0.45);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      width: min(440px, 90vw);
+      aspect-ratio: 1;
+      background: #064e3b;
+      border-radius: 18px;
+      padding: 12px;
+      box-sizing: border-box;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .board-cell {
+      position: relative;
+      background: linear-gradient(180deg, #15803d, #065f46);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .board-cell:hover:not(.disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 118, 110, 0.35);
+    }
+
+    .board-cell.disabled {
+      cursor: default;
+      opacity: 0.7;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .board-cell.valid-move::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.85);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+    }
+
+    .board-cell.last-move {
+      outline: 3px solid #fbbf24;
+      outline-offset: -3px;
+    }
+
+    .piece {
+      position: absolute;
+      width: 74%;
+      height: 74%;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .board-cell.has-piece .piece {
+      transform: scale(1);
+    }
+
+    .piece.black {
+      background: radial-gradient(circle at 30% 30%, #1e293b, #010409 65%);
+      box-shadow: inset -6px -6px 12px rgba(15, 23, 42, 0.6);
+    }
+
+    .piece.white {
+      background: radial-gradient(circle at 30% 30%, #ffffff, #cbd5f5 65%);
+      box-shadow: inset -4px -4px 10px rgba(148, 163, 184, 0.4);
+    }
+
+    .game-sidebar {
+      flex: 1;
+      min-width: 260px;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .scoreboard {
+      background: rgba(30, 41, 59, 0.8);
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .score-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .score-item .score-label {
+      font-size: 13px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .score-item .score-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-top: 4px;
+    }
+
+    .score-item.black .score-value {
+      color: #38bdf8;
+    }
+
+    .score-item.white .score-value {
+      color: #f8fafc;
+    }
+
+    .status-panel {
+      background: rgba(15, 23, 42, 0.75);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      font-size: 15px;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+    }
+
+    #game-status {
+      color: #e2e8f0;
+    }
+
+    .log-panel {
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 240px;
+    }
+
+    .log-header {
+      background: rgba(56, 189, 248, 0.12);
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #38bdf8;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    .move-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px dotted rgba(148, 163, 184, 0.1);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry .tag {
+      display: inline-block;
+      width: 48px;
+      font-weight: 700;
+    }
+
+    .log-entry.player {
+      color: #38bdf8;
+    }
+
+    .log-entry.engine {
       color: #fbbf24;
-      margin-top: 0;
+    }
+
+    .log-entry.info {
+      color: #a1a1aa;
+    }
+
+    .log-entry.error {
+      color: #fca5a5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .board {
+        width: 100%;
+      }
+
+      .test-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
     }
   </style>
 </head>
@@ -223,7 +504,7 @@
   <div class="container">
     <div class="header">
       <h1>🤖 Neo AI Engine Test</h1>
-      <p>기존 시스템을 건드리지 않고 Neo 엔진 성능 테스트</p>
+      <p>Neo 엔진의 성능과 안정성을 확인하고 직접 대국해 보세요.</p>
     </div>
 
     <div class="engine-info">
@@ -243,133 +524,581 @@
         </div>
         <div class="info-item">
           <div class="info-label">Status</div>
-          <div class="info-value" id="engine-status">Checking...</div>
+          <div class="info-value" id="engine-status">엔진 로딩 중...</div>
         </div>
       </div>
     </div>
 
     <div class="controls">
-      <button class="test-btn" id="basic-test-btn" onclick="runBasicTest()">
-        🧪 기본 성능 테스트
+      <button class="test-btn" id="basic-test-btn" disabled>
+        <span>🧪 기본 성능 테스트</span>
       </button>
-      <button class="test-btn" id="advanced-test-btn" onclick="runAdvancedTest()">
-        ⚡ 고급 성능 테스트
+      <button class="test-btn" id="advanced-test-btn" disabled>
+        <span>⚡ 고급 성능 테스트</span>
       </button>
-      <button class="test-btn" id="stress-test-btn" onclick="runStressTest()">
-        🔥 스트레스 테스트
+      <button class="test-btn" id="stress-test-btn" disabled>
+        <span>🔥 스트레스 테스트</span>
       </button>
     </div>
 
     <div id="results" class="results"></div>
+
+    <div class="game-section">
+      <h2>🎮 Neo와 실전 대국</h2>
+      <p>실제 게임 규칙으로 Neo 엔진과 교대로 수를 두며 AI의 판단을 확인해 보세요.</p>
+      <div class="game-controls">
+        <button class="test-btn" id="start-game-btn" disabled>
+          <span>🎮 게임 시작</span>
+        </button>
+        <button class="test-btn secondary" id="reset-game-btn" disabled>
+          <span>↻ 초기화</span>
+        </button>
+      </div>
+
+      <div id="game-area" class="game-area hidden">
+        <div class="board-wrapper">
+          <div id="othello-board" class="board"></div>
+        </div>
+        <div class="game-sidebar">
+          <div class="scoreboard">
+            <div class="score-row">
+              <div class="score-item black">
+                <span class="score-label">Black (You)</span>
+                <span class="score-value" id="score-black">2</span>
+              </div>
+              <div class="score-item white">
+                <span class="score-label">White (Neo)</span>
+                <span class="score-value" id="score-white">2</span>
+              </div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">현재 턴</span>
+              <span class="score-value" id="current-turn">-</span>
+            </div>
+          </div>
+          <div class="status-panel">
+            <div id="game-status">엔진을 불러오는 중입니다...</div>
+          </div>
+          <div class="log-panel">
+            <div class="log-header">Move Log</div>
+            <div id="move-log" class="move-log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
+    const DIRECTIONS = [
+      [-1, -1],
+      [0, -1],
+      [1, -1],
+      [-1, 0],
+      [1, 0],
+      [-1, 1],
+      [0, 1],
+      [1, 1]
+    ];
+
+    const COL_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
     let engineNeo = null;
+    let engineReady = false;
 
-    // 엔진 로딩
-    async function loadEngine() {
-      try {
-        // 백업 테스트용 엔진 파일 직접 복사해서 사용
-        const response = await fetch('/engine-neo-test.js');
-        if (!response.ok) {
-          throw new Error('테스트용 엔진 파일이 없습니다. 수동으로 생성이 필요합니다.');
+    const gameState = {
+      board: [],
+      human: 'black',
+      engine: 'white',
+      currentPlayer: 'black',
+      inProgress: false,
+      canClick: false,
+      validMoves: [],
+      lastMove: null,
+      moveNumber: 1
+    };
+
+    const elements = {
+      board: document.getElementById('othello-board'),
+      gameArea: document.getElementById('game-area'),
+      scoreBlack: document.getElementById('score-black'),
+      scoreWhite: document.getElementById('score-white'),
+      currentTurn: document.getElementById('current-turn'),
+      gameStatus: document.getElementById('game-status'),
+      moveLog: document.getElementById('move-log'),
+      startButton: document.getElementById('start-game-btn'),
+      resetButton: document.getElementById('reset-game-btn'),
+      basicTest: document.getElementById('basic-test-btn'),
+      advancedTest: document.getElementById('advanced-test-btn'),
+      stressTest: document.getElementById('stress-test-btn')
+    };
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function cloneBoard(board) {
+      return board.map(row => [...row]);
+    }
+
+    function inBounds(row, col) {
+      return row >= 0 && row < 8 && col >= 0 && col < 8;
+    }
+
+    function getOpponent(player) {
+      return player === 'black' ? 'white' : 'black';
+    }
+
+    function createInitialBoard() {
+      const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      board[3][3] = 'white';
+      board[3][4] = 'black';
+      board[4][3] = 'black';
+      board[4][4] = 'white';
+      return board;
+    }
+
+    function findFlips(board, player, row, col) {
+      if (board[row][col] !== null) return [];
+      const opponent = getOpponent(player);
+      const flips = [];
+
+      for (const [dr, dc] of DIRECTIONS) {
+        let r = row + dr;
+        let c = col + dc;
+        const path = [];
+
+        while (inBounds(r, c) && board[r][c] === opponent) {
+          path.push([r, c]);
+          r += dr;
+          c += dc;
         }
-        const engineCode = await response.text();
 
-        // 임시 방법: 간단한 Mock 엔진으로 테스트
-        engineNeo = {
-          name: 'Engine-Neo (Mock)',
-          version: '1.0.0-test',
-          author: 'Test Mode',
-          async analyze(request) {
-            // 실제 분석을 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+        if (path.length > 0 && inBounds(r, c) && board[r][c] === player) {
+          flips.push(...path);
+        }
+      }
 
-            const validMoves = [
-              { row: 2, col: 3 },
-              { row: 3, col: 2 },
-              { row: 4, col: 5 },
-              { row: 5, col: 4 }
-            ];
+      return flips;
+    }
 
-            const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+    function isValidMove(board, player, row, col) {
+      return findFlips(board, player, row, col).length > 0;
+    }
 
-            return {
-              bestMove: randomMove,
-              evaluation: Math.floor(Math.random() * 200 - 100),
-              depth: Math.floor(Math.random() * 8 + 6),
-              nodes: Math.floor(Math.random() * 50000 + 10000),
-              timeUsed: Math.floor(Math.random() * 800 + 200),
-              pv: [randomMove]
-            };
+    function getValidMoves(board, player) {
+      const moves = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          if (board[row][col] === null && isValidMove(board, player, row, col)) {
+            moves.push({ row, col });
           }
-        };
+        }
+      }
+      return moves;
+    }
 
-        document.getElementById('engine-name').textContent = engineNeo.name;
-        document.getElementById('engine-version').textContent = engineNeo.version;
-        document.getElementById('engine-author').textContent = engineNeo.author;
-        document.getElementById('engine-status').textContent = '✅ Ready';
+    function applyMove(board, player, move) {
+      const flips = findFlips(board, player, move.row, move.col);
+      if (flips.length === 0) return { board, flips };
 
-        console.log('Neo 엔진 로딩 완료:', engineNeo);
-      } catch (error) {
-        console.error('엔진 로딩 실패:', error);
-        document.getElementById('engine-status').textContent = '❌ Error';
-        document.getElementById('engine-name').textContent = 'Failed to load';
+      const next = cloneBoard(board);
+      next[move.row][move.col] = player;
+      for (const [r, c] of flips) {
+        next[r][c] = player;
+      }
+      return { board: next, flips };
+    }
 
-        // 결과 영역에 에러 표시
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = `
-          <div class="test-result error">
-            <div class="result-header">
-              <div class="result-title">엔진 로딩 실패</div>
-              <div class="result-status status-error">❌ ERROR</div>
-            </div>
-            <div class="result-body">
-              <div class="error-message">
-                ${error.message || error.toString()}
-              </div>
-            </div>
-          </div>
-        `;
+    function countPieces(board) {
+      let black = 0;
+      let white = 0;
+      let empty = 0;
+
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cell = board[row][col];
+          if (cell === 'black') black++;
+          else if (cell === 'white') white++;
+          else empty++;
+        }
+      }
+
+      return { black, white, empty };
+    }
+
+    function formatMove(row, col) {
+      return `${COL_LABELS[col]}${row + 1}`;
+    }
+
+    function setGameStatus(message) {
+      elements.gameStatus.textContent = message;
+    }
+
+    function clearMoveLog() {
+      elements.moveLog.innerHTML = '';
+    }
+
+    function addLogEntry(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = message;
+      elements.moveLog.appendChild(entry);
+      elements.moveLog.scrollTop = elements.moveLog.scrollHeight;
+    }
+
+    function highlightValidMoves(moves) {
+      const moveSet = new Set(moves.map(m => `${m.row}-${m.col}`));
+      Array.from(elements.board.children).forEach(cell => {
+        const key = `${cell.dataset.row}-${cell.dataset.col}`;
+        if (moveSet.has(key)) {
+          cell.classList.add('valid-move');
+          cell.classList.remove('disabled');
+        } else {
+          cell.classList.remove('valid-move');
+          cell.classList.add('disabled');
+        }
+      });
+    }
+
+    function renderBoard(highlightMoves = []) {
+      const moveSet = new Set(highlightMoves.map(m => `${m.row}-${m.col}`));
+      const lastMoveKey = gameState.lastMove ? `${gameState.lastMove.row}-${gameState.lastMove.col}` : null;
+
+      Array.from(elements.board.children).forEach(cell => {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        const pieceEl = cell.querySelector('.piece');
+        const value = gameState.board[row][col];
+
+        cell.classList.remove('valid-move', 'last-move', 'has-piece', 'disabled');
+        pieceEl.className = 'piece';
+
+        if (value === 'black' || value === 'white') {
+          cell.classList.add('has-piece');
+          pieceEl.classList.add(value);
+        }
+
+        if (lastMoveKey === `${row}-${col}`) {
+          cell.classList.add('last-move');
+        }
+
+        if (moveSet.has(`${row}-${col}`) && gameState.canClick) {
+          cell.classList.add('valid-move');
+        }
+
+        if (!gameState.canClick || !moveSet.has(`${row}-${col}`)) {
+          cell.classList.add('disabled');
+        }
+      });
+    }
+
+    function updateScoreboard(lastResult) {
+      const { black, white } = countPieces(gameState.board);
+      elements.scoreBlack.textContent = black;
+      elements.scoreWhite.textContent = white;
+
+      if (!gameState.inProgress) {
+        elements.currentTurn.textContent = '-';
+        return;
+      }
+
+      const turnLabel = gameState.currentPlayer === gameState.human ? 'You (Black)' : 'Neo (White)';
+      elements.currentTurn.textContent = turnLabel;
+
+      if (lastResult && typeof lastResult.evaluation === 'number') {
+        const advantage = lastResult.evaluation;
+        const color = advantage > 0 ? 'Neo 우세' : advantage < 0 ? 'You 우세' : '균형';
+        setGameStatus(`Neo 평가치: ${advantage} (${color})`);
       }
     }
 
-    // 기본 오델로 보드 생성
-    function createInitialBoard() {
-      const board = Array(8).fill(null).map(() => Array(8).fill(null));
-      board[3][3] = 'white';
-      board[3][4] = 'black';
-      board[4][3] = 'black';
-      board[4][4] = 'white';
-      return board;
+    function endGame() {
+      const { black, white } = countPieces(gameState.board);
+      let message = '';
+      if (black > white) message = `게임 종료! 🏆 당신이 ${black}:${white}로 승리했습니다.`;
+      else if (white > black) message = `게임 종료! 🤖 Neo가 ${white}:${black}로 승리했습니다.`;
+      else message = '게임 종료! 🤝 무승부입니다.';
+
+      addLogEntry(message, 'info');
+      setGameStatus(message);
+      gameState.inProgress = false;
+      gameState.canClick = false;
+      renderBoard();
+      elements.startButton.disabled = !engineReady;
+      elements.resetButton.disabled = false;
     }
 
-    // 중간 게임 보드 생성
-    function createMidGameBoard() {
-      const board = Array(8).fill(null).map(() => Array(8).fill(null));
+    function nextTurn(nextPlayer) {
+      const movesHuman = getValidMoves(gameState.board, gameState.human);
+      const movesEngine = getValidMoves(gameState.board, gameState.engine);
+      const { empty } = countPieces(gameState.board);
 
-      // 중반 게임 상황 설정
-      board[2][2] = 'black';
-      board[2][3] = 'white';
-      board[2][4] = 'black';
-      board[3][2] = 'white';
-      board[3][3] = 'white';
-      board[3][4] = 'black';
-      board[3][5] = 'white';
-      board[4][2] = 'black';
-      board[4][3] = 'black';
-      board[4][4] = 'white';
-      board[4][5] = 'black';
-      board[5][3] = 'white';
-      board[5][4] = 'black';
+      if ((movesHuman.length === 0 && movesEngine.length === 0) || empty === 0) {
+        endGame();
+        return;
+      }
 
-      return board;
+      if (nextPlayer === gameState.human) {
+        if (movesHuman.length === 0) {
+          addLogEntry('당신은 둘 곳이 없어 패스합니다.', 'info');
+          setGameStatus('둘 곳이 없어 패스합니다. Neo가 다시 둡니다.');
+          gameState.currentPlayer = gameState.engine;
+          gameState.canClick = false;
+          renderBoard();
+          setTimeout(() => engineTurn(movesEngine), 600);
+          return;
+        }
+
+        gameState.currentPlayer = gameState.human;
+        gameState.canClick = true;
+        gameState.validMoves = movesHuman;
+        renderBoard(movesHuman);
+        setGameStatus(`당신의 차례입니다. 가능한 수 ${movesHuman.length}개`);
+      } else {
+        if (movesEngine.length === 0) {
+          addLogEntry('Neo는 둘 곳이 없어 패스합니다.', 'info');
+          setGameStatus('Neo가 둘 곳이 없어 패스합니다. 다시 당신의 차례입니다.');
+          gameState.currentPlayer = gameState.human;
+          gameState.canClick = true;
+          gameState.validMoves = movesHuman;
+          renderBoard(movesHuman);
+          return;
+        }
+
+        gameState.currentPlayer = gameState.engine;
+        gameState.canClick = false;
+        renderBoard();
+        engineTurn(movesEngine);
+      }
     }
 
-    // 테스트 결과 표시
+    async function handleCellClick(event) {
+      if (!gameState.inProgress || !gameState.canClick) return;
+      const cell = event.currentTarget;
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+
+      if (!gameState.validMoves.some(move => move.row === row && move.col === col)) {
+        return;
+      }
+
+      gameState.canClick = false;
+      const { board, flips } = applyMove(gameState.board, gameState.human, { row, col });
+      gameState.board = board;
+      gameState.lastMove = { row, col, player: gameState.human };
+      addLogEntry(`You → ${formatMove(row, col)} (${flips.length}개 뒤집음)`, 'player');
+      updateScoreboard();
+      renderBoard();
+
+      await sleep(120);
+      nextTurn(gameState.engine);
+    }
+
+    async function engineTurn(precomputedMoves) {
+      const moves = precomputedMoves ?? getValidMoves(gameState.board, gameState.engine);
+      if (moves.length === 0) {
+        nextTurn(gameState.human);
+        return;
+      }
+
+      setGameStatus('Neo가 생각 중입니다...');
+
+      try {
+        const result = await engineNeo.analyze({
+          gameCore: {
+            id: `neo-play-${Date.now()}`,
+            board: cloneBoard(gameState.board),
+            currentPlayer: gameState.engine,
+            validMoves: [],
+            score: { black: 0, white: 0 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
+          timeLimit: 1600,
+          skill: 85
+        });
+
+        const move = result.bestMove;
+        const chosen = move && isValidMove(gameState.board, gameState.engine, move.row, move.col)
+          ? move
+          : moves[0];
+
+        if (!move) {
+          addLogEntry('Neo가 예비 수를 선택했습니다.', 'info');
+        }
+
+        const { board, flips } = applyMove(gameState.board, gameState.engine, chosen);
+        gameState.board = board;
+        gameState.lastMove = { row: chosen.row, col: chosen.col, player: gameState.engine };
+        addLogEntry(
+          `Neo → ${formatMove(chosen.row, chosen.col)} (eval ${result.evaluation}, 깊이 ${result.depth})`,
+          'engine'
+        );
+        updateScoreboard(result);
+        renderBoard();
+      } catch (error) {
+        console.error('Neo turn failed', error);
+        addLogEntry(`Neo 오류: ${error instanceof Error ? error.message : error}`, 'error');
+        setGameStatus('엔진 오류가 발생했습니다. 콘솔을 확인하세요.');
+        gameState.inProgress = false;
+        elements.startButton.disabled = false;
+        elements.resetButton.disabled = false;
+        return;
+      }
+
+      await sleep(250);
+      nextTurn(gameState.human);
+    }
+
+    function buildBoardUI() {
+      elements.board.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'board-cell disabled';
+          cell.dataset.row = String(row);
+          cell.dataset.col = String(col);
+          const piece = document.createElement('span');
+          piece.className = 'piece';
+          cell.appendChild(piece);
+          cell.addEventListener('click', handleCellClick);
+          elements.board.appendChild(cell);
+        }
+      }
+    }
+
+    function resetNeoGame() {
+      gameState.board = createInitialBoard();
+      gameState.currentPlayer = gameState.human;
+      gameState.inProgress = false;
+      gameState.canClick = false;
+      gameState.validMoves = [];
+      gameState.lastMove = null;
+      gameState.moveNumber = 1;
+      clearMoveLog();
+      renderBoard();
+      updateScoreboard();
+      setGameStatus('게임을 시작하려면 "게임 시작" 버튼을 누르세요.');
+      elements.startButton.disabled = !engineReady;
+      elements.resetButton.disabled = true;
+      elements.gameArea.classList.add('hidden');
+    }
+
+    async function startNeoGame() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
+        return;
+      }
+
+      gameState.board = createInitialBoard();
+      gameState.currentPlayer = gameState.human;
+      gameState.inProgress = true;
+      gameState.canClick = false;
+      gameState.validMoves = [];
+      gameState.lastMove = null;
+      gameState.moveNumber = 1;
+
+      elements.gameArea.classList.remove('hidden');
+      elements.startButton.disabled = true;
+      elements.resetButton.disabled = false;
+
+      clearMoveLog();
+      addLogEntry('게임을 시작합니다. 당신은 흑(선공)입니다.', 'info');
+      renderBoard();
+      updateScoreboard();
+
+      await sleep(150);
+      nextTurn(gameState.human);
+    }
+
+    function setButtonLoading(buttonId, loading) {
+      const button = document.getElementById(buttonId);
+      if (!button) return;
+
+      if (loading) {
+        if (!button.dataset.original) {
+          button.dataset.original = button.innerHTML;
+        }
+        button.disabled = true;
+        button.innerHTML = `<span class="loading"></span><span>${button.textContent.trim()}</span>`;
+      } else {
+        if (button.dataset.original) {
+          button.innerHTML = button.dataset.original;
+          delete button.dataset.original;
+        }
+        if (button !== elements.startButton || engineReady) {
+          button.disabled = false;
+        }
+      }
+    }
+
     function displayResult(testName, result) {
       const resultsDiv = document.getElementById('results');
       const isSuccess = !result.error;
+      let metricsHTML = '';
+
+      if (isSuccess && result.testCount) {
+        metricsHTML = `
+          <div class="metrics-grid">
+            <div class="metric">
+              <span class="metric-label">Runs</span>
+              <span class="metric-value">${result.testCount}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Success</span>
+              <span class="metric-value">${result.successRate}%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Avg Time</span>
+              <span class="metric-value">${result.avgTime}ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Avg Nodes</span>
+              <span class="metric-value">${result.avgNodes?.toLocaleString?.() || 0}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Total Time</span>
+              <span class="metric-value">${result.totalTime}ms</span>
+            </div>
+          </div>
+        `;
+      } else if (isSuccess) {
+        metricsHTML = `
+          <div class="metrics-grid">
+            <div class="metric">
+              <span class="metric-label">Best Move</span>
+              <span class="metric-value">${result.bestMove ? formatMove(result.bestMove.row, result.bestMove.col) : 'None'}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Evaluation</span>
+              <span class="metric-value">${result.evaluation}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Depth</span>
+              <span class="metric-value">${result.depth}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Nodes</span>
+              <span class="metric-value">${result.nodes?.toLocaleString?.() || 0}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Time</span>
+              <span class="metric-value">${result.timeUsed}ms</span>
+            </div>
+            ${result.stats?.ttHits ? `
+              <div class="metric">
+                <span class="metric-label">TT Hits</span>
+                <span class="metric-value">${result.stats.ttHits.toLocaleString()}</span>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        metricsHTML = `<div class="error-message">${result.error}</div>`;
+      }
 
       const resultHTML = `
         <div class="test-result ${isSuccess ? 'success' : 'error'}">
@@ -380,212 +1109,194 @@
             </div>
           </div>
           <div class="result-body">
-            ${isSuccess ? `
-              <div class="metrics-grid">
-                <div class="metric">
-                  <span class="metric-label">Best Move</span>
-                  <div class="metric-value">
-                    ${result.bestMove ? `(${result.bestMove.row}, ${result.bestMove.col})` : 'None'}
-                  </div>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Evaluation</span>
-                  <div class="metric-value">${result.evaluation}</div>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Depth</span>
-                  <div class="metric-value">${result.depth}</div>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Nodes</span>
-                  <div class="metric-value">${result.nodes?.toLocaleString() || 0}</div>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Time</span>
-                  <div class="metric-value">${result.timeUsed}ms</div>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">NPS</span>
-                  <div class="metric-value">
-                    ${result.nodes && result.timeUsed ?
-                      Math.round(result.nodes / (result.timeUsed / 1000)).toLocaleString() : 'N/A'
-                    }
-                  </div>
-                </div>
-              </div>
-            ` : `
-              <div class="error-message">${result.error}</div>
-            `}
+            ${metricsHTML}
           </div>
         </div>
       `;
 
-      resultsDiv.insertAdjacentHTML('beforeend', resultHTML);
+      resultsDiv.insertAdjacentHTML('afterbegin', resultHTML);
     }
 
-    // 버튼 로딩 상태 관리
-    function setButtonLoading(buttonId, loading) {
-      const button = document.getElementById(buttonId);
-      if (loading) {
-        button.innerHTML = '<div class="loading"></div>' + button.textContent;
-        button.disabled = true;
-      } else {
-        button.innerHTML = button.textContent.replace(/^.*?([🧪⚡🔥].*)/,'$1');
-        button.disabled = false;
-      }
-    }
-
-    // 기본 테스트
-    window.runBasicTest = async function() {
-      if (!engineNeo) {
-        alert('엔진이 로딩되지 않았습니다.');
+    window.runBasicTest = async function runBasicTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
         return;
       }
 
       setButtonLoading('basic-test-btn', true);
-      console.log('🧪 기본 테스트 시작...');
-
       try {
-        const gameCore = {
-          id: 'basic-test',
-          board: createInitialBoard(),
-          currentPlayer: 'black',
-          validMoves: [],
-          score: { black: 2, white: 2 },
-          status: 'playing',
-          moveHistory: [],
-          canUndo: false,
-          canRedo: false
-        };
-
         const result = await engineNeo.analyze({
-          gameCore,
+          gameCore: {
+            id: 'basic-test',
+            board: createInitialBoard(),
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 2, white: 2 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
           timeLimit: 2000,
           skill: 50
         });
-
-        console.log('✅ 기본 테스트 성공:', result);
         displayResult('기본 성능 테스트 (2초, 난이도 50)', result);
-
       } catch (error) {
-        console.error('❌ 기본 테스트 실패:', error);
-        displayResult('기본 성능 테스트', { error: error.message });
+        console.error('기본 테스트 실패', error);
+        displayResult('기본 성능 테스트', { error: error instanceof Error ? error.message : String(error) });
       } finally {
         setButtonLoading('basic-test-btn', false);
       }
     };
 
-    // 고급 테스트
-    window.runAdvancedTest = async function() {
-      if (!engineNeo) {
-        alert('엔진이 로딩되지 않았습니다.');
+    window.runAdvancedTest = async function runAdvancedTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
         return;
       }
 
       setButtonLoading('advanced-test-btn', true);
-      console.log('⚡ 고급 테스트 시작...');
-
       try {
-        const gameCore = {
-          id: 'advanced-test',
-          board: createMidGameBoard(),
-          currentPlayer: 'black',
-          validMoves: [],
-          score: { black: 8, white: 7 },
-          status: 'playing',
-          moveHistory: [],
-          canUndo: false,
-          canRedo: false
-        };
+        const board = cloneBoard(createInitialBoard());
+        board[2][2] = 'black';
+        board[2][3] = 'white';
+        board[2][4] = 'black';
+        board[3][2] = 'white';
+        board[3][3] = 'white';
+        board[3][4] = 'black';
+        board[3][5] = 'white';
+        board[4][2] = 'black';
+        board[4][3] = 'black';
+        board[4][4] = 'white';
+        board[4][5] = 'black';
+        board[5][3] = 'white';
+        board[5][4] = 'black';
 
         const result = await engineNeo.analyze({
-          gameCore,
+          gameCore: {
+            id: 'advanced-test',
+            board,
+            currentPlayer: 'black',
+            validMoves: [],
+            score: { black: 8, white: 7 },
+            status: 'playing',
+            moveHistory: [],
+            canUndo: false,
+            canRedo: false
+          },
           timeLimit: 5000,
           skill: 90
         });
-
-        console.log('✅ 고급 테스트 성공:', result);
         displayResult('고급 성능 테스트 (5초, 난이도 90, 복잡한 보드)', result);
-
       } catch (error) {
-        console.error('❌ 고급 테스트 실패:', error);
-        displayResult('고급 성능 테스트', { error: error.message });
+        console.error('고급 테스트 실패', error);
+        displayResult('고급 성능 테스트', { error: error instanceof Error ? error.message : String(error) });
       } finally {
         setButtonLoading('advanced-test-btn', false);
       }
     };
 
-    // 스트레스 테스트
-    window.runStressTest = async function() {
-      if (!engineNeo) {
-        alert('엔진이 로딩되지 않았습니다.');
+    window.runStressTest = async function runStressTest() {
+      if (!engineReady) {
+        alert('엔진이 아직 준비되지 않았습니다.');
         return;
       }
 
       setButtonLoading('stress-test-btn', true);
-      console.log('🔥 스트레스 테스트 시작...');
-
       const results = [];
       const testCount = 5;
 
       for (let i = 0; i < testCount; i++) {
         try {
-          console.log(`테스트 ${i + 1}/${testCount}...`);
-
-          const gameCore = {
-            id: `stress-test-${i}`,
-            board: i % 2 === 0 ? createInitialBoard() : createMidGameBoard(),
-            currentPlayer: i % 2 === 0 ? 'black' : 'white',
-            validMoves: [],
-            score: { black: 2 + i, white: 2 + i },
-            status: 'playing',
-            moveHistory: [],
-            canUndo: false,
-            canRedo: false
-          };
+          const board = i % 2 === 0 ? createInitialBoard() : cloneBoard(createInitialBoard());
+          if (i % 2 === 1) {
+            board[2][2] = 'black';
+            board[2][3] = 'white';
+            board[3][4] = 'black';
+            board[4][2] = 'white';
+          }
 
           const startTime = performance.now();
           const result = await engineNeo.analyze({
-            gameCore,
-            timeLimit: 1000,
-            skill: 70
+            gameCore: {
+              id: `stress-test-${i}`,
+              board,
+              currentPlayer: i % 2 === 0 ? 'black' : 'white',
+              validMoves: [],
+              score: { black: 0, white: 0 },
+              status: 'playing',
+              moveHistory: [],
+              canUndo: false,
+              canRedo: false
+            },
+            timeLimit: 1200,
+            skill: 75
           });
-          const actualTime = performance.now() - startTime;
-
-          results.push({
-            ...result,
-            testNumber: i + 1,
-            actualTime: Math.round(actualTime)
-          });
-
+          const elapsed = performance.now() - startTime;
+          results.push({ success: true, time: elapsed, nodes: result.nodes || 0 });
         } catch (error) {
-          results.push({
-            testNumber: i + 1,
-            error: error.message,
-            actualTime: 1000
-          });
+          results.push({ success: false, time: 1200, error: error instanceof Error ? error.message : String(error) });
         }
       }
 
-      // 스트레스 테스트 결과 표시
-      const successCount = results.filter(r => !r.error).length;
-      const avgTime = results.reduce((sum, r) => sum + (r.actualTime || 0), 0) / results.length;
-      const avgNodes = results.filter(r => r.nodes).reduce((sum, r) => sum + r.nodes, 0) / results.filter(r => r.nodes).length;
+      const successCount = results.filter(r => r.success).length;
+      const avgTime = Math.round(results.reduce((sum, r) => sum + r.time, 0) / results.length);
+      const avgNodes = Math.round(
+        results.filter(r => r.nodes).reduce((sum, r) => sum + r.nodes, 0) /
+        Math.max(1, results.filter(r => r.nodes).length)
+      );
 
       displayResult(`스트레스 테스트 (${testCount}회 연속)`, {
         testCount,
         successCount,
         successRate: Math.round((successCount / testCount) * 100),
-        avgTime: Math.round(avgTime),
-        avgNodes: Math.round(avgNodes || 0),
-        totalTime: Math.round(results.reduce((sum, r) => sum + (r.actualTime || 0), 0))
+        avgTime,
+        avgNodes,
+        totalTime: Math.round(results.reduce((sum, r) => sum + r.time, 0))
       });
 
-      console.log('✅ 스트레스 테스트 완료:', { successCount, avgTime, avgNodes });
       setButtonLoading('stress-test-btn', false);
     };
 
-    // 페이지 로드시 엔진 로딩
+    async function loadEngine() {
+      try {
+        const module = await import('./engine-neo.browser.js');
+        engineNeo = module.engineNeo ?? new module.EngineNeo();
+        engineReady = true;
+
+        document.getElementById('engine-name').textContent = engineNeo.name;
+        document.getElementById('engine-version').textContent = engineNeo.version || '1.0.0';
+        document.getElementById('engine-author').textContent = engineNeo.author || 'Unknown';
+        document.getElementById('engine-status').textContent = '✅ Ready';
+
+        [elements.basicTest, elements.advancedTest, elements.stressTest, elements.startButton]
+          .forEach(btn => btn.disabled = false);
+
+        setGameStatus('게임을 시작하려면 "게임 시작" 버튼을 눌러보세요.');
+      } catch (error) {
+        console.error('엔진 로딩 실패', error);
+        document.getElementById('engine-status').textContent = '❌ Failed';
+        document.getElementById('engine-name').textContent = 'Load error';
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            <div class="result-header">
+              <div class="result-title">엔진 로딩 실패</div>
+              <div class="result-status status-error">❌ ERROR</div>
+            </div>
+            <div class="result-body">
+              <div class="error-message">${error instanceof Error ? error.message : error}</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    elements.startButton.addEventListener('click', startNeoGame);
+    elements.resetButton.addEventListener('click', resetNeoGame);
+
+    buildBoardUI();
+    resetNeoGame();
     loadEngine();
   </script>
 </body>

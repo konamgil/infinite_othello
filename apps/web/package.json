@@ -12,15 +12,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
-    "core": "workspace:*",
     "engine-a": "workspace:*",
-    "engine-neo": "workspace:*",
     "lucide-react": "^0.544.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "render": "workspace:*",
-    "shared-types": "workspace:*",
     "socket.io-client": "^4.7.5",
     "xstate": "^5.14.0",
     "zustand": "^4.5.4"
