@@ -109,7 +109,7 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true
+        enabled: false // 개발 환경에서 PWA 비활성화
       }
     })
   ],

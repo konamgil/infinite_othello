@@ -4,7 +4,7 @@ import { ArrowLeft, Cpu, Sparkles } from 'lucide-react';
 
 import { StellaLayout } from '../../layouts/StellaLayout';
 import { GameController } from '../../../../components/game/GameController';
-import { SearchWorkerManager } from 'core';
+import { SearchWorkerManager } from '../../../../engine/core';
 import { engineRegistry } from '../../../../engine/EngineRegistry';
 
 export default function StellaPracticeGame() {
@@ -24,7 +24,7 @@ export default function StellaPracticeGame() {
       try {
         // Neo 엔진을 Engine Registry에 등록
         if (!engineRegistry.has('engine-neo')) {
-          const neoModule = await import('engine-neo');
+          const neoModule = await import('../../../../engine/neo/index');
           const neoInstance = neoModule.default || neoModule.engineNeo;
           
           if (neoInstance) {
@@ -48,16 +48,23 @@ export default function StellaPracticeGame() {
           }
         }
 
-        // 임시로 Worker 기능 비활성화 - Neo 엔진만 직접 사용
-        // const manager = new SearchWorkerManager({
-        //   maxWorkers: Math.min(4, Math.max(1, Math.floor(navigator.hardwareConcurrency / 2))),
-        //   workerTimeout: 30000,
-        //   enableDistributedSearch: true,
-        //   fallbackToSingleWorker: true
-        // });
+        // 워커 매니저 초기화 (엔진 모듈/심볼 지정)
+        const manager = new SearchWorkerManager({
+          maxWorkers: Math.min(4, Math.max(1, Math.floor(navigator.hardwareConcurrency / 2))),
+          workerTimeout: 30000,
+          enableDistributedSearch: true,
+          fallbackToSingleWorker: true,
+          // 빌드 산출물 기준 경로 (public/dist 또는 public)
+          // Vite dev에서는 '/search-worker.js'가 dev server에서 제공됨
+          // 엔진: Zenith 번들 사용(alphaBetaSearch export)
+          // 주: 경로는 배포 구조에 맞게 조정 가능
+          workerURL: '/search-worker.js',
+          engineModuleURL: '/engine-zenith.js',
+          engineExportName: 'alphaBetaSearch'
+        });
 
         if (active) {
-          setWorkerManager(null); // Worker 비활성화
+          setWorkerManager(manager);
           setWorkerReady(true);
           setLoadError(null);
         }
@@ -154,8 +161,6 @@ export default function StellaPracticeGame() {
             <GameController
               config={config}
               ui={{ className: 'stella-practice-game' }}
-              // Worker 매니저를 GameController에 전달
-              workerManager={workerManager}
             />
           </div>
         )}
